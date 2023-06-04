@@ -1,6 +1,8 @@
+param([string] $name,$surname,$midname,$city,$company,$department,$position)
+Set-ExecutionPolicy Unrestricted -Scope CurrentUser
 // Если я правильно понял, город и отдел выбирается в UI и хранится в бд, поэтому
 // в скрипт они передаются уже сразу
-param([string] $name,$surname,$midname,$city,$company,$department,$position)
+
 if (($name -notmatch "[^А-Яа-яеЁ-]+") -and 
 ($surname -notmatch "[^А-Яа-яеЁ-]+") -and
 ($midname -notmatch "[^А-Яа-яеЁ-]+")){
