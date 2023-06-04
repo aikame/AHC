@@ -6,17 +6,17 @@ if ($null -ne (Get-ADGroup -Identity $grpID -ErrorAction SilentlyContinue )) {
         if ( $members -notcontains $userID) {
 
         try {Add-ADGroupMember -identity $grpID -Members $userID
-            return $true
+            return "200"
         }
-        catch {return $false}
+        catch {return "400"}
         } else {
-            return $false    
+            return "404"   
         }
     } 
     else {
-        return $false
+        return "404"
     } 
 }
 else {
-    return $false
+    return "404"
 }

@@ -1,14 +1,23 @@
-param([string] $userID)
+param([string] $UserLogin)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
-if ( $null -ne (Get-ADUser -identity $userID -ErrorAction SilentlyContinue )) {
-    if ( (Get-ADUser -identity $userID  | Select-Object -expand Enabled) -eq $false) {
-    try {Enable-ADAccount -identity $userID
-        return $true}
-    catch {retutn $false }
-    } else {
-        retutn $false  
+if ( $null -ne (Get-ADUser -identity $UserLogin -ErrorAction SilentlyContinue )) {
+    if ( (Get-ADUser -identity $UserLogin  | Select-Object -expand Enabled) -eq $false) {
+        try 
+        {
+            Enable-ADAccount -identity $UserLogin
+            return "200"
+        }
+        catch 
+        {
+            return "500" 
+        }
+    } 
+    else 
+    {
+        return "410"  
     }
 }
-else {
-    return $false
+else 
+{
+    return "404"
 }

@@ -4,13 +4,13 @@ $userInfo = Get-ADUser -identity $UserLogin -ErrorAction Ignore
 if ( $null -ne $userInfo ) {
     try {
         Enable-Mailbox $UserLogin
-        return $true
+        return "200"
     } catch {
-        return $false
+        return "400"
     }              
 } 
 else {
-    return $false
+    return "404"
 }
           
         

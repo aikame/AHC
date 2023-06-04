@@ -15,5 +15,13 @@ app.MapGet("/User", async context =>
 {
     UserController.GetInfo(context);
 });
+app.MapGet("/Ban", async context =>
+{
+    UserController.BanUser(context);
+});
+app.MapGet("/Unban", async context =>
+{
+    UserController.UnbanUser(context);
+});
 
 app.Run();

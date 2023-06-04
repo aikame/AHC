@@ -7,11 +7,10 @@ if ( $null -ne $groupInfo ) {
             Container: $($groupInfo  | Select-Object -expand DistinguishedName)  
             Type: $($groupInfo  | Select-Object -expand GroupCategory)  
             Group Scope: $($groupInfo  | Select-Object -expand GroupScope)"
-            $members = "
-            Members: " + (Get-ADGroupMember $GroupLogin.Text | Select-Object -expand Name)
+            $members = "Members: " + (Get-ADGroupMember $GroupLogin.Text | Select-Object -expand Name)
             $info =  $info + $members
     return $info
 }
 else {
-    return $GroupID
+    return "404"
 }

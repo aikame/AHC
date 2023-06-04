@@ -1,8 +1,8 @@
-param([string] $userID)
+param([string] $userLogin)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
-if ($null -ne (Get-ADUser -identity $userID -ErrorAction SilentlyContinue) ) {
-    Set-ADUser -Identity $userID -replace @{msExchHideFromAddressLists=$false}
-    return $true
+if ($null -ne (Get-ADUser -identity $userLogin -ErrorAction SilentlyContinue) ) {
+    Set-ADUser -Identity $userLogin -replace @{msExchHideFromAddressLists=$false}
+    return "200"
 } else {
-    return $false
+    return "400"
 }
