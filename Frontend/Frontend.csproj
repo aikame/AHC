@@ -6,4 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="microsoft.powershell.commands.diagnostics" Version="7.3.4" />
+    <PackageReference Include="microsoft.powershell.sdk" Version="7.3.4" />
+    <PackageReference Include="microsoft.wsman.management" Version="7.3.4" />
+  </ItemGroup>
+
 </Project>

@@ -1,25 +1,31 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var builder = WebApplication.CreateBuilder();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.MapGet("/", async context =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    await context.Response.WriteAsync("Default message");
+});
 
-app.UseHttpsRedirection();
+app.MapGet("/User", async context =>
+{
+    using (var ps = PowerShell.Create())
+    {
+        InitialSessionState iss = InitialSessionState.CreateDefault();
 
-app.UseAuthorization();
+        string scriptText = File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
+        var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
+        string final = "";
+        foreach (var result in results)
+        {
 
-app.MapControllers();
+            final += result.ToString();
+        }
+        await context.Response.WriteAsync(final);
+    }
+});
 
 app.Run();
