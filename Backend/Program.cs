@@ -26,7 +26,7 @@ app.MapGet("/Unban", async context =>
 {
     UserController.UnbanUser(context);
 });
-app.MapGet("/AddToGroup" async context =>
+app.MapGet("/AddToGroup", async context =>
 {
     UserController.AddToGroup(context);
 });
