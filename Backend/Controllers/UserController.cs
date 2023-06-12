@@ -237,5 +237,40 @@ namespace Backend.Controllers
                 }
             }
         }
+        public static async void UserCreation(HttpContext context)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+
+                parameters.Add("name", context.Request.Query["name"]);
+                parameters.Add("surname", context.Request.Query["surname"]);
+                parameters.Add("midname", context.Request.Query["midname"]);
+                parameters.Add("city", context.Request.Query["city"]);
+                parameters.Add("company", context.Request.Query["company"]);
+                parameters.Add("department", context.Request.Query["department"]);
+
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync("Успех");
+                }
+                else
+                {
+                    context.Response.StatusCode = Int32.Parse(final);
+                    await context.Response.WriteAsync("Произошла ошибка");
+                }
+            }
+        }
+
     }
 }

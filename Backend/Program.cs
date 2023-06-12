@@ -50,4 +50,8 @@ app.MapGet("/ShowMailBox", async context =>
 {
     UserController.ShowMailBox(context);
 });
+app.MapGet("/CreateUser", async context =>
+{
+    UserController.UserCreation(context);
+});
 app.Run();
