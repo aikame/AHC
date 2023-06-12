@@ -1,8 +1,11 @@
 using Backend.Controllers;
+using Backend.Services;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 
 var builder = WebApplication.CreateBuilder();
+
+builder.Services.AddTransient<IPowershellService, PowershellService>();
 
 var app = builder.Build();
 
@@ -23,5 +26,6 @@ app.MapGet("/Unban", async context =>
 {
     UserController.UnbanUser(context);
 });
+
 
 app.Run();
