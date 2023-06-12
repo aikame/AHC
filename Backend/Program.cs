@@ -46,4 +46,8 @@ app.MapGet("/RemoveFromGroup", async context =>
 {
     UserController.RemoveFromGroup(context);
 });
+app.MapGet("/ShowMailBox", async context =>
+{
+    UserController.ShowMailBox(context);
+});
 app.Run();

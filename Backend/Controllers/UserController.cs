@@ -212,5 +212,30 @@ namespace Backend.Controllers
                 }
             }
         }
+        public static async void ShowMailBox(HttpContext context)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = File.ReadAllText("../../../PowershellFunctions/ShowMailBox.ps1");
+                var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
+                string final = "";
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync("Успех");
+                }
+                else
+                {
+                    context.Response.StatusCode = Int32.Parse(final);
+                    await context.Response.WriteAsync("Произошла ошибка");
+                }
+            }
+        }
     }
 }
