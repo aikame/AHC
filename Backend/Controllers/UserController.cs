@@ -182,5 +182,35 @@ namespace Backend.Controllers
                 }
             }
         }
+        public static async void RemoveFromGroup(HttpContext context)
+        {
+            using(var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+
+                parameters.Add("grpLogin", context.Request.Query["grpLogin"]);
+                parameters.Add("userLogin", context.Request.Query["userLogin"]);
+
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync("Успех");
+                }
+                else
+                {
+                    context.Response.StatusCode = Int32.Parse(final);
+                    await context.Response.WriteAsync("Произошла ошибка");
+                }
+            }
+        }
     }
 }
