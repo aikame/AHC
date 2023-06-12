@@ -38,5 +38,8 @@ app.MapGet("/CreateMailBox", async context =>
 {
     UserController.CreateMailBox(context);
 });
-
+app.MapGet("/HideMailBox", async context =>
+{
+    UserController.HideMailBox(context);
+});
 app.Run();
