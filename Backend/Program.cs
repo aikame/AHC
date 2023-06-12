@@ -30,5 +30,9 @@ app.MapGet("/AddToGroup", async context =>
 {
     UserController.AddToGroup(context);
 });
+app.MapGet("/ChangePassword", async context =>
+{
+    UserController.ChangePassword(context);
+});
 
 app.Run();
