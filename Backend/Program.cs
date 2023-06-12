@@ -34,5 +34,9 @@ app.MapGet("/ChangePassword", async context =>
 {
     UserController.ChangePassword(context);
 });
+app.MapGet("/CreateMailBox", async context =>
+{
+    UserController.CreateMailBox(context);
+});
 
 app.Run();
