@@ -1,3 +1,4 @@
+using Backend.Controllers;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 
@@ -12,20 +13,7 @@ app.MapGet("/", async context =>
 
 app.MapGet("/User", async context =>
 {
-    using (var ps = PowerShell.Create())
-    {
-        InitialSessionState iss = InitialSessionState.CreateDefault();
-
-        string scriptText = File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
-        var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
-        string final = "";
-        foreach (var result in results)
-        {
-
-            final += result.ToString();
-        }
-        await context.Response.WriteAsync(final);
-    }
+    UserController.GetInfo(context);
 });
 
 app.Run();

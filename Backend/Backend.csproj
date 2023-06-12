@@ -14,8 +14,4 @@
 	<PackageReference Include="microsoft.wsman.management" Version="7.3.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>
