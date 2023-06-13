@@ -54,4 +54,8 @@ app.MapGet("/CreateUser", async context =>
 {
     UserController.UserCreation(context);
 });
+app.MapGet("/GetGroupInfo", async context =>
+{
+    UserController.UserCreation(context);
+});
 app.Run();

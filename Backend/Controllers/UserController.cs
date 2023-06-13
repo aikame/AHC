@@ -271,6 +271,31 @@ namespace Backend.Controllers
                 }
             }
         }
+        public static async void GetGroupInfo(HttpContext context)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetGroupInfo.ps1");
+                var results = ps.AddScript(scriptText).AddParameter("GroupID", context.Request.Query["GroupID"]).Invoke();
+                string final = "";
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync("Успех");
+                }
+                else
+                {
+                    context.Response.StatusCode = Int32.Parse(final);
+                    await context.Response.WriteAsync("Произошла ошибка");
+                }
+            }
+        }
 
     }
 }
