@@ -1,22 +1,20 @@
-param([string] $grpID,$userID)
+param([string] $GroupLogin,$UserLogin)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
-if ($null -ne (Get-ADGroup -Identity $grpID -ErrorAction SilentlyContinue )) {
-    if ( $null -ne (Get-ADUser -identity $userID -ErrorAction SilentlyContinue )) {
-        $members = Get-ADGroupMember -Identity $grpID -Recursive | Select-Object -ExpandProperty SamAccountName
-        if ( $members -notcontains $userID) {
+$userInfo = Get-ADUser -identity $UserLogin -ErrorAction Ignore
+if ($null -ne (Get-ADGroup -Identity $GroupLogin -ErrorAction SilentlyContinue )) {
 
-        try {Add-ADGroupMember -identity $grpID -Members $userID
+        $members = Get-ADGroupMember -Identity $GroupLogin -Recursive | Select-Object -ExpandProperty SamAccountName
+        if ( $members -notcontains $UserLogin) {
+
+        try {Add-ADGroupMember -identity $GroupLogin -Members $UserLogin
             return "200"
         }
         catch {return "400"}
-        } else {
-            return "404"   
+        } 
+        else {
+            return "500"   
         }
     } 
-    else {
-        return "404"
-    } 
-}
 else {
     return "404"
 }

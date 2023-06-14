@@ -1,14 +1,9 @@
-param([string] $GroupID)
+param([string] $GroupLogin)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
-$groupInfo = Get-ADGroup -identity $GroupID -ErrorAction ignore
+$groupInfo = Get-ADGroup -identity $GroupLogin -ErrorAction ignore
 if ( $null -ne $groupInfo ) {
-    $info = "
-            Name: $($groupInfo  | Select-Object -expand SamAccountName) 
-            Container: $($groupInfo  | Select-Object -expand DistinguishedName)  
-            Type: $($groupInfo  | Select-Object -expand GroupCategory)  
-            Group Scope: $($groupInfo  | Select-Object -expand GroupScope)"
-            $members = "Members: " + (Get-ADGroupMember $GroupLogin.Text | Select-Object -expand Name)
-            $info =  $info + $members
+    $members = Get-ADGroupMember $GroupLogin | Select-Object -expand Name
+    $info = $groupInfo | Add-Member -MemberType NoteProperty -Name "Members" -Value $members -PassThru -Force | Select-Object  SamAccountName, DistinguishedName,GroupCategory,GroupScope,Members |ConvertTo-Json
     return $info
 }
 else {

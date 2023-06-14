@@ -7,7 +7,7 @@ namespace Backend.Controllers
 {
     public class UserController
     {
-        public static async void GetInfo(HttpContext context)
+        public static async void GetUserInfo(HttpContext context)
         {
             using (var ps = PowerShell.Create())
             {
@@ -22,6 +22,31 @@ namespace Backend.Controllers
                     final += result.ToString();
                 }
                 await context.Response.WriteAsync(final);
+            }
+        }
+        public static async void GetGroupInfo(HttpContext context)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetGroupInfo.ps1");
+                var results = ps.AddScript(scriptText).AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).Invoke();
+                string final = "";
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final != "404")
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync(final);
+                }
+                else
+                {
+                    context.Response.StatusCode = Int32.Parse(final);
+                    await context.Response.WriteAsync("Произошла ошибка");
+                }
             }
         }
         public static async void BanUser(HttpContext context)
@@ -80,10 +105,37 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
                 string scriptText = File.ReadAllText("../../../PowershellFunctions/AddToGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("grpID",context.Request.Query["grpID"]);
-                parameters.Add("userID", context.Request.Query["userID"]);
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+
+                var results = ps.AddScript(scriptText)
+                    .AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
+                string final = "";
+
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync("Успех");
+                }
+                else
+                {
+                    context.Response.StatusCode = Int32.Parse(final);
+                    Console.WriteLine($"GroupLogin = {context.Request.Query["GroupLogin"]}" +
+                        $"UserLogin = {context.Request.Query["UserLogin"]}");
+                    await context.Response.WriteAsync("Произошла ошибка");
+                }
+            }
+        }
+        public static async void RemoveFromGroup(HttpContext context)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
+                var results = ps.AddScript(scriptText)
+                    .AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
 
                 foreach (var result in results)
@@ -182,36 +234,7 @@ namespace Backend.Controllers
                 }
             }
         }
-        public static async void RemoveFromGroup(HttpContext context)
-        {
-            using(var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-
-                parameters.Add("grpLogin", context.Request.Query["grpLogin"]);
-                parameters.Add("userLogin", context.Request.Query["userLogin"]);
-
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
-                }
-                else
-                {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
-                }
-            }
-        }
+        
         public static async void ShowMailBox(HttpContext context)
         {
             using (var ps = PowerShell.Create())
@@ -271,31 +294,7 @@ namespace Backend.Controllers
                 }
             }
         }
-        public static async void GetGroupInfo(HttpContext context)
-        {
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetGroupInfo.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("GroupID", context.Request.Query["GroupID"]).Invoke();
-                string final = "";
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
-                }
-                else
-                {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
-                }
-            }
-        }
+        
 
     }
 }

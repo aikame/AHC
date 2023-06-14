@@ -16,7 +16,11 @@ app.MapGet("/", async context =>
 
 app.MapGet("/User", async context =>
 {
-    UserController.GetInfo(context);
+    UserController.GetUserInfo(context);
+});
+app.MapGet("/Group", async context =>
+{
+    UserController.GetGroupInfo(context);
 });
 app.MapGet("/Ban", async context =>
 {
@@ -30,9 +34,17 @@ app.MapGet("/AddToGroup", async context =>
 {
     UserController.AddToGroup(context);
 });
+app.MapGet("/RemoveFromGroup", async context =>
+{
+    UserController.RemoveFromGroup(context);
+});
 app.MapGet("/ChangePassword", async context =>
 {
     UserController.ChangePassword(context);
+});
+app.MapGet("/CreateUser", async context =>
+{
+    UserController.UserCreation(context);
 });
 app.MapGet("/CreateMailBox", async context =>
 {
@@ -42,20 +54,8 @@ app.MapGet("/HideMailBox", async context =>
 {
     UserController.HideMailBox(context);
 });
-app.MapGet("/RemoveFromGroup", async context =>
-{
-    UserController.RemoveFromGroup(context);
-});
 app.MapGet("/ShowMailBox", async context =>
 {
     UserController.ShowMailBox(context);
-});
-app.MapGet("/CreateUser", async context =>
-{
-    UserController.UserCreation(context);
-});
-app.MapGet("/GetGroupInfo", async context =>
-{
-    UserController.UserCreation(context);
 });
 app.Run();
