@@ -53,7 +53,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetGroupInfo.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/GetGroupInfo.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -78,7 +78,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/BanUser.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/BanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -103,7 +103,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/UnbanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -239,7 +239,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/CreateMailBox.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -264,7 +264,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/HideMailBox.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/HideMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -290,7 +290,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/ShowMailBox.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/ShowMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
