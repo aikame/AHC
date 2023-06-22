@@ -1,4 +1,4 @@
-param([string] $name,$surname,$midname,$city,$company,$department,$position)
+param([string] $name,$surname,$midname,$city,$company,$department,$appointment)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
 // Если я правильно понял, город и отдел выбирается в UI и хранится в бд, поэтому
 // в скрипт они передаются уже сразу
@@ -11,15 +11,15 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     $extAttr1.Add('Фамилия',$lastName)
     $extAttr1.Add('Отчество',$midName)
 
-    $firstName = &"$PSScriptRoot\funcs\translit.ps1" $firstName
-    $lastName = &"$PSScriptRoot\funcs\translit.ps1" $lastName
-    $midName = &"$PSScriptRoot\funcs\translit.ps1" $midName
+    $enFirstName = &"$PSScriptRoot\funcs\translit.ps1" $firstName
+    $enLastName = &"$PSScriptRoot\funcs\translit.ps1" $lastName
+    $enMidName = &"$PSScriptRoot\funcs\translit.ps1" $midName
 
 
     $extAttr1.Add('Город',$city)
     $extAttr1.Add('Компания',$company)
     $extAttr1.Add('Отдел',$department)
-    $extAttr1.Add('Должность',$position)
+    $extAttr1.Add('Должность',$appointment)
 
     $index = 0  
     $baseUserName = "$firstName.$lastName" 
@@ -40,8 +40,8 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     $UserPName = "$userName@$domain"
 
     New-ADUser -Name $UserName -UserPrincipalName $UserPName -Department $department 
-        -GivenName $firstName  -Surname $lastName -OtherName $position-SamAccountName $userName 
-        -City $city -Company $company -title $position -Enabled $true
+        -GivenName $enFirstName  -Surname $enLastName -OtherName $enMidName -SamAccountName $userName 
+        -City $city -Company $company -title $appointment -Enabled $true
                       
     Set-ADAccountPassword $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText “PASSWORD” -Force -Verbose) | Set-ADuser -ChangePasswordAtLogon $True
 
