@@ -13,7 +13,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetUserInfo.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
