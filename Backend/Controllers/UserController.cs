@@ -30,7 +30,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetGroupInfo.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/GetGroupInfo.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -55,7 +55,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/BanUser.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/BanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -80,7 +80,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/UnbanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -104,7 +104,7 @@ namespace Backend.Controllers
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/AddToGroup.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/AddToGroup.ps1");
 
                 var results = ps.AddScript(scriptText)
                     .AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
@@ -133,7 +133,7 @@ namespace Backend.Controllers
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/RemoveFromGroup.ps1");
                 var results = ps.AddScript(scriptText)
                     .AddParameter("GroupLogin", context.Request.Query["GroupLogin"]).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
@@ -159,7 +159,7 @@ namespace Backend.Controllers
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/ChangePassw.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/ChangePassw.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
                 
                 parameters.Add("userID", context.Request.Query["userID"]);
@@ -190,7 +190,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/CreateMailBox.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -215,7 +215,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/HideMailBox.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/HideMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -241,7 +241,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/ShowMailBox.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/ShowMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -265,7 +265,7 @@ namespace Backend.Controllers
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
+                string scriptText = File.ReadAllText("./PowershellFunctions/UserCreation.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
                 parameters.Add("name", context.Request.Query["name"]);
