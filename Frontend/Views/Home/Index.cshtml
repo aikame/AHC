@@ -6,3 +6,26 @@
     <h1 class="display-4">Welcum</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addmodal">
+        "Добавить"
+    </button>
+    <div class="modal fade" id="addmodal" tabindex="-1" aria-labelledby="addmodallabel" aria-hidden="true">
+        <form method="post" action="Home/AddCity">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        Добавь говна
+                    </div>
+                    <div class="modal-body">
+                        <!-- Вот здесь поля добавь-->
+                    </div>
+                    <div class="modal-footer">
+                        <!-- вот здесь кнопки крутые надо -->
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
