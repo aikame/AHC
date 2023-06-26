@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<DataContext>(options =>
+builder.Services.AddDbContext<AHCContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DataContext")
         )
@@ -26,7 +26,7 @@ if (!app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<DataContext>();
+    var context = services.GetRequiredService<AHCContext>();
     context.Database.EnsureCreated();
 }
 

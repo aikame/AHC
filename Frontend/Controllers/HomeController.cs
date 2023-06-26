@@ -9,9 +9,9 @@ namespace Frontend.Controllers
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<HomeController> _logger;
-        private readonly DataContext _context;
+        private readonly AHCContext _context;
 
-        public HomeController(IWebHostEnvironment hsEvironment, ILogger<HomeController> logger, DataContext context)
+        public HomeController(IWebHostEnvironment hsEvironment, ILogger<HomeController> logger, AHCContext context)
         {
             _webHostEnvironment = hsEvironment;
             _logger = logger;

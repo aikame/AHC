@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Frontend.Context
 {
-    public class DataContext : DbContext
+    public class AHCContext : DbContext
     {
         public DbSet<AppointmentModel> Appointments => Set<AppointmentModel>();
         public DbSet<CitiesModel> Cities => Set<CitiesModel>();
         public DbSet<CompaniesModel> Companies => Set<CompaniesModel>();
         public DbSet <DepartmentModel> Departments => Set<DepartmentModel>();
 
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
+        public AHCContext(DbContextOptions<AHCContext> options) : base(options)
         {
             Database.EnsureCreated();
         }

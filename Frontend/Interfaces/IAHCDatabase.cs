@@ -1,10 +1,12 @@
-﻿using Frontend.Models
+﻿using Frontend.Models;
 
 namespace Frontend.Interfaces
 {
     public interface IAHCDatabase
     {
-        public CitiesModel GetCityById(int id);
-        public DepartmentModel GetDepartmentByCity(CitiesModel City);
+        public List<AppointmentModel> GetAllAppointment();
+        public List<CitiesModel> GetAllCities();
+        public List<CompaniesModel> GetAllCompanies();
+        public List<DepartmentModel> GetAllDepartments();
     }
 }
