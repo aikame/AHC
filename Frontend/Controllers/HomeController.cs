@@ -19,12 +19,14 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult AddUser(CitiesModel city)
+        public async Task<IActionResult> AddUser(UserModel user)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
             return View();
         }
-
         public IActionResult Index()
         {
             ViewData["dbContext"] = _context;
