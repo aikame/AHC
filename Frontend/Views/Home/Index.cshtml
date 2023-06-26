@@ -1,7 +1,7 @@
 ﻿@using Frontend.Classes
 @using Frontend.Context
 @using Frontend.Models
-
+@model UserModel
 @{
     var db = new AHCDatabase(ViewData["dbContext"] as AHCContext);
     ViewData["Title"] = "Home Page";
