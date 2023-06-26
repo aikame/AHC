@@ -20,7 +20,7 @@ namespace Frontend.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddCity(CitiesModel city)
+        public IActionResult AddUser(CitiesModel city)
         {
             return View();
         }

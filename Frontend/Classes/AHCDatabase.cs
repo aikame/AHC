@@ -1,10 +1,9 @@
 ﻿using Frontend.Context;
-using Frontend.Interfaces;
 using Frontend.Models;
 
 namespace Frontend.Classes
 {
-    public class AHCDatabase : IAHCDatabase
+    public class AHCDatabase
     {
         readonly AHCContext _context;
 
