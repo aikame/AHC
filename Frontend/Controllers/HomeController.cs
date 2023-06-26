@@ -1,4 +1,5 @@
-﻿using Frontend.Models;
+﻿using Frontend.Context;
+using Frontend.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -8,11 +9,13 @@ namespace Frontend.Controllers
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<HomeController> _logger;
+        private readonly DataContext _context;
 
-        public HomeController(IWebHostEnvironment hsEvironment, ILogger<HomeController> logger)
+        public HomeController(IWebHostEnvironment hsEvironment, ILogger<HomeController> logger, DataContext context)
         {
             _webHostEnvironment = hsEvironment;
             _logger = logger;
+            _context = context;
         }
 
         [HttpPost]
@@ -24,11 +27,13 @@ namespace Frontend.Controllers
 
         public IActionResult Index()
         {
+            ViewData["dbContext"] = _context;
             return View();
         }
 
         public IActionResult Privacy()
         {
+            ViewData["dbContext"] = _context;
             return View();
         }
 
