@@ -16,6 +16,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	<PackageReference Include="Microsoft.Powershell.SDK" Version="7.3.4" />
+	<PackageReference Include="microsoft.powershell.commands.diagnostics" Version="7.3.4" />
+	<PackageReference Include="microsoft.wsman.management" Version="7.3.4" />
   </ItemGroup>
 
 </Project>

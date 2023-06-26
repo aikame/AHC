@@ -1,0 +1,77 @@
+﻿param([string]$mesg)
+$ABC = @{
+[char]"А" = "A";
+[char]"Б" = "B";
+[char]"В" = "V";
+[char]"Г" = "G";
+[char]"Д" = "D";
+[char]"Е" = "E";
+[char]"Ё" = "E";
+[char]"Ж" = "ZH";
+[char]"З" = "Z";
+[char]"И" = "I";
+[char]"Й" = "J";
+[char]"К" = "K";
+[char]"Л" = "L";
+[char]"М" = "M";
+[char]"Н" = "N";
+[char]"О" = "O";
+[char]"П" = "P";
+[char]"Р" = "R";
+[char]"С" = "S";
+[char]"Т" = "T";
+[char]"У" = "U";
+[char]"Ф" = "F";
+[char]"Х" = "H";
+[char]"Ц" = "C";
+[char]"Ч" = "CH";
+[char]"Ш" = "SH";
+[char]"Щ" = "SH";
+[char]"Ь" = "'";
+[char]"Ъ" = "";
+[char]"Ы" = "I";
+[char]"Э" = "A";
+[char]"Ю" = "U";
+[char]"Я" = "YA";
+[char]"а" = "a";
+[char]"б" = "b";
+[char]"в" = "v";
+[char]"г" = "g";
+[char]"д" = "d";
+[char]"е" = "e";
+[char]"ё" = "e";
+[char]"ж" = "zh";
+[char]"з" = "z";
+[char]"и" = "i";
+[char]"й" = "j";
+[char]"к" = "k";
+[char]"л" = "l";
+[char]"м" = "m";
+[char]"н" = "n";
+[char]"о" = "o";
+[char]"п" = "p";
+[char]"р" = "r";
+[char]"с" = "s";
+[char]"т" = "t";
+[char]"у" = "u";
+[char]"ф" = "f";
+[char]"х" = "h";
+[char]"ц" = "c";
+[char]"ч" = "ch";
+[char]"ш" = "sh";
+[char]"щ" = "sh";
+[char]"ь" = "'";
+[char]"ъ" = "";
+[char]"ы" = "i";
+[char]"э" = "a";
+[char]"ю" = "u";
+[char]"я" = "ya";
+ }
+$outString = ""
+foreach ($c in $msgs_char = $mesg.ToCharArray()) {
+    if ($ABC[$c] -cne $null) {
+        $outString += $ABC[$c]
+    } else {$outString += $c}
+}
+
+Write-Output ($outString.ToString())
