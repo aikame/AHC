@@ -1,4 +1,5 @@
 using Frontend.Context;
+using Frontend.Classes;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +14,10 @@ builder.Services.AddDbContext<AHCContext>(options =>
         )
     );
 
-var app = builder.Build();
+builder.WebHost.UseUrls("https://localhost:7267/");
 
+var app = builder.Build();
+HttpClass.Init("https://localhost:7267/");
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

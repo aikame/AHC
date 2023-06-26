@@ -1,7 +1,9 @@
-﻿using Frontend.Context;
+﻿using Frontend.Classes;
+using Frontend.Context;
 using Frontend.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Net;
 
 namespace Frontend.Controllers
 {
@@ -21,11 +23,22 @@ namespace Frontend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddUser(UserModel user)
         {
-            if (user == null)
+            if (user != null) 
             {
-                throw new ArgumentNullException("user");
+                var arg = new Dictionary<string, string>();
+                arg.Add("name", user.Name);
+                arg.Add("surname", user.SurName);
+                arg.Add("midname", user.MidName);
+                arg.Add("city", user.City);
+                arg.Add("company", user.Company);
+                arg.Add("departement", user.Department);
+                arg.Add("position", user.Appointment);
+
+                string result = (await HttpClass.GetInstance().Post("CreateUser", arg)).ToString();
+                Console.WriteLine(result);
             }
-            return View();
+
+            return Redirect("/");
         }
         public IActionResult Index()
         {

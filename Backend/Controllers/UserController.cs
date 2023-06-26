@@ -251,6 +251,7 @@ namespace Backend.Controllers
                 parameters.Add("city", context.Request.Query["city"]);
                 parameters.Add("company", context.Request.Query["company"]);
                 parameters.Add("department", context.Request.Query["department"]);
+                parameters.Add("position", context.Request.Query["position"]);
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";

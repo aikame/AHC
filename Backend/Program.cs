@@ -1,10 +1,14 @@
 using Backend.Controllers;
 using Backend.Services;
+using Frontend.Classes;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 
 var builder = WebApplication.CreateBuilder();
 
+
+builder.WebHost.UseUrls("https://localhost:7095/");
+HttpClass.Init("https://localhost:7095/");
 builder.Services.AddTransient<IPowershellService, PowershellService>();
 
 var app = builder.Build();
