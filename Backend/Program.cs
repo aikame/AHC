@@ -1,3 +1,4 @@
+using Backend;
 using Backend.Controllers;
 using Backend.Services;
 using Frontend.Classes;
@@ -54,8 +55,13 @@ app.MapGet("/ShowMailBox", async context =>
 {
     UserController.ShowMailBox(context);
 });
-app.MapGet("/CreateUser", async context =>
+/*app.MapGet("/CreateUser", async context =>
 {
     UserController.UserCreation(context);
+});*/
+app.MapPost("/CreateUser", async context =>
+{
+    var userModel = await context.Request.ReadFromJsonAsync<Frontend.Models.UserModel>();
+    //UserController.UserCreation(context, userModel);
 });
 app.Run();

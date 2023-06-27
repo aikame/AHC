@@ -25,16 +25,9 @@ namespace Frontend.Controllers
         {
             if (user != null) 
             {
-                var arg = new Dictionary<string, string>();
-                arg.Add("name", user.Name);
-                arg.Add("surname", user.SurName);
-                arg.Add("midname", user.MidName);
-                arg.Add("city", user.City);
-                arg.Add("company", user.Company);
-                arg.Add("departement", user.Department);
-                arg.Add("position", user.Appointment);
+              
 
-                string result = (await HttpClass.GetInstance().Post("CreateUser", arg)).ToString();
+                string result = (await HttpClass.GetInstance().Post("CreateUser", user)).ToString();
                 Console.WriteLine(result);
             }
 
