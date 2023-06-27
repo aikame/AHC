@@ -5,6 +5,9 @@ using System.Management.Automation.Runspaces;
 
 var builder = WebApplication.CreateBuilder();
 
+
+builder.WebHost.UseUrls("http://localhost:7095/");
+HttpClass.Init("http://localhost:7095/");
 builder.Services.AddTransient<IPowershellService, PowershellService>();
 
 var app = builder.Build();
