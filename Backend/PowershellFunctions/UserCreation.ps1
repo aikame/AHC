@@ -1,7 +1,26 @@
-param([string] $name,$surname,$midname,$city,$company,$department,$position)
+param([Parameter()]
+     [string]$name,
+     [Parameter()]
+     [string]$surname,
+     [Parameter()]
+     [string]$midname,
+     [Parameter()]
+     [string]$city,
+     [Parameter()]
+     [string]$RUcity,
+     [Parameter()]
+     [string]$company,
+     [Parameter()]
+     [string]$RUcompany,
+     [Parameter()]
+     [string]$department,
+     [Parameter()]
+     [string]$RUdepartment,
+     [Parameter()]
+     [string]$appointment),
+     [Parameter()]
+     [string]$RUappointment)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
-// Если я правильно понял, город и отдел выбирается в UI и хранится в бд, поэтому
-// в скрипт они передаются уже сразу
 
 if (($name -notmatch "[^А-Яа-яеЁ-]+") -and 
 ($surname -notmatch "[^А-Яа-яеЁ-]+") -and
@@ -16,10 +35,10 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     $midName = &"$PSScriptRoot\funcs\translit.ps1" $midName
 
 
-    $extAttr1.Add('Город',$city)
-    $extAttr1.Add('Компания',$company)
-    $extAttr1.Add('Отдел',$department)
-    $extAttr1.Add('Должность',$position)
+    $extAttr1.Add('Город',$RUcity)
+    $extAttr1.Add('Компания',$RUcompany)
+    $extAttr1.Add('Отдел',$RUdepartment)
+    $extAttr1.Add('Должность',$RUappointment)
 
     $index = 0  
     $baseUserName = "$firstName.$lastName" 
@@ -40,8 +59,8 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     $UserPName = "$userName@$domain"
 
     New-ADUser -Name $UserName -UserPrincipalName $UserPName -Department $department 
-        -GivenName $firstName  -Surname $lastName -OtherName $position-SamAccountName $userName 
-        -City $city -Company $company -title $position -Enabled $true
+        -GivenName $firstName  -Surname $lastName -OtherName $midname -SamAccountName $userName 
+        -City $city -Company $company -title $appointment -Enabled $true
                       
     Set-ADAccountPassword $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText “PASSWORD” -Force -Verbose) | Set-ADuser -ChangePasswordAtLogon $True
 

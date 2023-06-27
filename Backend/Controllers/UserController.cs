@@ -237,7 +237,7 @@ namespace Backend.Controllers
                 }
             }
         }
-        public static async void UserCreation(HttpContext context)
+        public static async void UserCreation(HttpContext context, UserModel user)
         {
             using (var ps = PowerShell.Create())
             {
@@ -245,13 +245,13 @@ namespace Backend.Controllers
                 string scriptText = File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("name", context.Request.Query["name"]);
-                parameters.Add("surname", context.Request.Query["surname"]);
-                parameters.Add("midname", context.Request.Query["midname"]);
-                parameters.Add("city", context.Request.Query["city"]);
-                parameters.Add("company", context.Request.Query["company"]);
-                parameters.Add("department", context.Request.Query["department"]);
-                parameters.Add("position", context.Request.Query["position"]);
+                parameters.Add("name", user.name);
+                parameters.Add("surname", user.surname);
+                parameters.Add("midname", user.midname);
+                parameters.Add("city", user.city);
+                parameters.Add("company", user.company);
+                parameters.Add("department", user.department);
+                parameters.Add("appointment", user.appointment);
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
