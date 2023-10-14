@@ -10,4 +10,8 @@
                department, RUdepartment,
                appointment, RUappointment;
     }
+    public class UserInfo {
+        public string DistinguishedName, SamAccountName, EmailAddress, PasswordLastSet, MemberOf;
+        public bool Enabled, PasswordExpired;
+    }
 }

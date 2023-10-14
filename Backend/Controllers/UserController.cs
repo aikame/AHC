@@ -2,6 +2,7 @@
 using System.Management.Automation;
 using System.DirectoryServices;
 using Microsoft.AspNetCore.Http;
+using Backend;
 
 namespace Backend.Controllers
 {
@@ -13,8 +14,8 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/GetUserInfo.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
+                string scriptText = File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
+                var results = ps.AddScript(scriptText).AddArgument(context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {

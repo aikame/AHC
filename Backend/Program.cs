@@ -1,18 +1,26 @@
 using Backend.Controllers;
 using Backend.Services;
-using Frontend.Classes;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 
 var builder = WebApplication.CreateBuilder();
 
 
-builder.WebHost.UseUrls("https://localhost:7095/");
-HttpClass.Init("https://localhost:7095/");
+builder.WebHost.UseUrls("http://localhost:7095/");
+//HttpClass.Init("https://localhost:7095/");
 builder.Services.AddTransient<IPowershellService, PowershellService>();
-
+var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy",
+                builder => builder
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .SetIsOriginAllowed((host) => true)
+                    .AllowAnyHeader());
+        });
 var app = builder.Build();
-
+app.UseCors("CorsPolicy");
 app.MapGet("/", async context =>
 {
     await context.Response.WriteAsync("Default message");
@@ -54,8 +62,8 @@ app.MapGet("/ShowMailBox", async context =>
 {
     UserController.ShowMailBox(context);
 });
-app.MapGet("/CreateUser", async context =>
+/*app.MapGet("/CreateUser", async context =>
 {
     UserController.UserCreation(context);
-});
+});*/
 app.Run();
