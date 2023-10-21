@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script >
+        async function  send_info(){
+            let UserLogin = document.getElementById("UserLoginforUserInfo").value;
+            await fetch(`http://localhost:7095/User?UserLogin=${UserLogin}`).then(response=>response.json()).then(data=>alert(JSON.stringify(data)));
+        }
+      </script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+<link rel="stylesheet" href="https://bootstrap5.ru/css/docs.css">
+  <title>{% block title %}{% endblock %}</title>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .img-circle {
+        border-radius: 50%;
+    }
+    .sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 48px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+<body>
+
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap mb-3 p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/">ИТ Академия</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" aria-label="Search">
+        <ul class="navbar-nav px-3">
+          <li class="nav-item text-nowrap">
+            <a class="nav-link" href="#">Войти</a>
+          </li>
+        </ul>
+      </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky ">
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="empoyee">
+                    <span data-feather="home"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+                      </svg>
+                      Пользователи
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="computer">
+                    <span data-feather="file"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pc-display" viewBox="0 0 16 16">
+                        <path d="M8 1a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V1Zm1 13.5a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0Zm2 0a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0ZM9.5 1a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5ZM9 3.5a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 0-1h-5a.5.5 0 0 0-.5.5ZM1.5 2A1.5 1.5 0 0 0 0 3.5v7A1.5 1.5 0 0 0 1.5 12H6v2h-.5a.5.5 0 0 0 0 1H7v-4H1.5a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .5-.5H7V2H1.5Z"/>
+                      </svg>
+                      Компьютеры
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="settings">
+                    <span data-feather="shopping-cart"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wrench-adjustable" viewBox="0 0 16 16">
+                        <path d="M16 4.5a4.492 4.492 0 0 1-1.703 3.526L13 5l2.959-1.11c.027.2.041.403.041.61Z"/>
+                        <path d="M11.5 9c.653 0 1.273-.139 1.833-.39L12 5.5 11 3l3.826-1.53A4.5 4.5 0 0 0 7.29 6.092l-6.116 5.096a2.583 2.583 0 1 0 3.638 3.638L9.908 8.71A4.49 4.49 0 0 0 11.5 9Zm-1.292-4.361-.596.893.809-.27a.25.25 0 0 1 .287.377l-.596.893.809-.27.158.475-1.5.5a.25.25 0 0 1-.287-.376l.596-.893-.809.27a.25.25 0 0 1-.287-.377l.596-.893-.809.27-.158-.475 1.5-.5a.25.25 0 0 1 .287.376ZM3 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/>
+                      </svg>
+                      Настройки
+                  </a>
+                </li>
+              </ul>
+                </li>
+              </ul>
+              
+            </div>
+          </nav>
+          <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
+            <H1>СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
+            <div class="justify-content-center col-2">
+                <img width="100" height="100" class="img-circle col" src="https://sun9-21.userapi.com/impg/kLYmbsDMA544xpCKjCT0uvCegpzkHrqqWIJygQ/gqE5Fb-WbHs.jpg?size=595x596&quality=96&sign=10ae16b0e14c631becf9b1019e383d83&type=album" alt="">
+                <div class="col">Иван Магерович</div>
+                <div>
+                    <button type="button" class="btn btn-outline-primary m-1">Активность</button>
+                    <div class="w-100"></div>
+                    <button type="button" class="btn btn-outline-primary m-1">Компьютеры</button>
+                </div>
+            </div>
+            <div class="col row">
+                <div  class="col row">
+                    <div class="col-3">Электронная почта</div><div class="col align-self-center"> IvanMagerovich@mail.com </div>
+                </div>
+                <div class="w-100"></div>
+                <div class="col row">
+                    <div class="col-3"> Дата приёма на работу</div><div class="col align-self-center"> 10.09.2003</div>
+                </div>
+                <div class="w-100"></div>
+                <div class="col row">
+                    <div class="col-3">Компания</div><div class="col align-self-center"> СФУ </div>
+                </div>
+                <div class="w-100"></div>
+                <div class="col row">
+                    <div class="col-3">Должность</div><div class="col align-self-center"> Инженер </div>
+                </div>
+                <div class="w-100"></div>
+                <div class="col row">
+                    <div class="col-3">Город</div><div class="col align-self-center">Красноярск </div>
+                </div>
+            </div>
+          </main>
+          
+        </div>
+        
+      </div>
+      
+  {% block content %}
+  {% endblock %}
+</div>
+
+</body>
+</html>

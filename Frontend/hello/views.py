@@ -1,5 +1,3 @@
-import re
-from django.utils.timezone import datetime
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -14,14 +12,13 @@ def settings(request):
         request,
         'settings/index.html',
     )
-
-def hello_there(request, name):
-    print(request.build_absolute_uri()) #optional
+def employee(request):
     return render(
         request,
-        'hello/hello_there.html',
-        {
-            'name': name,
-            'date': datetime.now()
-        }
+        'employee/index.html',
+    )
+def computer(request):
+    return render(
+        request,
+        'computer/index.html',
     )
