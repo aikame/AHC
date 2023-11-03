@@ -25,6 +25,9 @@
     .img-circle {
         border-radius: 50%;
     }
+    input {
+        margin: auto;
+    }
     .sidebar {
   position: fixed;
   top: 0;
@@ -98,6 +101,22 @@
               </ul>
             </div>
           </nav>
+          <main height="100%" class="text-center col-md-9 row ml-sm-auto col-lg-10 px-md-4">
+          <h1 class="m-3"> Добро пожаловать</h1>
+            <form>
+            <div class="form-outline text-center mb-4">
+              <input type="email" id="form2Example1" class="form-control w-50 " placeholder="Электронная почта" />
+            </div>
+          
+            <div class="form-outline text-center mb-4">
+              <input type="password" id="form2Example2" class="form-control w-50" placeholder="Пароль" />
+            </div>
+          
+          
+            <button type="button" class="btn btn-primary btn-block w-50 mb-4">Sign in</button>
+          
+          </form>
+        </main>
         </div>
       </div>
   {% block content %}

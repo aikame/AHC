@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script >
-        async function  send_info(){
-            let UserLogin = document.getElementById("UserLoginforUserInfo").value;
-            await fetch(`http://localhost:7095/User?UserLogin=${UserLogin}`).then(response=>response.json()).then(data=>alert(JSON.stringify(data)));
-        }
-      </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
 <link rel="stylesheet" href="https://bootstrap5.ru/css/docs.css">
   <title>{% block title %}{% endblock %}</title>
@@ -22,12 +16,81 @@
       -ms-user-select: none;
       user-select: none;
     }
-
+    .img-circle {
+        border-radius: 50%;
+    }
+    .sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 48px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
     @media (min-width: 768px) {
       .bd-placeholder-img-lg {
         font-size: 3.5rem;
       }
     }
+    .wrapper {
+  height: 100vh;
+  /* This part is important for centering the content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* End center */
+  background: -webkit-linear-gradient(to right, #834d9b, #d04ed6);
+  background: linear-gradient(to right, #834d9b, #d04ed6);
+}
+
+.wrapper a {
+  display: inline-block;
+  text-decoration: none;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 3px;
+  text-transform: uppercase;
+  color: #585858;
+  font-family: 'Roboto', sans-serif;
+}
+
+.modal {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(77, 77, 77, .7);
+  transition: all .4s;
+}
+
+.modal:target {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal__content {
+  border-radius: 4px;
+  position: relative;
+  width: 500px;
+  max-width: 90%;
+  background: #fff;
+  padding: 1em 2em;
+}
+
+.modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #585858;
+  text-decoration: none;
+}
   </style>
 <body>
 
@@ -39,7 +102,12 @@
         <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" aria-label="Search">
         <ul class="navbar-nav px-3">
           <li class="nav-item text-nowrap">
-            <a class="nav-link" href="#">Войти</a>
+            <a class="nav-link" href="search">Найти</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav px-3">
+          <li class="nav-item text-nowrap">
+            <a class="nav-link" href="login">Войти</a>
           </li>
         </ul>
       </nav>
@@ -82,29 +150,67 @@
               </ul>
             </div>
           </nav>
-      
-
-          
-
-          <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+          <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
             <div  class="d-flex gap-2 mb-3">
-                <div>
-                <div class="form-outline ">
-                    <input type="text" id="UserLoginforUserInfo" class="form-control"> 
-                    <label class="form-label" for="form2Example1" style="margin-left: 0px;">Логин пользователя</label>
-                  <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 88.8px;"></div><div class="form-notch-trailing"></div></div></div>
-                
-                  <button class="btn btn-primary" type="button" onclick="send_info();">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-                      </svg>
-                  Получить информацию о пользователе
+            
+
+              <script >
+              async function fetchWithTimeout(resource, options = {}) {
+                const { timeout = 10000 } = options;
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                const response = await fetch(resource, {
+                  ...options,
+                  signal: controller.signal  
+                });
+                clearTimeout(id);
+              
+                return response;
+              }
+            async function askUserInfo() {
+                try {
+                  let UserInfoModal = document.getElementById("get-info");
+                  let UserLogin = document.getElementById("UserLoginforUserInfo").value;
+                  UserInfoModal.outerHTML = "<div id='get-info' class='modal'><div class='modal__content'><p>Подождите</p></div></div>";
+                  const response = await fetchWithTimeout(`http://localhost:7095/User?UserLogin=${UserLogin}`, {
+                    timeout: 10000
+                  });
+                  const userInfo = await response.json();
+                  UserInfoModal.outerHTML = "<div class='modal__content'>" + userInfo + "<a href='#' class='modal__close'>&times;</a></div>";
+                } catch (error) {
+                  UserInfoModal.outerHTML = "<div class='modal__content'><p>Произошла ошибка</p> <a href='#' class='modal__close'>&times;</a></div>";
+                }
+                UserInfoModal.outerHTML = UserInfoModal.outerHTML;
+              }
+              </script>
+
+                <a href="#get-info">
+                <button class="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                  </svg>
+              Получить информацию о пользователе
                 </button>
-                </div>
-            
+              </a>
+
+                <div id="get-info" class="modal">
+                  <div class="modal__content">
+                      <h1>Получить информацию о пользователе</h1>
+              
+                      <p class="mb-3">
+                          Введите имя пользователя.
+                      </p>
+                      <input type="text" id="UserLoginforUserInfo" class="form-control"> 
+              
+                      <button class="btn btn-primary mt-3" type="button" onclick="askUserInfo();">
+                        Отправить
+                    </button>
+                      <a href="#" class="modal__close">&times;</a>
+                  </div>
+              </div>
                 
-            
+              <a href="#unban-user">
                 <button type="button" class="btn btn-success">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill-add" viewBox="0 0 16 16">
                         <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
@@ -112,6 +218,25 @@
                       </svg>
                     Разблокировать пользователя
                   </button>
+              </a>
+
+              <div id="unban-user" class="modal">
+                <div class="modal__content">
+                    <h1>Разблокировать пользователя</h1>
+            
+                    <p class="mb-3">
+                        Введите имя пользователя.
+                    </p>
+                    <input type="text" id="UserLoginforUserInfo" class="form-control"> 
+            
+                    <button class="btn btn-primary mt-3" type="button" onclick="send_info();">
+                      Отправить
+                  </button>
+                    <a href="#" class="modal__close">&times;</a>
+                </div>
+            </div>
+
+              <a href="#ban-user">
                   <button type="button" class="btn btn-outline-danger">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill-dash" viewBox="0 0 16 16">
                         <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM11 12h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1Zm0-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
@@ -119,7 +244,24 @@
                       </svg>
                     Заблокировать пользователя
                   </button>
+                </a>
+                  <div id="ban-user" class="modal">
+                    <div class="modal__content">
+                        <h1>Заблокировать пользователе</h1>
+                
+                        <p class="mb-3">
+                            Введите имя пользователя.
+                        </p>
+                        <input type="text" id="UserLoginforUserInfo" class="form-control"> 
+                
+                        <button class="btn btn-primary mt-3" type="button" onclick="send_info();">
+                          Отправить
+                      </button>
+                        <a href="#" class="modal__close">&times;</a>
+                    </div>
+                </div>
             </div>
+            </main>
             </div>
       
           </main>

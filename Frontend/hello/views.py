@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 
 def home(request):
@@ -21,4 +21,14 @@ def computer(request):
     return render(
         request,
         'computer/index.html',
+    )
+def search(request):
+    return render(
+        request,
+        'profileslist/index.html',
+    )
+def login(request):
+    return render(
+        request,
+        'login/index.html',
     )

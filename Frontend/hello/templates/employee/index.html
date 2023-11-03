@@ -39,6 +39,65 @@
         font-size: 3.5rem;
       }
     }
+
+    .wrapper {
+  height: 100vh;
+  /* This part is important for centering the content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* End center */
+  background: -webkit-linear-gradient(to right, #834d9b, #d04ed6);
+  background: linear-gradient(to right, #834d9b, #d04ed6);
+}
+
+.wrapper a {
+  display: inline-block;
+  text-decoration: none;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 3px;
+  text-transform: uppercase;
+  color: #585858;
+  font-family: 'Roboto', sans-serif;
+}
+
+.modal {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(77, 77, 77, .7);
+  transition: all .4s;
+}
+
+.modal:target {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal__content {
+  border-radius: 4px;
+  position: relative;
+  width: 500px;
+  max-width: 90%;
+  background: #fff;
+  padding: 1em 2em;
+}
+
+.modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #585858;
+  text-decoration: none;
+}
   </style>
 <body>
 
@@ -50,7 +109,12 @@
         <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" aria-label="Search">
         <ul class="navbar-nav px-3">
           <li class="nav-item text-nowrap">
-            <a class="nav-link" href="#">Войти</a>
+            <a class="nav-link" href="search">Найти</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav px-3">
+          <li class="nav-item text-nowrap">
+            <a class="nav-link" href="login">Войти</a>
           </li>
         </ul>
       </nav>
@@ -61,7 +125,7 @@
             <div class="position-sticky ">
               <ul class="nav flex-column">
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="empoyee">
+                  <a class="nav-link active" aria-current="page" href="employee">
                     <span data-feather="home"></span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
                         <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
@@ -95,37 +159,51 @@
             </div>
           </nav>
           <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
-            <H1>СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
-            <div class="justify-content-center col-2">
+            <H1 class="w-100 mb-3">СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
+            <div class="col-2 text-center">
                 <img width="100" height="100" class="img-circle col" src="https://sun9-21.userapi.com/impg/kLYmbsDMA544xpCKjCT0uvCegpzkHrqqWIJygQ/gqE5Fb-WbHs.jpg?size=595x596&quality=96&sign=10ae16b0e14c631becf9b1019e383d83&type=album" alt="">
                 <div class="col">Иван Магерович</div>
                 <div>
-                    <button type="button" class="btn btn-outline-primary m-1">Активность</button>
+                    <button type="button" class="btn btn-outline-primary w-100 m-1">Активность</button>
                     <div class="w-100"></div>
-                    <button type="button" class="btn btn-outline-primary m-1">Компьютеры</button>
+                    <button type="button" class="btn btn-outline-primary w-100 m-1">Компьютеры</button>
                 </div>
             </div>
-            <div class="col row">
+            <div class="col row m-3 ">
                 <div  class="col row">
-                    <div class="col-3">Электронная почта</div><div class="col align-self-center"> IvanMagerovich@mail.com </div>
+                    <div class="col-4">Электронная почта</div><div class="col-1 "> IvanMagerovich@mail.com </div>
                 </div>
-                <div class="w-100"></div>
+                <div class="w-100 border-top"></div>
                 <div class="col row">
-                    <div class="col-3"> Дата приёма на работу</div><div class="col align-self-center"> 10.09.2003</div>
+                    <div class="col-4"> Дата приёма на работу</div><div class="col-1 "> 10.09.2003</div>
                 </div>
-                <div class="w-100"></div>
+                <div class="w-100 border-top"></div>
                 <div class="col row">
-                    <div class="col-3">Компания</div><div class="col align-self-center"> СФУ </div>
+                    <div class="col-4">Компания</div><div class="col-1 "> СФУ </div>
                 </div>
-                <div class="w-100"></div>
+                <div class="w-100 border-top"></div>
                 <div class="col row">
-                    <div class="col-3">Должность</div><div class="col align-self-center"> Инженер </div>
+                    <div class="col-4">Должность</div><div class="col-1 "> Инженер </div>
                 </div>
-                <div class="w-100"></div>
+                <div class="w-100 border-top"></div>
                 <div class="col row">
-                    <div class="col-3">Город</div><div class="col align-self-center">Красноярск </div>
+                    <div class="col-4">Город</div><div class="col-1 ">Красноярск </div>
                 </div>
             </div>
+            <nav class="col-3 text-center sticky-top row shadow">
+              <h3 class=" mt-2">Действия</h3>
+              <a href="#ban-user">
+              <button type="button" class="btn btn-outline-primary mb-3">Заблокировать</button>
+            </a>
+
+            <a href="#unban-user">
+              <button type="button" class="btn btn-outline-primary mb-3">Разблокировать</button>
+            </a>
+            <a href="#change-pswd">
+              <button type="button" class="btn btn-outline-primary mb-3">Сменить пароль</button>  
+            </a>
+          
+            </nav>
           </main>
           
         </div>
@@ -133,6 +211,50 @@
       </div>
       
   {% block content %}
+  <div id="ban-user" class="modal">
+    <div class="modal__content">
+        <h1>Заблокировать пользователя</h1>
+
+        <p class="mb-3">
+            Вы уверены?
+        </p>
+        <button class="btn btn-primary mt-3" type="button" onclick="send_info();">
+          Да
+      </button>
+        <a href="#" class="modal__close">&times;</a>
+    </div>
+</div>
+
+<div id="unban-user" class="modal">
+  <div class="modal__content">
+      <h1>Разблокировать пользователя</h1>
+
+      <p class="mb-3">
+          Вы уверены?
+      </p>
+
+      <button class="btn btn-primary mt-3" type="button" onclick="send_info();">
+        Да
+    </button>
+      <a href="#" class="modal__close">&times;</a>
+  </div>
+</div>
+
+<div id="change-pswd" class="modal">
+  <div class="modal__content">
+      <h1>Сменить пароль</h1>
+
+      <p class="mb-3">
+          Введите новый пароль.
+      </p>
+      <input type="text" id="UserLoginforUserInfo" class="form-control"> 
+
+      <button class="btn btn-primary mt-3" type="button" onclick="send_info();">
+        Отправить
+    </button>
+      <a href="#" class="modal__close">&times;</a>
+  </div>
+</div>
   {% endblock %}
 </div>
 
