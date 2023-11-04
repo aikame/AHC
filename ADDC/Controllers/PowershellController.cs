@@ -1,22 +1,30 @@
-﻿using ADDC.Services;
-using ActiveDirectory.Services;
-using Newtonsoft.Json;
-using Powershell;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
+﻿
 using System.Management.Automation;
-using System.Web.Http;
-
-using Powershell.Abstractions;
+using Microsoft.AspNetCore.Mvc;
+using System.Management.Automation.Runspaces;
 
 namespace ADDC.Controllers
 {
-    [ConnectorAuthorize]
-    public class PowershellController : BaseController 
+    public class PowershellController : Controller
     {
+        [HttpPost]
+        public ActionResult ExecuteScript(HttpContext context)
+        {
+            string final = "";
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string script = HttpContext.Request.Query["Script"].ToString();
+                var results = ps.AddScript(script).Invoke();
+                
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+            }
+            return Content(final);
+        }
     }
+
 }
