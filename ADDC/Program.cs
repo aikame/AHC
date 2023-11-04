@@ -8,6 +8,7 @@ namespace ADDC
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -15,6 +16,7 @@ namespace ADDC
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("mydomain.com");
                 });
     }
 }
