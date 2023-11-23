@@ -87,7 +87,7 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("AddToGroup")]
-        public ActionResult AddToGroup([FromBody] UserModel user, [FromBody] string groupID) {
+        public ActionResult AddToGroup([FromBody] UserModel user, string groupID) {
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -113,6 +113,35 @@ namespace ADDC.Controllers
             }
         }
 
+        [HttpPost("ChangePassword")]
+        public ActionResult ChangePassword([FromBody] UserModel user, string password)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/ChangePassw.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+
+                parameters.Add("userID",user.name);
+                parameters.Add("newPasswd", password);
+
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(final);
+                }
+            }
+        }
     }
 
 }
