@@ -142,6 +142,31 @@ namespace ADDC.Controllers
                 }
             }
         }
+
+        [HttpPost("CreateMailBox")]
+        public ActionResult CreateMailBox([FromBody] UserModel user)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/CreateMailBox.ps1");
+                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.name).Invoke();
+                string final = "";
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(final);
+                }
+            }
+        }
     }
 
 }
