@@ -192,6 +192,36 @@ namespace ADDC.Controllers
                 }
             }
         }
+
+        [HttpPost("RemoveFromGroup")]
+        public ActionResult RemoveFromGroup([FromBody] UserModel user, string group)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+
+                parameters.Add("grpLogin", group);
+                parameters.Add("userLogin", user.name);
+
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(final);
+                }
+            }
+        }
     }
 
 }
