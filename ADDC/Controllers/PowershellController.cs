@@ -247,6 +247,41 @@ namespace ADDC.Controllers
                 }
             }
         }
+
+        [HttpPost("UserCreation")]
+        public ActionResult UserCreation([FromBody] UserModel user)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+
+                parameters.Add("name", user.name);
+                parameters.Add("surname", user.surname);
+                parameters.Add("midname", user.midname);
+                parameters.Add("city", user.city);
+                parameters.Add("company", user.company);
+                parameters.Add("department", user.department);
+                parameters.Add("appointment", user.appointment);
+
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "200")
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(final);
+                }
+            }
+        }
     }
 
 }
