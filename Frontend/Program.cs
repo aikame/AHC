@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AHCContext>(options =>
 builder.WebHost.UseUrls("https://localhost:7267/");
 
 var app = builder.Build();
-HttpClass.Init("https://localhost:7267/");
+HttpClass.Init("https://localhost:7095/");
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

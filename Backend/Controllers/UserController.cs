@@ -2,12 +2,16 @@
 using System.Management.Automation;
 using System.DirectoryServices;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Backend.Controllers
 {
-    public class UserController
+    [ApiController]
+    [Route("/")]
+    public class UserController : ControllerBase
     {
-        public static async void GetInfo(HttpContext context)
+        /*public static async void GetInfo(HttpContext context)
         {
             using (var ps = PowerShell.Create())
             {
@@ -55,7 +59,7 @@ namespace Backend.Controllers
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
+                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
                 string final = "";
                 foreach (var result in results)
@@ -236,22 +240,27 @@ namespace Backend.Controllers
                     await context.Response.WriteAsync("Произошла ошибка");
                 }
             }
-        }
-        public static async void UserCreation(HttpContext context, UserModel user)
+        }*/
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> UserCreation([FromBody] string user)
         {
+            UserModel user1 = JsonConvert.DeserializeObject<UserModel>(user);
+            Console.WriteLine(user1.name);
+            return Ok("asasdf");
             using (var ps = PowerShell.Create())
             {
+                
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
+                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("name", user.name);
+                /*parameters.Add("name", user.name);
                 parameters.Add("surname", user.surname);
                 parameters.Add("midname", user.midname);
                 parameters.Add("city", user.city);
                 parameters.Add("company", user.company);
                 parameters.Add("department", user.department);
-                parameters.Add("appointment", user.appointment);
+                parameters.Add("appointment", user.appointment);*/
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
@@ -262,13 +271,15 @@ namespace Backend.Controllers
                 }
                 if (final == "200")
                 {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    //context.Response.StatusCode = 200;
+                    //await context.Response.WriteAsync("Успех");
+                    return Ok(final);
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    //context.Response.StatusCode = Int32.Parse(final);
+                    //await context.Response.WriteAsync("Произошла ошибка");
+                    return Ok(final);
                 }
             }
         }

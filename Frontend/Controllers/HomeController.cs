@@ -2,8 +2,10 @@
 using Frontend.Context;
 using Frontend.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Net;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Frontend.Controllers
 {
@@ -33,8 +35,10 @@ namespace Frontend.Controllers
                 arg.Add("company", user.Company);
                 arg.Add("departement", user.Department);
                 arg.Add("position", user.Appointment);
-
-                string result = (await HttpClass.GetInstance().Post("CreateUser", arg)).ToString();
+                Console.WriteLine(user.Name);
+                string json = JsonConvert.SerializeObject(user);
+                
+                string result = (await HttpClass.GetInstance().Post("CreateUser", json)).ToString();
                 Console.WriteLine(result);
             }
 
