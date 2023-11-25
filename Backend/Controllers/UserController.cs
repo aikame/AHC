@@ -4,6 +4,7 @@ using System.DirectoryServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Security.Policy;
 
 namespace Backend.Controllers
 {
@@ -246,42 +247,28 @@ namespace Backend.Controllers
         {
             UserModel user1 = JsonConvert.DeserializeObject<UserModel>(user);
             Console.WriteLine(user1.name);
-            return Ok("asasdf");
-            using (var ps = PowerShell.Create())
+            string domain = "localhost:7096";
+
+            using (HttpClient client = new HttpClient())
             {
+                // Создаем объект содержащий данные для отправки
                 
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                /*parameters.Add("name", user.name);
-                parameters.Add("surname", user.surname);
-                parameters.Add("midname", user.midname);
-                parameters.Add("city", user.city);
-                parameters.Add("company", user.company);
-                parameters.Add("department", user.department);
-                parameters.Add("appointment", user.appointment);*/
+                // Отправляем POST запрос с данными в виде JSON
+                HttpResponseMessage response = await client.PostAsJsonAsync(domain+"/CreateUser", user);
 
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-
-                foreach (var result in results)
+                // Проверяем успешность запроса
+                if (response.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    //context.Response.StatusCode = 200;
-                    //await context.Response.WriteAsync("Успех");
-                    return Ok(final);
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    //context.Response.StatusCode = Int32.Parse(final);
-                    //await context.Response.WriteAsync("Произошла ошибка");
-                    return Ok(final);
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
+            
+            
         }
 
     }
