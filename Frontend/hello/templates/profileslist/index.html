@@ -64,124 +64,36 @@
   </style>
 <body>
 
-    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap mb-3 p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/">ИТ Академия</a>
-        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" aria-label="Search">
-        <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
-              <a class="nav-link" href="search">Найти</a>
-            </li>
-          </ul>
-        <ul class="navbar-nav px-3">
-          <li class="nav-item text-nowrap">
-            <a class="nav-link" href="login">Войти</a>
-          </li>
-        </ul>
-      </nav>
+    {% include "../Base/navbar.html" %}
 
     <div class="container-fluid">
         <div class="row">
-          <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-            <div class="position-sticky ">
-              <ul class="nav flex-column">
-                <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="employee">
-                    <span data-feather="home"></span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
-                      </svg>
-                      Пользователи
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="computer">
-                    <span data-feather="file"></span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pc-display" viewBox="0 0 16 16">
-                        <path d="M8 1a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V1Zm1 13.5a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0Zm2 0a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0ZM9.5 1a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5ZM9 3.5a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 0-1h-5a.5.5 0 0 0-.5.5ZM1.5 2A1.5 1.5 0 0 0 0 3.5v7A1.5 1.5 0 0 0 1.5 12H6v2h-.5a.5.5 0 0 0 0 1H7v-4H1.5a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .5-.5H7V2H1.5Z"/>
-                      </svg>
-                      Компьютеры
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="settings">
-                    <span data-feather="shopping-cart"></span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wrench-adjustable" viewBox="0 0 16 16">
-                        <path d="M16 4.5a4.492 4.492 0 0 1-1.703 3.526L13 5l2.959-1.11c.027.2.041.403.041.61Z"/>
-                        <path d="M11.5 9c.653 0 1.273-.139 1.833-.39L12 5.5 11 3l3.826-1.53A4.5 4.5 0 0 0 7.29 6.092l-6.116 5.096a2.583 2.583 0 1 0 3.638 3.638L9.908 8.71A4.49 4.49 0 0 0 11.5 9Zm-1.292-4.361-.596.893.809-.27a.25.25 0 0 1 .287.377l-.596.893.809-.27.158.475-1.5.5a.25.25 0 0 1-.287-.376l.596-.893-.809.27a.25.25 0 0 1-.287-.377l.596-.893-.809.27-.158-.475 1.5-.5a.25.25 0 0 1 .287.376ZM3 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/>
-                      </svg>
-                      Настройки
-                  </a>
-                </li>
-              </ul>
-                </li>
-              </ul>
+          {% include "../Base/sidebar.html" %}
+          <main  class=" row ml-sm-auto h-100 col-lg-10 pl-md-4">
+            <div id="table_profiles">
+              <table>
+                <table class="table table-hover">
+                  <tbody>
+                    <tr>
+                        <td class="fullName">Имя</td>
+                        <td class="image"></td>
+                        <td class="Job title">Должность</td>
+                        <td class="city">Город</td>
+                        <td class="Email">Эл. Почта</td>     
+                    </tr>
+                    
+                    {% for row in profiles_json%}
+                    <tr onclick='window.location="/employee/{{row.id}}";'>
+                      <td class="fullName">{{row.source.name}} {{row.source.surname}}</td>
+                      <td class="image"><img width="100" height="100" src={{row.source.img_src}} alt=""></td>
+                      <td class="Job title">{{row.source.appointment}}</td>
+                      <td class="city">{{row.source.city}}</td>
+                      <td class="Email">{{row.source.email}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+              </table>
             </div>
-          </nav>
-          <main  class=" row ml-sm-auto h-100 col-lg-10 px-md-4">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <tbody>
-                
-                <tr>
-                    <td class="fullName">Имя</td>
-                    <td class="image"></td>
-                    <td class="Job title">Должность</td>
-                    <td class="city">Город</td>
-                    <td class="PhoneNumbre">Номер Телефона</td>
-                    <td class="Email">Эл. Почта</td>
-                    <td class="UserLink"> Аккаунты пользователя </td>        
-            </tr>
-            
-                <tr onclick="window.location='employee';">
-                <td class="fullName">Василий Петрович</td>
-                <td class="image"><img width="100" height="100" src="https://www.bootdey.com/image/400x300/FF8C00" alt=""></td>
-                <td class="Job title">Специалист</td>
-                <td class="city">Красноярск</td>
-                <td class="PhoneNumbre">+79530625969</td>
-                <td class="Email">VasPetr@gma.com</td>
-                <td class="UserLink"> <a href="">Adatum/VasPetr</a> </td>
-              </tr>
-              <tr>
-                <td class="fullName">Василий Петрович</td>
-                <td class="image"><img width="100" height="100" src="https://www.bootdey.com/image/400x300/FF8C00" alt=""></td>
-                <td class="Job title">Специалист</td>
-                <td class="city">Красноярск</td>
-                <td class="PhoneNumbre">+79530625969</td>
-                <td class="Email">VasPetr@gma.com</td>
-                <td class="UserLink"> <a href="">Adatum/VasPetr</a> </td>
-              </tr>
-              <tr>
-                <td class="fullName">Василий Петрович</td>
-                <td class="image"><img width="100" height="100" src="https://www.bootdey.com/image/400x300/FF8C00" alt=""></td>
-                <td class="Job title">Специалист</td>
-                <td class="city">Красноярск</td>
-                <td class="PhoneNumbre">+79530625969</td>
-                <td class="Email">VasPetr@gma.com</td>
-                <td class="UserLink"> <a href="">Adatum/VasPetr</a> </td>
-              </tr>
-              <tr>
-                <td class="fullName">Василий Петрович</td>
-                <td class="image"><img width="100" height="100" src="https://www.bootdey.com/image/400x300/FF8C00" alt=""></td>
-                <td class="Job title">Специалист</td>
-                <td class="city">Красноярск</td>
-                <td class="PhoneNumbre">+79530625969</td>
-                <td class="Email">VasPetr@gma.com</td>
-                <td class="UserLink"> <a href="">Adatum/VasPetr</a> </td>
-              </tr>
-            </tbody></table>
-            <ul class="pagination">
-                <a href="#">«</a>
-                <a href="#">1</a>
-                <a href="#">2</a>
-                <a href="#">3</a>
-                <a href="#">4</a>
-                <a href="#">5</a>
-                <a href="#">»</a>
-              </ul>
-          </div>
         </main>
         </div>
       </div>

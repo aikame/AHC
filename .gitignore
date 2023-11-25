@@ -301,7 +301,7 @@ node_modules/
 **/*.Server/GeneratedArtifacts
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
-
+Elastic/elasticsearch-8.1.0/jdk/lib/modules
 # Paket dependency manager
 .paket/paket.exe
 paket-files/

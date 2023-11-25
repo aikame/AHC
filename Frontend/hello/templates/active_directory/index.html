@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script>
+        async function hideMail() {
+            try {
+                
+                await fetch(`http://localhost:8001/hideMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                let body = document.getElementById("hideMailModalBody");
+                body.innerText = "Почтовый ящик был успешно скрыт";
+            } catch {
+                let body = document.getElementById("hideMailModalBody");
+                body.innerText = "Почтовый ящик не удалось скрыть"; 
+                $('#hideMailModal').modal('show');
+            }
+        }
+        async function showMail() {
+            try {
+                
+                await fetch(`http://localhost:8001/showMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                let body = document.getElementById("showMailModalBody");
+                body.innerText = "Почтовый ящик снова показан";
+            } catch {
+                let body = document.getElementById("showMailModalBody");
+                body.innerText = "Почтовый ящик не удалось показать"; 
+                $('#showMailModal').modal('show');
+            }
+        }
+        async function ban() {
+            try {
+                
+                await fetch(`http://localhost:8001/ban/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                let body = document.getElementById("banModalBody");
+                body.innerText = "Пользователь был заблокирован";
+            } catch {
+                let body = document.getElementById("banModalBody");
+                body.innerText = "Пользователя не удалось заблокировать"; 
+                $('#banModal').modal('show');
+            }
+        }
+        async function unban() {
+            try {
+                
+                await fetch(`http://localhost:8001/unban/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                let body = document.getElementById("unbanModalBody");
+                body.innerText = "Пользователя удалось разблокировать";
+            } catch {
+                let body = document.getElementById("unbanModalBody");
+                body.innerText = "Пользователя не удалось разблокировать"; 
+                $('#unbanModal').modal('show');
+            }
+        }
+        async function addToGroup() {
+            try {
+                
+                await fetch(`http://localhost:8001/addToGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                let body = document.getElementById("addGroupStatus");
+                body.innerHTML = '<span id="addGroupStatus" class="text-success">Пользователь добавлен в группу</span>';
+            } catch {
+                let body = document.getElementById("addGroupStatus");
+                body.innerHTML = '<span id="addGroupStatus" class="text-danger">Пользователь не был добавлен в группу</span>';
+            }
+        }
+        async function remFromGroup() {
+            try {
+                
+                await fetch(`http://localhost:8001/remFromGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                let body = document.getElementById("remGroupStatus");
+                body.innerHTML = '<span id="remGroupStatus" class="text-success">Пользователь исключён из группы</span>';
+            } catch {
+                let body = document.getElementById("remGroupStatus");
+                body.innerHTML = '<span id="remGroupStatus" class="text-danger">Пользователь не был исключён из группы</span>';
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+        integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://bootstrap5.ru/css/docs.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <title>{% block title %}{% endblock %}</title>
+    {% load bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <style>
+        .sidebar {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          z-index: 100;
+          /* Behind the navbar */
+          padding: 48px 0 0;
+          /* Height of navbar */
+          box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        }
+    
+      </style>
+</head>
+
+
+
+<body>
+
+    {% include "../Base/navbar.html" %}
+
+    <div class="container-fluid">
+        <div class="row">
+            {% include "../Base/sidebar.html" %}
+            <main height="100%" class="col-md-9 col row ml-sm-auto col-lg-10 px-md-4">
+                <H1 class="w-100 mb-3">Учётная запись Active Directory: {{id}}</H1>
+
+                <div class="col row m-3 ">
+
+                    <nav>
+                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                            <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home"
+                                role="tab" aria-controls="nav-home" aria-selected="true">Главная</a>
+                            <a class="nav-item nav-link" id="nav-groups-tab" data-toggle="tab" href="#nav-groups"
+                                role="tab" aria-controls="nav-groups" aria-selected="false">Группы</a>
+                        </div>
+
+                    </nav>
+                    <div class="tab-content" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="nav-home" role="tabpanel"
+                            aria-labelledby="nav-home-tab">
+
+                            <div class="col row">
+                                <div class="col-4">Электронная почта</div>
+                                <div class="col-1 "> </div>
+                            </div>
+                            <div class="w-100 border-top"></div>
+                            <div class="col row">
+                                <div class="col-4"> Статус учётной записи</div>
+                                <div class="col-1 "> </div>
+                            </div>
+                            <div class="w-100 border-top"></div>
+                            <div class="col row">
+                                <div class="col-4">Статус пароля</div>
+                                <div class="col-1 "> </div>
+                            </div>
+                            <div class="w-100 border-top"></div>
+                            <div class="col row">
+                                <div class="col-4">Дата смены пароля</div>
+                                <div class="col-1 "> </div>
+                            </div>
+                            <div class="w-100 border-top"></div>
+                        </div>
+                        <div class="tab-pane fade" id="nav-groups" role="tabpanel" aria-labelledby="nav-groups-tab">
+                            {% for group in profile_json.groups%}
+                            <div class="col">
+                                {{group}}
+                            </div>
+                            <div class="w-100 border-top"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="w-100 col ">
+                    <button type="button" onclick="ban()" class="btn btn-primary mx-1 my-1 col"> Заблокировать</button>
+                    <button type="button" onclick="unban()" class="btn btn-primary mx-1 my-1 col"> Разблокировать</button>
+                    <button type="button" data-toggle="modal" data-target="#addGroupModal" class="btn btn-primary mx-1 my-1 col"> Добавить в группу</button>
+                    <button type="button" data-toggle="modal" data-target="#remGroupModal" class="btn btn-primary mx-1 my-1 col"> Исключить из группы</button>
+                    <button type="button" onclick="hideMail()" class="btn btn-primary mx-1 my-1 col"> Скрыть ящик из адресной книги</button>
+                    <button type="button" onclick="showMail()" class="btn btn-primary mx-1 my-1 col"> Показать ящик в адресной книге</button>
+                </div>
+            </main>
+        </div>
+    </div>
+    </div>
+<!--Разблокировать пользователя-->
+    <div class="modal fade" id="unbanModal" tabindex="-1" role="dialog" aria-labelledby="unbanModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="unbanModalLabel">Разблокировать пользователя</h5>
+                </div>
+                <div class="modal-body" >
+                    <span id="unbanModalBody"> Пользователь не удалось разблокировать. </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Заблокировать пользователя-->
+    <div class="modal fade" id="banModal" tabindex="-1" role="dialog" aria-labelledby="banModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="banModalLabel">Заблокировать пользователя</h5>
+                </div>
+                <div class="modal-body" >
+                    <span id="banModalBody"> Пользователя удалось заблокировать. </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Показать ящик пользователя-->
+    <div class="modal fade" id="showMailModal" tabindex="-1" role="dialog" aria-labelledby="showMailModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="showModalLabel">Показать почтовый ящик</h5>
+                </div>
+                <div class="modal-body" >
+                    <!--Поле для ответа Показать почтовый ящик-->
+                    <span id="showMailModalBody"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Скрыть ящик пользователя-->
+    <div class="modal fade" id="hideMailModal" tabindex="-1" role="dialog" aria-labelledby="hideMailModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hideMailModalLabel">Скрыть почтовый ящик</h5>
+                </div>
+                <div class="modal-body" >
+                    <!--Поле для ответа Скрыть почтовый ящик-->
+                    <span id="hideMailModalBody"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Добавление в группу-->
+    <div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="addGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addGroupModalLabel">Добваить в группу</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="form-group">
+                  <label for="group-name" class="col-form-label">Название группы:</label>
+                  <input type="text" class="form-control" id="group-name">
+                  <span id="addGroupStatus"></span>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+              <button type="button" onclick="addToGroup()" class="btn btn-primary">Добавить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Исключение из группы-->
+    <div class="modal fade" id="remGroupModal" tabindex="-1" role="dialog" aria-labelledby="remGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="remGroupModalLabel">Исключить из группу</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="form-group">
+                  <label for="group-name" class="col-form-label">Название группы:</label>
+                  <input type="text" class="form-control" id="group-name">
+                  <span id="remGroupStatus"></span>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+              <button type="button" onclick="remFromGroup()" class="btn btn-primary">Добавить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+</body>
+
+</html>
