@@ -5,6 +5,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Policy;
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
+using System;
+using Frontend.Classes;
 
 namespace Backend.Controllers
 {
@@ -243,22 +248,25 @@ namespace Backend.Controllers
             }
         }*/
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> UserCreation([FromBody] string user)
+        public async Task<IActionResult> UserCreation([FromBody] string data)
         {
-            UserModel user1 = JsonConvert.DeserializeObject<UserModel>(user);
-            Console.WriteLine(user1.name);
-            string domain = "localhost:7096";
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
 
             using (HttpClient client = new HttpClient())
             {
-                // Создаем объект содержащий данные для отправки
-                
 
                 // Отправляем POST запрос с данными в виде JSON
-                HttpResponseMessage response = await client.PostAsJsonAsync(domain+"/CreateUser", user);
+                //HttpResponseMessage response = await client.PostAsJsonAsync(domain + "/UserCreation", user);
 
+                var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
                 // Проверяем успешность запроса
-                if (response.IsSuccessStatusCode)
+                if (result.IsSuccessStatusCode)
                 {
                     return Ok("Запрос выполнен успешно.");
                 }
@@ -267,9 +275,8 @@ namespace Backend.Controllers
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
-            
-            
         }
+
 
     }
 }

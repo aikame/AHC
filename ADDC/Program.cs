@@ -15,8 +15,8 @@ namespace ADDC
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("mydomain.com");
+                    webBuilder.UseUrls("http://localhost:7096");
+                    webBuilder.UseStartup<Startup>();                    
                 });
     }
 }

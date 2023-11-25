@@ -10,12 +10,12 @@ using Microsoft.AspNetCore.Http;
 using System;
 using ADDC.Models;
 using System.Net.Sockets;
-
+using Newtonsoft.Json;
 
 namespace ADDC.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("/")]
     public class PowershellController : Controller
     {
         [HttpPost("GetInfo")]
@@ -249,8 +249,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("UserCreation")]
-        public ActionResult UserCreation([FromBody] UserModel user)
+        public ActionResult UserCreation([FromBody] string data)
         {
+            var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();

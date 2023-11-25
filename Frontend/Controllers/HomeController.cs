@@ -3,8 +3,11 @@ using Frontend.Context;
 using Frontend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
+using System.Text.Json.Nodes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Frontend.Controllers
@@ -25,7 +28,7 @@ namespace Frontend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddUser(UserModel user)
         {
-            if (user != null) 
+            if (user != null)
             {
                 var arg = new Dictionary<string, string>();
                 arg.Add("name", user.Name);
@@ -35,14 +38,20 @@ namespace Frontend.Controllers
                 arg.Add("company", user.Company);
                 arg.Add("departement", user.Department);
                 arg.Add("position", user.Appointment);
+
                 Console.WriteLine(user.Name);
-                string json = JsonConvert.SerializeObject(user);
-                
+                string domain = "https://localhost:7096";
+                var requestData = new
+                {
+                    user = user,
+                    domain = domain
+                };
+                var json = JsonConvert.SerializeObject(requestData);
+
                 string result = (await HttpClass.GetInstance().Post("CreateUser", json)).ToString();
                 Console.WriteLine(result);
             }
-
-            return Redirect("/");
+                return Redirect("/");
         }
         public IActionResult Index()
         {
