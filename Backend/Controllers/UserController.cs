@@ -37,7 +37,7 @@ namespace Backend.Controllers
                 //Console.WriteLine(usr.Name);
                 if (result.IsSuccessStatusCode)
                 {
-                    return Content(responseContent); // ?????
+                    return Content(responseContent);
                 }
                 else
                 {
