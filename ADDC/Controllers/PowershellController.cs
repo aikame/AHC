@@ -34,7 +34,8 @@ namespace ADDC.Controllers
 
                     final += result.ToString();
                 }
-                return Content(final);
+                var response = JsonConvert.SerializeObject(final);
+                return Content(response);
             }
         }
         [HttpPost("BanUser")]

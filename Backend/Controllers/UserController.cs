@@ -11,6 +11,7 @@ using System.Text.Json.Nodes;
 using System;
 using Frontend.Classes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Azure;
 
 namespace Backend.Controllers
 {
@@ -30,10 +31,13 @@ namespace Backend.Controllers
 
 
                 var result = await client.PostAsJsonAsync(domain + "/GetInfo", JsonConvert.SerializeObject(user));
-                Console.WriteLine(result.ToString());
+                var responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+                //UserModel usr = JsonConvert.DeserializeObject<UserModel>(responseContent);
+                //Console.WriteLine(usr.Name);
                 if (result.IsSuccessStatusCode)
                 {
-                    return Content(JsonConvert.SerializeObject(result.Content)); // ?????
+                    return Content(responseContent); // ?????
                 }
                 else
                 {
