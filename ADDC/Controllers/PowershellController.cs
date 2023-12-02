@@ -19,14 +19,15 @@ namespace ADDC.Controllers
     public class PowershellController : Controller
     {
         [HttpPost("GetInfo")]
-        public ActionResult GetInfo(HttpContext context)
+        public ActionResult GetInfo([FromBody] string data)
         {
+            var user = JsonConvert.DeserializeObject<string>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/GetUserInfo.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
@@ -37,8 +38,9 @@ namespace ADDC.Controllers
             }
         }
         [HttpPost("BanUser")]
-        public ActionResult BanUser([FromBody] UserModel user)
+        public ActionResult BanUser([FromBody] string data)
         {
+            var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -62,8 +64,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("UnbanUser")]
-        public ActionResult UnbanUser([FromBody] UserModel user)
+        public ActionResult UnbanUser([FromBody] string data)
         {
+            var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -87,13 +90,16 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("AddToGroup")]
-        public ActionResult AddToGroup([FromBody] UserModel user, string groupID) {
+        public ActionResult AddToGroup([FromBody] string data) {
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string group = jsonData["group"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/AddToGroup.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("grpID", groupID);
+                parameters.Add("grpID", group);
                 parameters.Add("userID", user.name);
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
@@ -114,8 +120,11 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("ChangePassword")]
-        public ActionResult ChangePassword([FromBody] UserModel user, string password)
+        public ActionResult ChangePassword([FromBody] string data)
         {
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string password = jsonData["password"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -144,8 +153,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("CreateMailBox")]
-        public ActionResult CreateMailBox([FromBody] UserModel user)
+        public ActionResult CreateMailBox([FromBody] string  data)
         {
+            var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -169,8 +179,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("HideMailBox")]
-        public ActionResult HideMailBox([FromBody] UserModel user)
+        public ActionResult HideMailBox([FromBody] string data)
         {
+            var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -194,8 +205,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("ShowMailBox")]
-        public ActionResult ShowMailBox([FromBody] UserModel user)
+        public ActionResult ShowMailBox([FromBody] string data)
         {
+            var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
@@ -219,8 +231,11 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("RemoveFromGroup")]
-        public ActionResult RemoveFromGroup([FromBody] UserModel user, string group)
+        public ActionResult RemoveFromGroup([FromBody] string data)
         {
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string group = jsonData["group"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
