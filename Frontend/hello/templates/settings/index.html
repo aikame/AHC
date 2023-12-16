@@ -3,18 +3,6 @@
 <head>
   <script>
 
-function formToJson(){
-        var formElement = document.getElementsByTagName("form")[0],
-            inputElements = formElement.getElementsByTagName("input"),
-            jsonObject = {};
-        for(var i = 0; i < inputElements.length; i++){
-            var inputElement = inputElements[i];
-            jsonObject[inputElement.name] = inputElement.value;
-
-        }
-        alert(JSON.stringify(jsonObject));
-        return false;
-    }
   </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
   integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
@@ -67,7 +55,7 @@ function formToJson(){
                     </button>
                   </div>
                   <div class="modal-body">
-                    <form id="userForm" onsubmit=return formToJson()">
+                    <form  method="POST">
                       <div class="form-group">
                         <label for="name" class="col-form-label">Имя:</label>
                         <input type="text" class="form-control" id="name" name="name"  required>
@@ -96,8 +84,6 @@ function formToJson(){
                         <label for="img_src" class="col-form-label">Ссылка на аватар:</label>
                         <input type="text" class="form-control" id="img_src" name="img_src" required>
             
-                        <label for="account" class="col-form-label">Учётная запись:</label>
-                        <input type="text" class="form-control" id="account" name="account" required>
                       </div>
                       <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>

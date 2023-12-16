@@ -29,17 +29,24 @@ def profile_detail(request):
         response = requests.get('http://localhost:9200/users/_search')
         return Response(response.json())
 
-@api_view(['GET'])
+
+
+@api_view(['GET','DELETE', 'POST'])
 def get_one(request):
-    data = json.loads(request.body)
-    
-    response = requests.get("http://localhost:9200/users/_search", data='{"query": {"term": {"_id": "'+ data["id"]+'"}}}',headers={"Content-Type":"application/json"})
-    return Response(response.json())
+    if request.method == 'GET':
+        data = json.loads(request.body)
+        response = requests.get("http://localhost:9200/users/_search", data='{"query": {"term": {"_id": "'+ data["id"]+'"}}}',headers={"Content-Type":"application/json"})
+        return Response(response.json())
+    elif request.method == 'DELETE':
+        data = json.loads(request.body)
+        response = requests.delete(f"http://localhost:9200/users/_doc/{data['id']}",headers={"Content-Type":"application/json"})
+        return Response(response.json())
+    elif request.method == 'POST':
+        print(request.body)
+        return Response(data="{'status':'success'}", status=status.HTTP_201_CREATED)
 @api_view(['GET'])
 def get_text(request):
     data = json.loads(request.body)
     data_text = '{"query": {"simple_query_string": {"query": "'+ data["text"] +'"}}}'
     response = requests.get("http://localhost:9200/users/_search", data=data_text.encode('utf-8'),headers={"Content-Type":"application/json"})
-    print('{"query":{"simple_query_string":{"query":"' + data["text"] +'"}}}')
     return Response(response.json())
-    
