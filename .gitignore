@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 # elasticsearch host
 elasticsearch/
+Elastic/elasticsearch-8.1.0/lib/modules
