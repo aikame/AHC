@@ -11,6 +11,8 @@ using System;
 using ADDC.Models;
 using System.Net.Sockets;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ADDC.Models;
 
 namespace ADDC.Controllers
 {
@@ -21,19 +23,20 @@ namespace ADDC.Controllers
         [HttpPost("GetInfo")]
         public ActionResult GetInfo([FromBody] string data)
         {
-            var user = JsonConvert.DeserializeObject<string>(data);
+            var userName = JsonConvert.DeserializeObject<string>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/GetUserInfo.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("UserLogin", userName).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
 
                     final += result.ToString();
                 }
+                
                 var response = JsonConvert.SerializeObject(final);
                 return Content(response);
             }
@@ -47,7 +50,7 @@ namespace ADDC.Controllers
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/BanUser.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.name).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.Name).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
@@ -73,7 +76,7 @@ namespace ADDC.Controllers
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.name).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.Name).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
@@ -101,7 +104,7 @@ namespace ADDC.Controllers
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/AddToGroup.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
                 parameters.Add("grpID", group);
-                parameters.Add("userID", user.name);
+                parameters.Add("userID", user.Name);
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
 
@@ -132,7 +135,7 @@ namespace ADDC.Controllers
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/ChangePassw.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("userID",user.name);
+                parameters.Add("userID",user.Name);
                 parameters.Add("newPasswd", password);
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
@@ -162,7 +165,7 @@ namespace ADDC.Controllers
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/CreateMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.name).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
@@ -188,7 +191,7 @@ namespace ADDC.Controllers
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/HideMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.name).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
@@ -214,7 +217,7 @@ namespace ADDC.Controllers
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/ShowMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.name).Invoke();
+                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
                 string final = "";
                 foreach (var result in results)
                 {
@@ -244,7 +247,7 @@ namespace ADDC.Controllers
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
                 parameters.Add("grpLogin", group);
-                parameters.Add("userLogin", user.name);
+                parameters.Add("userLogin", user.Name);
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
@@ -274,13 +277,13 @@ namespace ADDC.Controllers
                 string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("name", user.name);
-                parameters.Add("surname", user.surname);
-                parameters.Add("midname", user.midname);
-                parameters.Add("city", user.city);
-                parameters.Add("company", user.company);
-                parameters.Add("department", user.department);
-                parameters.Add("appointment", user.appointment);
+                parameters.Add("name", user.Name);
+                parameters.Add("surname", user.SurName);
+                parameters.Add("midname", user.MidName);
+                parameters.Add("city", user.City);
+                parameters.Add("company", user.Company);
+                parameters.Add("department", user.Department);
+                parameters.Add("appointment", user.Appointment);
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";

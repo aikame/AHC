@@ -1,13 +1,18 @@
 ﻿namespace ADDC.Models
 {
-    public class UserModel
-    {
-        public string name, RUname,
-               surname, RUsurname,
-               midname, RUmidname,
-               city, RUcity,
-               company, RUcompany, 
-               department, RUdepartment,
-               appointment, RUappointment;
-    }
+    //using System.ComponentModel.DataAnnotations;
+
+        public class UserModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string SurName { get; set; }
+            public string MidName { get; set; }
+            public string City { get; set; }
+            public string Company { get; set; }
+            public string Department { get; set; }
+            public string Appointment { get; set; }
+        }
+    
+
 }
