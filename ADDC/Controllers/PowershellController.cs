@@ -13,6 +13,7 @@ using System.Net.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ADDC.Models;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace ADDC.Controllers
 {
@@ -36,8 +37,20 @@ namespace ADDC.Controllers
 
                     final += result.ToString();
                 }
-                
-                var response = JsonConvert.SerializeObject(final);
+                JObject jsonData = JObject.Parse(final);
+                string StringPasswordLastSet = jsonData["LastPasswordSet"].ToString();
+                var PasswordLastSet = DateTime.Parse(StringPasswordLastSet);
+                var userModel = new ADUserModel
+                {
+                    DistinguishedName = jsonData["distinguishedName"].ToString(),
+                    SamAccountName = jsonData["sAMAccountName"].ToString(),
+                    Enabled = jsonData["Enabled"].ToString() == "true",
+                    EmailAddress = jsonData["EmailAddress"].ToString(),
+                    PasswordLastSet = PasswordLastSet,
+                    PasswordExpired = PasswordLastSet == null || (PasswordLastSet.AddDays(90) < DateTime.Now),
+                };
+
+                var response = JsonConvert.SerializeObject(userModel);
                 return Content(response);
             }
         }
