@@ -12,6 +12,7 @@ using System;
 using Frontend.Classes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Azure;
+using System.Text;
 
 namespace Backend.Controllers
 {
@@ -267,9 +268,10 @@ namespace Backend.Controllers
 
             using (HttpClient client = new HttpClient())
             {
-
-
-                var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
+                Console.WriteLine($"Getinfo: {JsonConvert.SerializeObject(user)}");
+                var result = await client.PostAsync(domain + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
+                                  Encoding.UTF8, "application/json"));
+                //var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {

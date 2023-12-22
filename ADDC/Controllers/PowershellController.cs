@@ -22,49 +22,63 @@ namespace ADDC.Controllers
     public class PowershellController : Controller
     {
         [HttpPost("GetInfo")]
-        public ActionResult GetInfo([FromBody] string data)
+        public ActionResult GetInfo([FromBody] JObject data)
         {
-            var userName = JsonConvert.DeserializeObject<string>(data);
+            Console.WriteLine($"Getinfo: {data}");
+            var userName = data["Login"].ToString();
+            //var userName = JsonConvert.DeserializeObject<string>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/GetUserInfo.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", userName).Invoke();
                 string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
 
                     final += result.ToString();
                 }
+                Console.WriteLine($"Getinfo: {final}");
                 JObject jsonData = JObject.Parse(final);
-                string StringPasswordLastSet = jsonData["LastPasswordSet"].ToString();
+                Console.WriteLine($"Getinfo: {jsonData}");
+                string StringPasswordLastSet = jsonData["PasswordLastSet"]?.ToString();
                 var PasswordLastSet = DateTime.Parse(StringPasswordLastSet);
                 var userModel = new ADUserModel
                 {
-                    DistinguishedName = jsonData["distinguishedName"].ToString(),
-                    SamAccountName = jsonData["sAMAccountName"].ToString(),
-                    Enabled = jsonData["Enabled"].ToString() == "true",
+                    DistinguishedName = jsonData["DistinguishedName"].ToString(),
+                    SamAccountName = jsonData["SamAccountName"].ToString(),
+                    Enabled = jsonData["Enabled"].ToString() == "True",
                     EmailAddress = jsonData["EmailAddress"].ToString(),
                     PasswordLastSet = PasswordLastSet,
-                    PasswordExpired = PasswordLastSet == null || (PasswordLastSet.AddDays(90) < DateTime.Now),
-                };
+                    PasswordExpired = jsonData["PasswordExpired"].ToString() == "True",
+                    MemberOf = jsonData["MemberOf"].ToObject<List<string>>()
+            };
 
                 var response = JsonConvert.SerializeObject(userModel);
                 return Content(response);
             }
         }
         [HttpPost("BanUser")]
-        public ActionResult BanUser([FromBody] string data)
+        public ActionResult BanUser([FromBody] JObject data)
         {
-            var user = JsonConvert.DeserializeObject<UserModel>(data);
+            Console.WriteLine($"BanUser: {data}");
+            var user = data.ToObject<UserModel>();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/BanUser.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/BanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.Name).Invoke();
                 string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -81,16 +95,20 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("UnbanUser")]
-        public ActionResult UnbanUser([FromBody] string data)
+        public ActionResult UnbanUser([FromBody] JObject data)
         {
-            var user = JsonConvert.DeserializeObject<UserModel>(data);
+            var user = data.ToObject<UserModel>();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/UnbanUser.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.Name).Invoke();
                 string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -107,20 +125,22 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("AddToGroup")]
-        public ActionResult AddToGroup([FromBody] string data) {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string group = jsonData["group"].ToString();
+        public ActionResult AddToGroup([FromBody] JObject data) {
+            UserModel user = data["user"].ToObject<UserModel>();
+            string group = data["group"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/AddToGroup.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/AddToGroup.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
                 parameters.Add("grpID", group);
                 parameters.Add("userID", user.Name);
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
-
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -137,15 +157,14 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("ChangePassword")]
-        public ActionResult ChangePassword([FromBody] string data)
+        public ActionResult ChangePassword([FromBody] JObject data)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string password = jsonData["password"].ToString();
+            UserModel user = data["user"].ToObject<UserModel>();
+            string password = data["password"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/ChangePassw.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/ChangePassw.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
                 parameters.Add("userID",user.Name);
@@ -153,7 +172,10 @@ namespace ADDC.Controllers
 
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
-
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -170,16 +192,20 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("CreateMailBox")]
-        public ActionResult CreateMailBox([FromBody] string  data)
+        public ActionResult CreateMailBox([FromBody] JObject  data)
         {
-            var user = JsonConvert.DeserializeObject<UserModel>(data);
+            var user = data.ToObject<UserModel>();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/CreateMailBox.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
                 string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -196,16 +222,20 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("HideMailBox")]
-        public ActionResult HideMailBox([FromBody] string data)
+        public ActionResult HideMailBox([FromBody] JObject data)
         {
-            var user = JsonConvert.DeserializeObject<UserModel>(data);
+            var user = data.ToObject<UserModel>();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/HideMailBox.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/HideMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
                 string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -222,16 +252,20 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("ShowMailBox")]
-        public ActionResult ShowMailBox([FromBody] string data)
+        public ActionResult ShowMailBox([FromBody] JObject data)
         {
-            var user = JsonConvert.DeserializeObject<UserModel>(data);
+            var user = data.ToObject<UserModel>();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/ShowMailBox.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/ShowMailBox.ps1");
                 var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
                 string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
                 foreach (var result in results)
                 {
                     final += result.ToString();
@@ -248,15 +282,14 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("RemoveFromGroup")]
-        public ActionResult RemoveFromGroup([FromBody] string data)
+        public ActionResult RemoveFromGroup([FromBody] JObject data)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string group = jsonData["group"].ToString();
+            UserModel user = data["user"].ToObject<UserModel>();
+            string group = data["group"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/RemoveFromGroup.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
                 parameters.Add("grpLogin", group);
@@ -281,13 +314,15 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("UserCreation")]
-        public ActionResult UserCreation([FromBody] string data)
+        public ActionResult UserCreation([FromBody] JObject data)
         {
-            var user = JsonConvert.DeserializeObject<UserModel>(data);
+            Console.WriteLine($"UserCreation: {data}");
+            var user = data.ToObject<UserModel>();
+            //var user = JsonConvert.DeserializeObject<UserModel>(data);
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/UserCreation.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
                 parameters.Add("name", user.Name);
@@ -304,6 +339,12 @@ namespace ADDC.Controllers
                 foreach (var result in results)
                 {
                     final += result.ToString();
+                }
+                Console.WriteLine($"Result: {final}");
+                string error;
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
                 }
                 if (final == "200")
                 {

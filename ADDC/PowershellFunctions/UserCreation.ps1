@@ -1,4 +1,4 @@
-param([Parameter()]
+﻿param([Parameter()]
      [string]$name,
      [Parameter()]
      [string]$surname,
@@ -17,7 +17,7 @@ param([Parameter()]
      [Parameter()]
      [string]$RUdepartment,
      [Parameter()]
-     [string]$appointment),
+     [string]$appointment,
      [Parameter()]
      [string]$RUappointment)
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
@@ -26,13 +26,13 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
 ($surname -notmatch "[^А-Яа-яеЁ-]+") -and
 ($midname -notmatch "[^А-Яа-яеЁ-]+")){
     $extAttr1=@{}
-    $extAttr1.Add('Имя',$firstName)
-    $extAttr1.Add('Фамилия',$lastName)
-    $extAttr1.Add('Отчество',$midName)
+    $extAttr1.Add('Имя',$name)
+    $extAttr1.Add('Фамилия',$surname)
+    $extAttr1.Add('Отчество',$midname)
 
-    $firstName = &"$PSScriptRoot\funcs\translit.ps1" $firstName
-    $lastName = &"$PSScriptRoot\funcs\translit.ps1" $lastName
-    $midName = &"$PSScriptRoot\funcs\translit.ps1" $midName
+    $firstName = &"PowershellFunctions\funcs\translit.ps1" $name
+    $lastName = &"PowershellFunctions\funcs\translit.ps1" $surname
+    $midName = &"PowershellFunctions\funcs\translit.ps1" $midname
 
 
     $extAttr1.Add('Город',$RUcity)
@@ -58,10 +58,13 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
 
     $UserPName = "$userName@$domain"
 
-    New-ADUser -Name $UserName -UserPrincipalName $UserPName -Department $department 
-        -GivenName $firstName  -Surname $lastName -OtherName $midname -SamAccountName $userName 
-        -City $city -Company $company -title $appointment -Enabled $true
-                      
+    New-ADUser -Name $UserName -UserPrincipalName $UserPName -Department $department -GivenName $firstName  -Surname $lastName -OtherName $midname -SamAccountName $userName -City $city -Company $company -title $appointment -Enabled $true
+    $newuser =  Get-ADUser -identity $UserName -ErrorAction SilentlyContinue
+
+    $CurDir = pwd
+    if ( $null -eq $newuser ) {                  
+        return $CurDir   
+    }                   
     Set-ADAccountPassword $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText “PASSWORD” -Force -Verbose) | Set-ADuser -ChangePasswordAtLogon $True
 
     Set-ADuser -Identity $userName -Add @{extensionAttribute1 = $extAttr1["Имя"]} 
