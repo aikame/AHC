@@ -56,6 +56,6 @@ app.MapGet("/ShowMailBox", async context =>
 });
 app.MapGet("/CreateUser", async context =>
 {
-    UserController.UserCreation(context);
+    //UserController.UserCreation(context);
 });
 app.Run();
