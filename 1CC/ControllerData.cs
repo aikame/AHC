@@ -3,21 +3,42 @@ namespace _1CC
 
     public class ReceivedData
     {
-        public string? Name { get; set; }
+        private int MinLenght = 3;
 
-        public string? Surname { get; set; }
+        public string Name = ""; 
 
-        public string? Patronymic { get; set; }
+        public string Surname = "";
 
-        public string? Email { get; set; }
+        public string Patronymic = "";
 
-        public string? Company { get; set; }
+        public string Email = "";
 
-        public string? ApplyDate { get; set; }
+        public string Company = "";
 
-        public string? Appointment { get; set; }
+        public string ApplyDate = "";
 
-        public string? City { get; set; }
+        public string Appointment = "";
+
+        public string City = "";
+
+        public bool CheckForTroubles()
+        {
+            if (Name.Length < MinLenght || Surname.Length < MinLenght || Email.Length < MinLenght ||
+                Company.Length < MinLenght || ApplyDate.Length < MinLenght || Appointment.Length < MinLenght || City.Length < MinLenght)
+                return false;
+            try
+            {
+                DateOnly donly = DateOnly.Parse(ApplyDate);
+            }
+            catch 
+            {
+                Console.WriteLine("Date parse error");
+                return false;
+            }
+            
+
+            return true;
+        }
 
     }
 
@@ -38,6 +59,8 @@ namespace _1CC
         public char[] Appointment = new char[30];
 
         public char[] City = new char[30];
+
+        
 
     }
 
