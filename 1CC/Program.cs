@@ -20,6 +20,11 @@ app.UseHttpsRedirection();
 
 //app.UseAuthorization();
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
 app.MapControllers();
 
 app.Run();
