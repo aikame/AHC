@@ -3,6 +3,17 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Ignore all .venv directories
+/.venv/
+**/.venv/
+Elastic/DBC/.venv/
+# Ignore all __pycache__ directories
+__pycache__/
+/__pycache__/
+**/__pycache__/
+/Elastic/elasticsearch-8.14.1/
+/elasticsearch-8.14.1/
+Frontend/hello/__pycache__/
 # User-specific files
 *.rsuser
 *.suo
