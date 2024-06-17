@@ -9,7 +9,11 @@
 *.user
 *.userosscache
 *.sln.docstates
-
+.venv/
+__pycache__/
+Elastic/elasticsearch-8.14.1/
+Elastic/DBC/web_project/db.sqlite3
+Frontend/db.sqlite3
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
