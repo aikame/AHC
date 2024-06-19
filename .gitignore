@@ -11,6 +11,8 @@ Elastic/DBC/.venv/
 __pycache__/
 /__pycache__/
 **/__pycache__/
+Elastic/elasticsearch-8.1.0/
+Elastic/elasticsearch-8.1.0/*
 /Elastic/elasticsearch-8.14.1/
 /elasticsearch-8.14.1/
 Frontend/hello/__pycache__/
@@ -375,3 +377,4 @@ FodyWeavers.xsd
 # elasticsearch host
 elasticsearch/
 Elastic/elasticsearch-8.1.0/lib/modules
+/Elastic/elasticsearch-8.1.0
