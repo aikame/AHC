@@ -1,278 +1,307 @@
-﻿using System.Management.Automation.Runspaces;
-using System.Management.Automation;
-using System.DirectoryServices;
-using Microsoft.AspNetCore.Http;
-using Backend;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Backend.models;
+using System.Text;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Backend.Controllers
 {
-    public class UserController
+    [ApiController]
+    [Route("/")]
+    public class UserController : ControllerBase
     {
-        public static async void GetInfo(HttpContext context)
+        public class CustomHttpClientHandler : HttpClientHandler
         {
-            using (var ps = PowerShell.Create())
+            public CustomHttpClientHandler()
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                ServerCertificateCustomValidationCallback = ValidateServerCertificate;
+            }
 
-                string scriptText = File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
-                var results = ps.AddScript(scriptText).AddArgument(context.Request.Query["UserLogin"]).Invoke();
-                string final = "";
-                foreach (var result in results)
+            private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
+            {
+                if (errors == SslPolicyErrors.None)
                 {
-
-                    final += result.ToString();
+                    return true;
                 }
-                await context.Response.WriteAsync(final);
+
+                // Для разработки, игнорируем ошибки сертификата
+                return true; // !!! Не используйте в Production
             }
         }
-        public static async void BanUser(HttpContext context)
+        [HttpPost("GetInfo")]
+        public async Task<IActionResult> GetInfo([FromBody] UserInfoRequest data)
         {
-            using (var ps = PowerShell.Create())
+            Console.WriteLine(data.User);
+            Console.WriteLine(data.Domain);
+            string log = data.User;
+            //JObject jsonData = JObject.Parse(data);
+            //string user = jsonData["user"].ToString();
+            //string domain = jsonData["domain"].ToString();
+            JObject sdata = new JObject();
+            sdata["login"] = data.User.ToString();
+            Console.WriteLine($"Prepared: {sdata}");
+            Console.WriteLine(sdata["login"].ToString());
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + data.Domain + "/GetInfo", jsonContent);
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/BanUser.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
-                string final = "";
-                foreach (var result in results)
+                //var result = await client.PostAsJsonAsync("https://"+data.Domain + "/GetInfo", sdata);
+                var responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+                //UserModel usr = JsonConvert.DeserializeObject<UserModel>(responseContent);
+                //Console.WriteLine(usr.Name);
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200") {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Content(responseContent);
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-                
             }
         }
-        public static async void UnbanUser(HttpContext context)
+        [HttpPost("BanUser")]
+        public async Task<IActionResult> BanUser([FromBody] string data)
         {
-            using (var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            using (HttpClient client = new HttpClient())
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UnbanUser.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", context.Request.Query["UserLogin"]).Invoke();
-                string final = "";
-                foreach (var result in results)
+
+                var result = await client.PostAsJsonAsync(domain + "/BanUser", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void AddToGroup(HttpContext context)
+        [HttpPost("UnbanUser")]
+        public async Task<IActionResult> UnbanUser([FromBody] string data)
         {
-            using (var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            using (HttpClient client = new HttpClient())
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/AddToGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("grpID",context.Request.Query["grpID"]);
-                parameters.Add("userID", context.Request.Query["userID"]);
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
 
-                foreach (var result in results)
+
+                var result = await client.PostAsJsonAsync(domain + "/UnbanUser", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void ChangePassword(HttpContext context)
+        [HttpPost("AddToGroup")]
+        public async Task<IActionResult> AddToGroup([FromBody] string data)
         {
-            using (var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            string group = jsonData["group"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            var requestData = new
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/ChangePassw.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                
-                parameters.Add("userID", context.Request.Query["userID"]);
-                parameters.Add("newPasswd", context.Request.Query["newPasswd"]);
+                user = user,
+                group = group
+            };
+            using (HttpClient client = new HttpClient())
+            {
 
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
 
-                foreach (var result in results)
+                var result = await client.PostAsJsonAsync(domain + "/AddToGroup", JsonConvert.SerializeObject(requestData));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void CreateMailBox(HttpContext context)
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] string data)
         {
-            using (var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            string password = jsonData["password"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            var requestData = new
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                user = user,
+                password = password
+            };
+            using (HttpClient client = new HttpClient())
+            {
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/CreateMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
-                string final = "";
-                foreach (var result in results)
+
+                var result = await client.PostAsJsonAsync(domain + "/ChangePassword", JsonConvert.SerializeObject(requestData));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void HideMailBox(HttpContext context)
+        [HttpPost("CreateMailBox")]
+        public async Task<IActionResult> CreateMailBox([FromBody] string data)
         {
-            using(var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            using (HttpClient client = new HttpClient())
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/HideMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
-                string final = "";
-                foreach (var result in results)
+
+                var result = await client.PostAsJsonAsync(domain + "/CreateMailBox", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void RemoveFromGroup(HttpContext context)
+        [HttpPost("HideMailBox")]
+        public async Task<IActionResult> HideMailBox([FromBody] string data)
         {
-            using(var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            using (HttpClient client = new HttpClient())
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/RemoveFromGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("grpLogin", context.Request.Query["grpLogin"]);
-                parameters.Add("userLogin", context.Request.Query["userLogin"]);
 
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-
-                foreach (var result in results)
+                var result = await client.PostAsJsonAsync(domain + "/HideMailBox", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void ShowMailBox(HttpContext context)
+        [HttpPost("RemoveFromGroup")]
+        public async Task<IActionResult> RemoveFromGroup([FromBody] string data)
         {
-            using (var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            string group = jsonData["group"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            var requestData = new
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                user = user,
+                group = group
+            };
+            using (HttpClient client = new HttpClient())
+            {
 
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/ShowMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", context.Request.Query["userLogin"]).Invoke();
-                string final = "";
-                foreach (var result in results)
+
+                var result = await client.PostAsJsonAsync(domain + "/RemoveFromGroup", JsonConvert.SerializeObject(requestData));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
-        public static async void UserCreation(HttpContext context, UserModel user)
+        [HttpPost("ShowMailBox")]
+        public async Task<IActionResult> ShowMailBox([FromBody] string data)
         {
-            using (var ps = PowerShell.Create())
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+            using (HttpClient client = new HttpClient())
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = File.ReadAllText("../../../PowershellFunctions/UserCreation.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("name", user.name);
-                parameters.Add("surname", user.surname);
-                parameters.Add("midname", user.midname);
-                parameters.Add("city", user.city);
-                parameters.Add("company", user.company);
-                parameters.Add("department", user.department);
-                parameters.Add("appointment", user.appointment);
 
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-
-                foreach (var result in results)
+                var result = await client.PostAsJsonAsync(domain + "/ShowMailBox", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
                 {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    context.Response.StatusCode = 200;
-                    await context.Response.WriteAsync("Успех");
+                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
-                    context.Response.StatusCode = Int32.Parse(final);
-                    await context.Response.WriteAsync("Произошла ошибка");
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
             }
         }
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> UserCreation([FromBody] string data)
+        {
+            JObject jsonData = JObject.Parse(data);
+            UserModel user = jsonData["user"].ToObject<UserModel>();
+            string domain = jsonData["domain"].ToString();
+
+            Console.WriteLine(user.Name);
+            Console.WriteLine(domain);
+
+            using (HttpClient client = new HttpClient())
+            {
+                Console.WriteLine($"Getinfo: {JsonConvert.SerializeObject(user)}");
+                var result = await client.PostAsync(domain + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
+                                  Encoding.UTF8, "application/json"));
+                //var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
+                {
+                    return Ok("Запрос выполнен успешно.");
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+        }
+
 
     }
 }

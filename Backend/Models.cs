@@ -1,17 +1,23 @@
-﻿namespace Backend
+﻿namespace Backend.models
 {
     public class UserModel
     {
-        public string name, RUname,
-               surname, RUsurname,
-               midname, RUmidname,
-               city, RUcity,
-               company, RUcompany, 
-               department, RUdepartment,
-               appointment, RUappointment;
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string SurName { get; set; }
+        public string MidName { get; set; }
+        public string City { get; set; }
+        public string Company { get; set; }
+        public string Department { get; set; }
+        public string Appointment { get; set; }
     }
-    public class UserInfo {
-        public string DistinguishedName, SamAccountName, EmailAddress, PasswordLastSet, MemberOf;
-        public bool Enabled, PasswordExpired;
+    public class domain
+    {
+        public string name = "192.168.64.148:7096";
+    }
+    public class UserInfoRequest
+    {
+        public string User { get; set; }
+        public string Domain { get; set; }
     }
 }

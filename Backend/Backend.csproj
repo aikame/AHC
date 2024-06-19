@@ -13,6 +13,9 @@
 	<PackageReference Include="microsoft.powershell.commands.diagnostics" Version="7.3.4" />
 	<PackageReference Include="microsoft.wsman.management" Version="7.3.4" />
   </ItemGroup>
+<!--	<ItemGroup>
+		<ProjectReference Include="..\Frontend\Frontend.csproj" />
+	</ItemGroup>-->
 	
 	
 </Project>
