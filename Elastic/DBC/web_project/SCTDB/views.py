@@ -12,6 +12,7 @@ import requests
 
 @api_view(['POST','GET'])
 def profile_detail(request):
+    print(request.data)
     try:
         profile = Profile.objects
     except Profile.DoesNotExist:
@@ -19,6 +20,7 @@ def profile_detail(request):
     
     if request.method == 'POST':
         serializer = ProfileSerializer(data=request.data)
+        print(serializer.is_valid())
         if serializer.is_valid():
             content = JSONRenderer().render(serializer.data)
             response = requests.post('http://localhost:9200/users/_doc',data=content,headers={"Content-Type":"application/json"})

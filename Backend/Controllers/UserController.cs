@@ -31,6 +31,38 @@ namespace Backend.Controllers
                 return true; // !!! Не используйте в Production
             }
         }
+        [HttpPost("CreateProfile")]
+        public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user)
+        {
+
+            Console.WriteLine(user.name);
+            //Console.WriteLine(domain);
+
+            using (HttpClient client = new HttpClient())
+            {
+                Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
+                var result = await client.PostAsync("http://127.0.0.2:8000/api/put", new StringContent(JsonConvert.SerializeObject(user),
+                                 Encoding.UTF8, "application/json"));
+                //var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
+                string responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+                if (result.IsSuccessStatusCode)
+                {
+
+                    
+                    var unescapedContent = JsonConvert.DeserializeObject<string>(responseContent);
+
+                    // Преобразование ответа в JSON объект
+                    var jsonResponse = JsonConvert.DeserializeObject<JObject>(unescapedContent);
+                    Console.WriteLine("Parsed JSON Response: " + jsonResponse.ToString());
+                    return Ok("Запрос выполнен успешно.");
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+        }
         [HttpPost("GetInfo")]
         public async Task<IActionResult> GetInfo([FromBody] UserInfoRequest data)
         {

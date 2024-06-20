@@ -7,30 +7,31 @@ namespace _1CC
     {
         private int MinLenght = 2;
 
-        public string Name = ""; 
+        public string name = ""; 
 
-        public string Surname = "";
+        public string surname = "";
 
-        public string Patronymic = "";
+        public string patronymic = "";
 
-        public string Email = "";
+        public string email = "";
 
-        public string Company = "";
+        public string company = "";
 
-        public string Apply_Date = "";
+        public string apply_date = "";
 
-        public string Appointment = "";
+        public string appointment = "";
 
-        public string City = "";
+        public string city = "";
+        
 
         public bool CheckForTroubles()
         {
-            if (Name.Length < MinLenght || Surname.Length < MinLenght || Email.Length < MinLenght ||
-                Company.Length < MinLenght || Apply_Date.Length < MinLenght || Appointment.Length < MinLenght || City.Length < MinLenght)
+            if (name.Length < MinLenght || surname.Length < MinLenght || email.Length < MinLenght ||
+                company.Length < MinLenght || apply_date.Length < MinLenght || appointment.Length < MinLenght || city.Length < MinLenght)
                 return false;
 
             Regex regex = new Regex(@"^[à-ÿÀ-ß]+$");
-            if (!(regex.IsMatch(Name) && regex.IsMatch(Surname) && regex.IsMatch(Appointment) && regex.IsMatch(City) && (regex.IsMatch(Patronymic) || Patronymic=="")))
+            if (!(regex.IsMatch(name) && regex.IsMatch(surname) && regex.IsMatch(appointment) && regex.IsMatch(city) && (regex.IsMatch(patronymic) || patronymic=="")))
             {
                 Console.WriteLine("Illegal characters detected");
                 return false;
@@ -38,7 +39,7 @@ namespace _1CC
 
             regex = new Regex(@"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$");
 
-            if (regex.IsMatch(Email))
+            if (regex.IsMatch(email))
             {
                 Console.WriteLine("The email address is valid.");
             }
@@ -50,7 +51,7 @@ namespace _1CC
 
             try
             {
-                DateOnly donly = DateOnly.Parse(Apply_Date);
+                DateOnly donly = DateOnly.Parse(apply_date);
                 Console.WriteLine(donly.ToString());
             }
             catch 
