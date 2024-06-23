@@ -11,6 +11,7 @@
         public string Company { get; set; }
         public string Apply_date { get; set; }
         public string Appointment { get; set; }
+        public string Department { get; set;}
     }
     public class domain
     {
@@ -39,6 +40,8 @@
         public string appointment { get; set; }
 
         public string city { get; set; }
+
+        public string department { get; set; }
 
         public List<string> profiles { get; set; } = new List<string>();
         public string img_src { get; set; } = ".";

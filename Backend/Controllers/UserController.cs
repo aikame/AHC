@@ -6,6 +6,7 @@ using Backend.models;
 using System.Text;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Backend.Controllers
 {
@@ -38,24 +39,54 @@ namespace Backend.Controllers
             Console.WriteLine(user.name);
             //Console.WriteLine(domain);
 
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
                 var result = await client.PostAsync("http://127.0.0.2:8000/api/put", new StringContent(JsonConvert.SerializeObject(user),
                                  Encoding.UTF8, "application/json"));
-                //var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
                 string responseContent = await result.Content.ReadAsStringAsync();
+
+                var unescapedContent = JsonConvert.DeserializeObject<string>(responseContent);
+
+                // Преобразование ответа в JSON объект
+                var jsonProfile = JsonConvert.DeserializeObject<JObject>(unescapedContent);
+                Console.WriteLine("Parsed JSON Response: " + jsonProfile.ToString());
+
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
                 {
+                    var resultAD = await client.PostAsync("https://192.168.64.164:7093/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
+                        Encoding.UTF8, "application/json"));
 
-                    
-                    var unescapedContent = JsonConvert.DeserializeObject<string>(responseContent);
+                    string responseADContent = await resultAD.Content.ReadAsStringAsync();
+                    Console.WriteLine(responseADContent);
+                    if (resultAD.IsSuccessStatusCode)
+                    {
+                        
+                        JObject jsonData = JObject.Parse(responseADContent);
+                        JObject profileData = new JObject();
+                        JObject profileAdData = new JObject();
+                        profileData["_id"] = jsonProfile["_id"];
+                        profileAdData["ObjectGUID"] = jsonData["ObjectGUID"];
+                        profileAdData["DistinguishedName"] = jsonData["DistinguishedName"];
+                        profileData["profile"] = profileAdData;
+                        var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles", new StringContent(JsonConvert.SerializeObject(profileData),
+                                 Encoding.UTF8, "application/json"));
+                        Console.WriteLine(resultUpdProfile);
+                        if (resultUpdProfile.IsSuccessStatusCode)
+                        {
+                            return Ok(resultUpdProfile);
+                        }
+                        else
+                        {
+                            return BadRequest(resultUpdProfile);
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest("Произошла ошибка при создании AD профиля.");
+                    }
 
-                    // Преобразование ответа в JSON объект
-                    var jsonResponse = JsonConvert.DeserializeObject<JObject>(unescapedContent);
-                    Console.WriteLine("Parsed JSON Response: " + jsonResponse.ToString());
-                    return Ok("Запрос выполнен успешно.");
                 }
                 else
                 {
@@ -307,19 +338,19 @@ namespace Backend.Controllers
             }
         }
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> UserCreation([FromBody] string data)
+        public async Task<IActionResult> UserCreation([FromBody] UserModel user)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
+            //JObject jsonData = JObject.Parse(data);
+            //UserModel user = jsonData["user"].ToObject<UserModel>();
+            //string domain = jsonData["domain"].ToString();
 
             Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
+            //Console.WriteLine(domain);
 
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 Console.WriteLine($"Getinfo: {JsonConvert.SerializeObject(user)}");
-                var result = await client.PostAsync(domain + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
+                var result = await client.PostAsync("/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
                                   Encoding.UTF8, "application/json"));
                 //var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
                 Console.WriteLine(result.ToString());

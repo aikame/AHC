@@ -40,4 +40,5 @@ urlpatterns = [
     path('api/getall', views.profile_detail),
     path('api/getone',views.get_one),
     path('api/get',views.get_text),
+    path('api/add_to_profiles', views.add_to_profiles, name='add_to_profiles'),
 ]

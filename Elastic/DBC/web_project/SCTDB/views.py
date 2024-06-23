@@ -31,7 +31,50 @@ def profile_detail(request):
         response = requests.get('http://localhost:9200/users/_search')
         return Response(response.json())
 
+@api_view(['POST'])
+def add_to_profiles(request):
+    # Получение данных из тела запроса
+    data = json.loads(request.body)
+    profile_id = data.get('_id')
+    profile_data = data.get('profile')
 
+    if not profile_id:
+        return Response({'error': '_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not profile_data:
+        return Response({'error': 'profile data is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Поиск профиля в Elasticsearch по _id
+    search_url = 'http://localhost:9200/users/_search'
+    query = {
+        "query": {
+            "term": {
+                "_id": profile_id
+            }
+        }
+    }
+    response = requests.get(search_url, headers={"Content-Type": "application/json"}, json=query)
+    search_results = response.json()
+    
+    if not search_results['hits']['hits']:
+        return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    existing_profile_data = search_results['hits']['hits'][0]['_source']
+    
+    # Добавление нового значения в список profiles
+    if 'profiles' in existing_profile_data:
+        existing_profile_data['profiles'].append(profile_data)
+    else:
+        existing_profile_data['profiles'] = [profile_data]
+    
+    # Обновление профиля в Elasticsearch
+    update_url = f'http://localhost:9200/users/_doc/{profile_id}'
+    response = requests.put(update_url, headers={"Content-Type": "application/json"}, json=existing_profile_data)
+    
+    if response.status_code == 200:
+        return Response({'success': 'Profile updated successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Failed to update profile'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET','DELETE', 'POST'])
 def get_one(request):

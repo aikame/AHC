@@ -22,6 +22,8 @@ namespace _1CC
         public string appointment = "";
 
         public string city = "";
+
+        public string department = "";
         
 
         public bool CheckForTroubles()
