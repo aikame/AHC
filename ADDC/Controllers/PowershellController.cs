@@ -25,7 +25,7 @@ namespace ADDC.Controllers
         public ActionResult GetInfo([FromBody] JObject data)
         {
             Console.WriteLine($"Getinfo: {data}");
-            var userName = data["Login"].ToString();
+            var userName = data["login"].ToString();
             //var userName = JsonConvert.DeserializeObject<string>(data);
             using (var ps = PowerShell.Create())
             {
@@ -327,7 +327,7 @@ namespace ADDC.Controllers
 
                 parameters.Add("name", user.Name);
                 parameters.Add("surname", user.SurName);
-                parameters.Add("midname", user.MidName);
+                parameters.Add("midname", user.Patronymic);
                 parameters.Add("city", user.City);
                 parameters.Add("company", user.Company);
                 parameters.Add("department", user.Department);
@@ -346,13 +346,13 @@ namespace ADDC.Controllers
                 {
                     Console.WriteLine("Error: " + errorRecord.Exception.Message);
                 }
-                if (final == "200")
+                if (final == "400")
                 {
-                    return Ok();
+                    return BadRequest(final);
                 }
                 else
                 {
-                    return BadRequest(final);
+                    return Ok(final);
                 }
             }
         }
