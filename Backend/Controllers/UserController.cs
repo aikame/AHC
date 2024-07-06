@@ -67,8 +67,7 @@ namespace Backend.Controllers
                         JObject profileData = new JObject();
                         JObject profileAdData = new JObject();
                         profileData["_id"] = jsonProfile["_id"];
-                        profileAdData["ObjectGUID"] = jsonData["ObjectGUID"];
-                        profileAdData["DistinguishedName"] = jsonData["DistinguishedName"];
+                        profileAdData["AD"] = jsonData["SamAccountName"];
                         profileData["profile"] = profileAdData;
                         var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles", new StringContent(JsonConvert.SerializeObject(profileData),
                                  Encoding.UTF8, "application/json"));
