@@ -13,11 +13,7 @@
         public string Appointment { get; set; }
         public string Department { get; set;}
     }
-    public class UserInfoRequest
-    {
-        public string User { get; set; }
-        public string Domain { get; set; }
-    }
+
     public class ProfileModel
     {
 

@@ -28,28 +28,47 @@
             }
         }
         async function ban() {
+            let id = encodeURIComponent("{{ id }}");
+            console.warn(id)
+            let body = document.getElementById("banModalBody");
             try {
                 
-                await fetch(`https://localhost:7095/BanUser/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
-                let body = document.getElementById("banModalBody");
-                body.innerText = "Пользователь был заблокирован";
-            } catch {
-                let body = document.getElementById("banModalBody");
-                body.innerText = "Пользователя не удалось заблокировать"; 
-                $('#banModal').modal('show');
+                var result = await fetch(`https://localhost:7095/BanUser?id=${id}`).then(response => response.json());
+                
+            } catch(error) {
+                console.warn(error)
+                body.innerText = "Пользователя не удалось заблокировать: " + error; 
+                
             }
+            if (result.ok){
+                body.innerText = "Пользователь был заблокирован";
+
+            }
+            $('#banModal').modal('show');
+            $('#banModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
         }
         async function unban() {
+            let id = encodeURIComponent("{{ id }}");
+            let body = document.getElementById("unbanModalBody");
             try {
                 
-                await fetch(`https://localhost:7095/unban/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
-                let body = document.getElementById("unbanModalBody");
+                var result = await fetch(`https://localhost:7095/UnbanUser?id=${id}`).then(response => response.json());
+                
                 body.innerText = "Пользователя удалось разблокировать";
-            } catch {
-                let body = document.getElementById("unbanModalBody");
-                body.innerText = "Пользователя не удалось разблокировать"; 
+            } catch(error) {
+                body.innerText = "Пользователя не удалось разблокировать: " + error; 
                 $('#unbanModal').modal('show');
             }
+            if (result.ok){
+                body.innerText = "Пользователь был разблокировать";
+                
+            }
+            $('#unbanModal').modal('show');
+            $('#unbanModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
         }
         async function addToGroup() {
             try {

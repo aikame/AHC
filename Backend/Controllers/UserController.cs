@@ -7,6 +7,8 @@ using System.Text;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net;
+using System.Web;
 
 namespace Backend.Controllers
 {
@@ -35,7 +37,7 @@ namespace Backend.Controllers
                 }
 
                 // Для разработки, игнорируем ошибки сертификата
-                return true; // !!! Не используйте в Production
+                return true; // !!! Не используйте в Production (как же похуй)
             }
         }
         [HttpPost("CreateProfile")]
@@ -107,26 +109,12 @@ namespace Backend.Controllers
             sdata["login"] = id;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["login"].ToString());
-            //Console.WriteLine(data.User);
-            //Console.WriteLine(data.Domain);
-            //string log = data.User;
-            //JObject jsonData = JObject.Parse(data);
-            //string user = jsonData["user"].ToString();
-            //string domain = jsonData["domain"].ToString();
-            //JObject sdata = new JObject();
-            //sdata["login"] = data.User.ToString();
-            //Console.WriteLine($"Prepared: {sdata}");
-            //Console.WriteLine(sdata["login"].ToString());
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("https://" + _connectorAddress + "/GetInfo", jsonContent);
-
-                //var result = await client.PostAsJsonAsync("https://"+data.Domain + "/GetInfo", sdata);
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
-                //UserModel usr = JsonConvert.DeserializeObject<UserModel>(responseContent);
-                //Console.WriteLine(usr.Name);
                 if (result.IsSuccessStatusCode)
                 {
                     return Content(responseContent);
@@ -137,51 +125,53 @@ namespace Backend.Controllers
                 }
             }
         }
-        [HttpPost("BanUser")]
-        public async Task<IActionResult> BanUser([FromBody] string data)
+        [HttpGet("BanUser")]
+        public async Task<IActionResult> BanUser([FromQuery] string id)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-            using (HttpClient client = new HttpClient())
+            string decodedId = HttpUtility.HtmlDecode(id);
+            Console.WriteLine(id +" -> "+ decodedId);
+            JObject sdata = new JObject();
+            sdata["name"] = decodedId;
+            Console.WriteLine($"Prepared: {sdata}");
+            Console.WriteLine(sdata["name"].ToString());
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
-
-                var result = await client.PostAsJsonAsync(domain + "/BanUser", JsonConvert.SerializeObject(user));
+                var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress + "/BanUser", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
-                    return Ok("Запрос выполнен успешно.");
+                    return Ok(result);
                 }
                 else
                 {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                    return BadRequest(result);
                 }
             }
         }
-        [HttpPost("UnbanUser")]
-        public async Task<IActionResult> UnbanUser([FromBody] string data)
+        [HttpGet("UnbanUser")]
+        public async Task<IActionResult> UnbanUser([FromQuery] string id)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-            using (HttpClient client = new HttpClient())
+            string decodedId = HttpUtility.HtmlDecode(id);
+            Console.WriteLine(id + " -> " + decodedId);
+            JObject sdata = new JObject();
+            sdata["name"] = decodedId;
+            Console.WriteLine($"Prepared: {sdata}");
+            Console.WriteLine(sdata["name"].ToString());
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
-
-                var result = await client.PostAsJsonAsync(domain + "/UnbanUser", JsonConvert.SerializeObject(user));
+                var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress + "/UnbanUser", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
-                    return Ok("Запрос выполнен успешно.");
+                    return Ok(result);
                 }
                 else
                 {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                    return BadRequest(result);
                 }
             }
         }
@@ -199,7 +189,7 @@ namespace Backend.Controllers
                 user = user,
                 group = group
             };
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
 
@@ -229,7 +219,7 @@ namespace Backend.Controllers
                 user = user,
                 password = password
             };
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
 
@@ -253,7 +243,7 @@ namespace Backend.Controllers
             string domain = jsonData["domain"].ToString();
             Console.WriteLine(user.Name);
             Console.WriteLine(domain);
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
 
@@ -277,7 +267,7 @@ namespace Backend.Controllers
             string domain = jsonData["domain"].ToString();
             Console.WriteLine(user.Name);
             Console.WriteLine(domain);
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
 
@@ -307,7 +297,7 @@ namespace Backend.Controllers
                 user = user,
                 group = group
             };
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
 
@@ -331,7 +321,7 @@ namespace Backend.Controllers
             string domain = jsonData["domain"].ToString();
             Console.WriteLine(user.Name);
             Console.WriteLine(domain);
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
 
