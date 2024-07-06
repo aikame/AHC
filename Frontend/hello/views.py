@@ -59,11 +59,15 @@ def login(request):
         'login/index.html',
     )
 def active_directory(request,id):
-    user_data = requests.get('https://localhost:7095/GetInfo',data='{"id":"'+id+'"}',verify=False)
+    print(id)
+    user_data = requests.get('https://localhost:7095/GetInfo?id='+id,verify=False)
     data = json.loads(user_data.content)
     return render(
         request,
         "active_directory/index.html",
-        {'id':id},
-        {'ad_json':data["hits"]["hits"][0]["_source"]}
+        {
+            'id':id,
+            'ad_json':data
+        }
+
     )

@@ -14,6 +14,12 @@ namespace Backend.Controllers
     [Route("/")]
     public class UserController : ControllerBase
     {
+        private readonly string _connectorAddress;
+
+        public UserController(IConfiguration configuration)
+        {
+            _connectorAddress = configuration["ConnectorAddress"];
+        }
         public class CustomHttpClientHandler : HttpClientHandler
         {
             public CustomHttpClientHandler()
@@ -55,7 +61,7 @@ namespace Backend.Controllers
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
                 {
-                    var resultAD = await client.PostAsync("https://192.168.64.164:7093/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
+                    var resultAD = await client.PostAsync("https://"+ _connectorAddress + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
                         Encoding.UTF8, "application/json"));
 
                     string responseADContent = await resultAD.Content.ReadAsStringAsync();
@@ -93,23 +99,28 @@ namespace Backend.Controllers
                 }
             }
         }
-        [HttpPost("GetInfo")]
-        public async Task<IActionResult> GetInfo([FromBody] UserInfoRequest data)
+        [HttpGet("GetInfo")]
+        public async Task<IActionResult> GetInfo([FromQuery] string id)
         {
-            Console.WriteLine(data.User);
-            Console.WriteLine(data.Domain);
-            string log = data.User;
+            Console.WriteLine(id);
+            JObject sdata = new JObject();
+            sdata["login"] = id;
+            Console.WriteLine($"Prepared: {sdata}");
+            Console.WriteLine(sdata["login"].ToString());
+            //Console.WriteLine(data.User);
+            //Console.WriteLine(data.Domain);
+            //string log = data.User;
             //JObject jsonData = JObject.Parse(data);
             //string user = jsonData["user"].ToString();
             //string domain = jsonData["domain"].ToString();
-            JObject sdata = new JObject();
-            sdata["login"] = data.User.ToString();
-            Console.WriteLine($"Prepared: {sdata}");
-            Console.WriteLine(sdata["login"].ToString());
+            //JObject sdata = new JObject();
+            //sdata["login"] = data.User.ToString();
+            //Console.WriteLine($"Prepared: {sdata}");
+            //Console.WriteLine(sdata["login"].ToString());
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + data.Domain + "/GetInfo", jsonContent);
+                var result = await client.PostAsync("https://" + _connectorAddress + "/GetInfo", jsonContent);
 
                 //var result = await client.PostAsJsonAsync("https://"+data.Domain + "/GetInfo", sdata);
                 var responseContent = await result.Content.ReadAsStringAsync();

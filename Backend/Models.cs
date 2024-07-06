@@ -13,10 +13,6 @@
         public string Appointment { get; set; }
         public string Department { get; set;}
     }
-    public class domain
-    {
-        public string name = "192.168.64.148:7096";
-    }
     public class UserInfoRequest
     {
         public string User { get; set; }

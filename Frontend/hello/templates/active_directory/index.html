@@ -6,7 +6,7 @@
         async function hideMail() {
             try {
                 
-                await fetch(`http://localhost:8001/hideMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                await fetch(`https://localhost:7095/hideMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
                 let body = document.getElementById("hideMailModalBody");
                 body.innerText = "Почтовый ящик был успешно скрыт";
             } catch {
@@ -18,7 +18,7 @@
         async function showMail() {
             try {
                 
-                await fetch(`http://localhost:8001/showMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                await fetch(`https://localhost:7095/showMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
                 let body = document.getElementById("showMailModalBody");
                 body.innerText = "Почтовый ящик снова показан";
             } catch {
@@ -30,7 +30,7 @@
         async function ban() {
             try {
                 
-                await fetch(`http://localhost:8001/ban/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                await fetch(`https://localhost:7095/BanUser/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
                 let body = document.getElementById("banModalBody");
                 body.innerText = "Пользователь был заблокирован";
             } catch {
@@ -42,7 +42,7 @@
         async function unban() {
             try {
                 
-                await fetch(`http://localhost:8001/unban/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                await fetch(`https://localhost:7095/unban/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
                 let body = document.getElementById("unbanModalBody");
                 body.innerText = "Пользователя удалось разблокировать";
             } catch {
@@ -54,7 +54,7 @@
         async function addToGroup() {
             try {
                 
-                await fetch(`http://localhost:8001/addToGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                await fetch(`https://localhost:7095/addToGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
                 let body = document.getElementById("addGroupStatus");
                 body.innerHTML = '<span id="addGroupStatus" class="text-success">Пользователь добавлен в группу</span>';
             } catch {
@@ -65,7 +65,7 @@
         async function remFromGroup() {
             try {
                 
-                await fetch(`http://localhost:8001/remFromGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                await fetch(`https://localhost:7095/remFromGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
                 let body = document.getElementById("remGroupStatus");
                 body.innerHTML = '<span id="remGroupStatus" class="text-success">Пользователь исключён из группы</span>';
             } catch {
@@ -134,30 +134,37 @@
                     <div class="tab-content" id="nav-tabContent">
                         <div class="tab-pane fade show active" id="nav-home" role="tabpanel"
                             aria-labelledby="nav-home-tab">
-
+                            <div class="col row">
+                                <div class="col-4">Полное имя</div>
+                                <div class="col-1 "> {{ ad_json.DistinguishedName }}</div>
+                            </div>
+                            <div class="col row">
+                                <div class="col-4">Имя</div>
+                                <div class="col-1 "> {{ ad_json.SamAccountName }}</div>
+                            </div>
                             <div class="col row">
                                 <div class="col-4">Электронная почта</div>
-                                <div class="col-1 "> </div>
+                                <div class="col-1 "> {{ ad_json.EmailAddress }}</div>
                             </div>
                             <div class="w-100 border-top"></div>
                             <div class="col row">
                                 <div class="col-4"> Статус учётной записи</div>
-                                <div class="col-1 "> </div>
+                                <div class="col-1 "> {{ ad_json.Enabled }} </div>
                             </div>
                             <div class="w-100 border-top"></div>
                             <div class="col row">
-                                <div class="col-4">Статус пароля</div>
-                                <div class="col-1 "> </div>
+                                <div class="col-4">Пароль истек</div>
+                                <div class="col-1 "> {{ ad_json.PasswordExpired }} </div>
                             </div>
                             <div class="w-100 border-top"></div>
                             <div class="col row">
                                 <div class="col-4">Дата смены пароля</div>
-                                <div class="col-1 "> </div>
+                                <div class="col-1 "> {{ ad_json.PasswordLastSet }}</div>
                             </div>
                             <div class="w-100 border-top"></div>
                         </div>
                         <div class="tab-pane fade" id="nav-groups" role="tabpanel" aria-labelledby="nav-groups-tab">
-                            {% for group in profile_json.groups%}
+                            {% for group in ad_json.MemberOf%}
                             <div class="col">
                                 {{group}}
                             </div>
