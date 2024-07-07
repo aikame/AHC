@@ -73,7 +73,6 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     Set-ADuser -Identity $userName -Add @{extensionAttribute4 = $extAttr1["Компания"]}
     Set-ADuser -Identity $userName -Add @{extensionAttribute5 = $extAttr1["Должность"]}
     Set-ADuser -Identity $userName -Add @{extensionAttribute6 = $extAttr1["Отдел"]}
-
     $result = &"PowershellFunctions\GetUserInfo.ps1" $userName
     return $result
 } else{

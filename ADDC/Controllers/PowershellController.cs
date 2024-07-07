@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ADDC.Models;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using System.Diagnostics;
 
 namespace ADDC.Controllers
 {
@@ -192,32 +193,66 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("CreateMailBox")]
-        public ActionResult CreateMailBox([FromBody] JObject  data)
+        public ActionResult CreateMailBox([FromBody] JObject data)
         {
+            Console.WriteLine(data);
             var user = data.ToObject<UserModel>();
-            using (var ps = PowerShell.Create())
+            // using (var ps = PowerShell.Create())
+            // {
+            //    InitialSessionState iss = InitialSessionState.CreateDefault();
+            var userName = data["name"].ToString();
+            Console.WriteLine(userName);
+            //string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
+            //string scriptWithParams = $"& {{ {scriptText} -userLogin '{userName}' }}";
+            var startInfo = new ProcessStartInfo
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Unrestricted  -File \"./PowershellFunctions/CreateMailBox.ps1\" -userLogin \"{userName}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
+            /*var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
+            string final = "";
+            foreach (var errorRecord in ps.Streams.Error)
+            {
+                Console.WriteLine("Error: " + errorRecord.Exception.Message);
+            }
+            foreach (var result in results)
+            {
+                final += result.ToString();
+            }
+            if (final != "400" || final != "404")
+            {
+                return Ok(final);
+            }
+            else
+            {
+                return BadRequest(final);
+            }*/
+            //}
+            using (var process = Process.Start(startInfo))
+            {
+                var output = process.StandardOutput.ReadToEnd();
+                var errors = process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(errors))
                 {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                    Console.WriteLine("Error: " + errors);
+                    return BadRequest(errors);
                 }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
+
+                Console.WriteLine($"Mailbox: {output}");
+                //JObject jsonData = JObject.Parse(output);
+                //Console.WriteLine($"Mailbox: {jsonData}");
+
+
+                //var response = JsonConvert.SerializeObject(output);
+                return Content(output);
             }
         }
 
