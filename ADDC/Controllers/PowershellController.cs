@@ -197,13 +197,10 @@ namespace ADDC.Controllers
         {
             Console.WriteLine(data);
             var user = data.ToObject<UserModel>();
-            // using (var ps = PowerShell.Create())
-            // {
-            //    InitialSessionState iss = InitialSessionState.CreateDefault();
+   
             var userName = data["name"].ToString();
             Console.WriteLine(userName);
-            //string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
-            //string scriptWithParams = $"& {{ {scriptText} -userLogin '{userName}' }}";
+            
             var startInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
@@ -214,25 +211,7 @@ namespace ADDC.Controllers
                 CreateNoWindow = true
             };
 
-            /*var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
-            string final = "";
-            foreach (var errorRecord in ps.Streams.Error)
-            {
-                Console.WriteLine("Error: " + errorRecord.Exception.Message);
-            }
-            foreach (var result in results)
-            {
-                final += result.ToString();
-            }
-            if (final != "400" || final != "404")
-            {
-                return Ok(final);
-            }
-            else
-            {
-                return BadRequest(final);
-            }*/
-            //}
+           
             using (var process = Process.Start(startInfo))
             {
                 var output = process.StandardOutput.ReadToEnd();
@@ -245,14 +224,22 @@ namespace ADDC.Controllers
                     Console.WriteLine("Error: " + errors);
                     return BadRequest(errors);
                 }
+                Console.WriteLine(output);
+                try
+                {
+                    // Пытаемся распарсить JSON-ответ от PowerShell скрипта
+                    var jsonData = JObject.Parse(output);
 
-                Console.WriteLine($"Mailbox: {output}");
-                //JObject jsonData = JObject.Parse(output);
-                //Console.WriteLine($"Mailbox: {jsonData}");
 
 
-                //var response = JsonConvert.SerializeObject(output);
-                return Content(output);
+
+                    return Content(jsonData.ToString(), "application/json");
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine("Error parsing JSON: " + ex.Message);
+                    return BadRequest("Error parsing JSON from PowerShell output");
+                }
             }
         }
 
