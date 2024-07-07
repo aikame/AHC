@@ -65,12 +65,10 @@ namespace Backend.Controllers
                 {
                     var resultAD = await client.PostAsync("https://"+ _connectorAddress + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
                         Encoding.UTF8, "application/json"));
-
                     string responseADContent = await resultAD.Content.ReadAsStringAsync();
                     Console.WriteLine(responseADContent);
                     if (resultAD.IsSuccessStatusCode)
                     {
-                        
                         JObject jsonData = JObject.Parse(responseADContent);
                         JObject profileData = new JObject();
                         JObject profileAdData = new JObject();
