@@ -5,10 +5,10 @@ $userInfo = Get-ADUser -identity $UserLogin -ErrorAction Ignore
 if ( $null -ne $userInfo ) {
     try {
         Enable-Mailbox $UserLogin | Out-Null
-	$mail = Get-Mailbox -Identity Dima.Dimovichev | Select-Object -ExpandProperty  PrimarySmtpAddress |Select-object address | Convertto-json
+	$mail = Get-Mailbox -Identity $userLogin | Select-Object -ExpandProperty  PrimarySmtpAddress |Select-object address | Convertto-json
         return $mail
     } catch {
-        return "400"
+        return $_.Exception
     }              
 } 
 else {

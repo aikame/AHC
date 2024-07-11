@@ -195,7 +195,7 @@ namespace ADDC.Controllers
         [HttpPost("CreateMailBox")]
         public ActionResult CreateMailBox([FromBody] JObject data)
         {
-            Console.WriteLine(data);
+            Console.WriteLine($"CreateMailBox {data}");
             var user = data.ToObject<UserModel>();
    
             var userName = data["name"].ToString();
