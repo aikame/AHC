@@ -69,12 +69,24 @@ namespace Backend.Controllers
                     Console.WriteLine(responseADContent);
                     if (resultAD.IsSuccessStatusCode)
                     {
-                        JObject jsonData = JObject.Parse(responseADContent);
+                        JObject jsonADData = JObject.Parse(responseADContent);
+                        JObject mailProfile = new JObject();
+                        mailProfile["name"] = jsonADData["SamAccountName"];
+                        var resultEmail = await client.PostAsync("https://" + _connectorAddress + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
+                            Encoding.UTF8, "application/json"));
+                        string responseMail= await resultEmail.Content.ReadAsStringAsync();
+                        Console.WriteLine(responseMail);
+
+                        
+                        JObject jsonMail = JObject.Parse(responseMail);
+
                         JObject profileData = new JObject();
                         JObject profileAdData = new JObject();
                         profileData["_id"] = jsonProfile["_id"];
-                        profileAdData["AD"] = jsonData["SamAccountName"];
+                        profileData["email"] = jsonMail["Address"];
+                        profileAdData["AD"] = jsonADData["SamAccountName"];
                         profileData["profile"] = profileAdData;
+                        Console.WriteLine($"profile update: {profileData}");
                         var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles", new StringContent(JsonConvert.SerializeObject(profileData),
                                  Encoding.UTF8, "application/json"));
                         Console.WriteLine(resultUpdProfile);

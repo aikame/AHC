@@ -37,6 +37,7 @@ def add_to_profiles(request):
     data = json.loads(request.body)
     profile_id = data.get('_id')
     profile_data = data.get('profile')
+    mail = data.get("email")
 
     if not profile_id:
         return Response({'error': '_id is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,7 +61,7 @@ def add_to_profiles(request):
         return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
     
     existing_profile_data = search_results['hits']['hits'][0]['_source']
-    
+    existing_profile_data['email'] = mail
     # Добавление нового значения в список profiles
     if 'profiles' in existing_profile_data:
         existing_profile_data['profiles'].append(profile_data)
