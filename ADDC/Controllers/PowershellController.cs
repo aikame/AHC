@@ -127,6 +127,7 @@ namespace ADDC.Controllers
 
         [HttpPost("AddToGroup")]
         public ActionResult AddToGroup([FromBody] JObject data) {
+            Console.WriteLine(JsonConvert.SerializeObject(data));
             UserModel user = data["user"].ToObject<UserModel>();
             string group = data["group"].ToString();
             using (var ps = PowerShell.Create())
