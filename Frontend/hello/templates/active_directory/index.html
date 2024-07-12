@@ -4,28 +4,42 @@
 <head>
     <script>
         async function hideMail() {
+            let body = document.getElementById("hideMailModalBody");
+            let id = encodeURIComponent("{{ id }}");
             try {
                 
-                await fetch(`https://localhost:7095/hideMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
-                let body = document.getElementById("hideMailModalBody");
+                var result = await fetch(`https://localhost:7095/HideMailBox?id=${id}`);
+                
                 body.innerText = "Почтовый ящик был успешно скрыт";
             } catch {
-                let body = document.getElementById("hideMailModalBody");
                 body.innerText = "Почтовый ящик не удалось скрыть"; 
-                $('#hideMailModal').modal('show');
             }
+            if (result.ok){
+                body.innerText = "Почтовый ящик был успешно скрыт";
+
+            } else {
+                body.innerText = "Почтовый ящик не удалось скрыть"; 
+            }
+            $('#hideMailModal').modal('show');
         }
         async function showMail() {
+            let id = encodeURIComponent("{{ id }}");
+            let body = document.getElementById("showMailModalBody");
             try {
                 
-                await fetch(`https://localhost:7095/showMail/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
-                let body = document.getElementById("showMailModalBody");
+                var result =  await fetch(`https://localhost:7095/ShowMailBox?id=${id}`);
+                
                 body.innerText = "Почтовый ящик снова показан";
             } catch {
-                let body = document.getElementById("showMailModalBody");
                 body.innerText = "Почтовый ящик не удалось показать"; 
-                $('#showMailModal').modal('show');
             }
+            if (result.ok){
+                body.innerText = "Почтовый ящик снова показан";
+
+            } else {
+                body.innerText = "Почтовый ящик не удалось показать"; 
+            }
+            $('#showMailModal').modal('show');
         }
         async function ban() {
             let id = encodeURIComponent("{{ id }}");
@@ -72,24 +86,93 @@
         }
         async function addToGroup() {
             try {
+                let groupName = document.getElementById("group-name-add").value;
+                let id = encodeURIComponent("{{ id }}");
+                var result = await fetch(`https://localhost:7095/AddToGroup`, {
+                    method:"POST",
+                    headers: new Headers({
+                        'content-Type':'application/json'
+                    }),                    
+                    body: JSON.stringify({
+                        "user":{
+                            "name":id
+                        },
+                        "group":groupName,
+                    })
+                })
+                let body = document.getElementById("addGroupStatus");
+                if (result.ok){
+                    body.innerHTML = '<span id="addGroupStatus" class="text-success">Пользователь добавлен в группу</span>';
+                } else{
+                    body.innerHTML = '<span id="addGroupStatus" class="text-danger">Пользователь не был добавлен в группу!</span>';
+                }
                 
-                await fetch(`https://localhost:7095/addToGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                
+            } catch(err) {
                 let body = document.getElementById("addGroupStatus");
-                body.innerHTML = '<span id="addGroupStatus" class="text-success">Пользователь добавлен в группу</span>';
-            } catch {
-                let body = document.getElementById("addGroupStatus");
-                body.innerHTML = '<span id="addGroupStatus" class="text-danger">Пользователь не был добавлен в группу</span>';
+                body.innerHTML = `<span id="addGroupStatus" class="text-danger">${err}</span>`;
             }
+            $('#addGroupModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
         }
         async function remFromGroup() {
             try {
+                let groupName = document.getElementById("group-name-rem").value;
+                let id = encodeURIComponent("{{ id }}");
+                var result = await fetch(`https://localhost:7095/RemoveFromGroup`, {
+                    method:"POST",
+                    headers: new Headers({
+                        'content-Type':'application/json'
+                    }),                    
+                    body: JSON.stringify({
+                        "user":{
+                            "name":id
+                        },
+                        "group":groupName,
+                    })
+                })
+                let body = document.getElementById("remGroupStatus");
+                if (result.ok){
+                    body.innerHTML = '<span id="remGroupStatus" class="text-success">Пользователь был исключен из группы</span>';
+                } else{
+                    body.innerHTML = '<span id="remGroupStatus" class="text-danger">Пользователь не был исключен из группы!</span>';
+                }
                 
-                await fetch(`https://localhost:7095/remFromGroup/${{ id }}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
+                
+            } catch(err) {
                 let body = document.getElementById("remGroupStatus");
-                body.innerHTML = '<span id="remGroupStatus" class="text-success">Пользователь исключён из группы</span>';
+                body.innerHTML = `<span id="remGroupStatus" class="text-danger">${err}</span>`;
+            }
+            $('#remGroupModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+        }
+        async function ChangePassword() {
+            try {
+                let Passw = document.getElementById("password-field").value;
+                let id = encodeURIComponent("{{ id }}");
+                var result = await fetch(`https://localhost:7095/ChangePassword`, {
+                    method:"POST",
+                    headers: new Headers({
+                        'content-Type':'application/json'
+                    }),   
+                    body: JSON.stringify({
+                        "user":{
+                            "name":id
+                        },
+                        "password":Passw,
+                    })
+                })
+                let body = document.getElementById("changePasswStatus");
+                if (result.ok){
+                    body.innerHTML = '<span id="changePasswStatus" class="text-success">Пароль успешно изменён</span>';
+                } else{
+                    body.innerHTML = '<span id="changePasswStatus" class="text-danger">Пароль не удалось изменить</span>';
+                }
             } catch {
-                let body = document.getElementById("remGroupStatus");
-                body.innerHTML = '<span id="remGroupStatus" class="text-danger">Пользователь не был исключён из группы</span>';
+                let body = document.getElementById("changePasswStatus");
+                body.innerHTML = '<span id="changePasswStatus" class="text-danger">Пароль не удалось изменить</span>';
             }
         }
     </script>
@@ -197,6 +280,7 @@
                     <button type="button" onclick="unban()" class="btn btn-primary mx-1 my-1 col"> Разблокировать</button>
                     <button type="button" data-toggle="modal" data-target="#addGroupModal" class="btn btn-primary mx-1 my-1 col"> Добавить в группу</button>
                     <button type="button" data-toggle="modal" data-target="#remGroupModal" class="btn btn-primary mx-1 my-1 col"> Исключить из группы</button>
+                    <button type="button" data-toggle="modal" data-target="#changePassw" class="btn btn-primary mx-1 my-1 col"> Сменить пароль</button>
                     <button type="button" onclick="hideMail()" class="btn btn-primary mx-1 my-1 col"> Скрыть ящик из адресной книги</button>
                     <button type="button" onclick="showMail()" class="btn btn-primary mx-1 my-1 col"> Показать ящик в адресной книге</button>
                 </div>
@@ -276,7 +360,7 @@
               <form>
                 <div class="form-group">
                   <label for="group-name" class="col-form-label">Название группы:</label>
-                  <input type="text" class="form-control" id="group-name">
+                  <input type="text" class="form-control" id="group-name-add">
                   <span id="addGroupStatus"></span>
                 </div>
               </form>
@@ -293,7 +377,7 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="remGroupModalLabel">Исключить из группу</h5>
+              <h5 class="modal-title" id="remGroupModalLabel">Исключить из группы</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -302,19 +386,44 @@
               <form>
                 <div class="form-group">
                   <label for="group-name" class="col-form-label">Название группы:</label>
-                  <input type="text" class="form-control" id="group-name">
+                  <input type="text" class="form-control" id="group-name-rem">
                   <span id="remGroupStatus"></span>
                 </div>
               </form>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-              <button type="button" onclick="remFromGroup()" class="btn btn-primary">Добавить</button>
+              <button type="button" onclick="remFromGroup()" class="btn btn-primary">Исключить</button>
             </div>
           </div>
         </div>
       </div>
-
+    <!-- Смена пароля-->
+    <div class="modal fade" id="changePassw" tabindex="-1" role="dialog" aria-labelledby="changePasswLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="changePasswLabel">Сменить пароля</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+            <form>
+                <div class="form-group">
+                <label for="group-name" class="col-form-label">Новый пароль:</label>
+                <input type="password" class="form-control" id="password-field">
+                <span id="changePasswStatus"></span>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+            <button type="button" onclick="ChangePassword()" class="btn btn-primary">Изменить</button>
+            </div>
+        </div>
+        </div>
+    </div>      
 </body>
 
 </html>

@@ -13,8 +13,6 @@ namespace _1CC
 
         public string patronymic = "";
 
-        public string email = "";
-
         public string company = "";
 
         public string apply_date = "";
@@ -22,13 +20,12 @@ namespace _1CC
         public string appointment = "";
 
         public string city = "";
-
-        public string department = "";
         
+        public bool ADreq = false;
 
         public bool CheckForTroubles()
         {
-            if (name.Length < MinLenght || surname.Length < MinLenght || email.Length < MinLenght ||
+            if (name.Length < MinLenght || surname.Length < MinLenght || 
                 company.Length < MinLenght || apply_date.Length < MinLenght || appointment.Length < MinLenght || city.Length < MinLenght)
                 return false;
 
@@ -40,16 +37,6 @@ namespace _1CC
             }
 
             regex = new Regex(@"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$");
-
-            if (regex.IsMatch(email))
-            {
-                Console.WriteLine("The email address is valid.");
-            }
-            else
-            {
-                Console.WriteLine("The email address is invalid.");
-                return false;
-            }
 
             try
             {

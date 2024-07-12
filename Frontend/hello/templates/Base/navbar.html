@@ -3,6 +3,12 @@
     let text = document.getElementById("searchText").value;
     window.location.href = '/search/'+text;
   }
+  function trySearchtext() {
+    if (event.key=='Enter') {
+      let text = document.getElementById("searchText").value;
+      window.location.href = '/search/'+text;
+    }
+  }
 </script>
 
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap mb-3 p-0 shadow">
@@ -10,7 +16,8 @@
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" id="searchText" aria-label="Search">
+    
+    <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" id="searchText" aria-label="Search" onkeydown="trySearchtext()">
     <ul class="navbar-nav px-1">
       <button type="button" onclick="trySearch()" class="btn btn-dark">Найти</button>
       </ul>

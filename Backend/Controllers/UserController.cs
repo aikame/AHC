@@ -9,6 +9,9 @@ using System.Security.Cryptography.X509Certificates;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Net;
 using System.Web;
+using System.Text.Json;
+using System.Xml.Linq;
+using System;
 
 namespace Backend.Controllers
 {
@@ -62,7 +65,11 @@ namespace Backend.Controllers
 
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
-                {
+                {   
+                    if (!user.ADreq)
+                    {
+                        return Ok(result);
+                    }
                     var resultAD = await client.PostAsync("https://"+ _connectorAddress + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
                         Encoding.UTF8, "application/json"));
                     string responseADContent = await resultAD.Content.ReadAsStringAsync();
@@ -192,54 +199,66 @@ namespace Backend.Controllers
             }
         }
         [HttpPost("AddToGroup")]
-        public async Task<IActionResult> AddToGroup([FromBody] string data)
+        public async Task<IActionResult> AddToGroup([FromBody] JsonElement data)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            string group = jsonData["group"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-            var requestData = new
-            {
-                user = user,
-                group = group
-            };
+            var temp = System.Text.Json.JsonSerializer.Serialize(data);
+            Console.WriteLine(temp);
+            JObject jsonData = JObject.Parse(temp);
+
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
-
-                var result = await client.PostAsJsonAsync(domain + "/AddToGroup", JsonConvert.SerializeObject(requestData));
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://"+ _connectorAddress+ "/AddToGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
-                    return Ok("Запрос выполнен успешно.");
+                    return Ok();
                 }
                 else
                 {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                    return BadRequest();
                 }
             }
         }
         [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] string data)
+        public async Task<IActionResult> ChangePassword([FromBody] JsonElement data)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            string password = jsonData["password"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-            var requestData = new
-            {
-                user = user,
-                password = password
-            };
+            var temp = System.Text.Json.JsonSerializer.Serialize(data);
+            Console.WriteLine(temp);
+            JObject jsonData = JObject.Parse(temp);
+
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress + "/ChangePassword", jsonContent);
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+        }
+        [HttpGet("CreateMailBox")]
+        public async Task<IActionResult> CreateMailBox([FromQuery] string id)
+        {
+            string decodedId = HttpUtility.HtmlDecode(id);
+            Console.WriteLine(id + " -> " + decodedId);
+            JObject jsonData = new JObject();
+            jsonData["name"] = decodedId;
+            Console.WriteLine($"Prepared: {jsonData}");
+            Console.WriteLine(jsonData["name"].ToString());
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
 
-                var result = await client.PostAsJsonAsync(domain + "/ChangePassword", JsonConvert.SerializeObject(requestData));
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress + "/CreateMailBox", jsonContent);
+
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -251,43 +270,23 @@ namespace Backend.Controllers
                 }
             }
         }
-        [HttpPost("CreateMailBox")]
-        public async Task<IActionResult> CreateMailBox([FromBody] string data)
+        [HttpGet("HideMailBox")]
+        public async Task<IActionResult> HideMailBox([FromQuery] string id)
         {
-            JObject jsonData = JObject.Parse(data);
+            string decodedId = HttpUtility.HtmlDecode(id);
+            Console.WriteLine(id + " -> " + decodedId);
+            JObject jsonData = new JObject();
+            jsonData["name"] = decodedId;
+            Console.WriteLine($"Prepared: {jsonData}");
+            Console.WriteLine(jsonData["name"].ToString());
+
+            /*JObject jsonData = JObject.Parse(id);
             UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
+            Console.WriteLine(user.Name);*/
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
-
-
-                var result = await client.PostAsJsonAsync(domain + "/CreateMailBox", JsonConvert.SerializeObject(user));
-                Console.WriteLine(result.ToString());
-                if (result.IsSuccessStatusCode)
-                {
-                    return Ok("Запрос выполнен успешно.");
-                }
-                else
-                {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
-                }
-            }
-        }
-        [HttpPost("HideMailBox")]
-        public async Task<IActionResult> HideMailBox([FromBody] string data)
-        {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
-            {
-
-
-                var result = await client.PostAsJsonAsync(domain + "/HideMailBox", JsonConvert.SerializeObject(user));
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress + "/HideMailBox", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -300,48 +299,43 @@ namespace Backend.Controllers
             }
         }
         [HttpPost("RemoveFromGroup")]
-        public async Task<IActionResult> RemoveFromGroup([FromBody] string data)
+        public async Task<IActionResult> RemoveFromGroup([FromBody] JsonElement data)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            string group = jsonData["group"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-            var requestData = new
-            {
-                user = user,
-                group = group
-            };
+            var temp = System.Text.Json.JsonSerializer.Serialize(data);
+            Console.WriteLine(temp);
+            JObject jsonData = JObject.Parse(temp);
+
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
-
-                var result = await client.PostAsJsonAsync(domain + "/RemoveFromGroup", JsonConvert.SerializeObject(requestData));
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress+ "/RemoveFromGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
-                    return Ok("Запрос выполнен успешно.");
+                    return Ok();
                 }
                 else
                 {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                    return BadRequest();
                 }
             }
         }
-        [HttpPost("ShowMailBox")]
-        public async Task<IActionResult> ShowMailBox([FromBody] string data)
+        [HttpGet("ShowMailBox")]
+        public async Task<IActionResult> ShowMailBox([FromQuery] string id)
         {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
+            string decodedId = HttpUtility.HtmlDecode(id);
+            Console.WriteLine(id + " -> " + decodedId);
+            JObject jsonData = new JObject();
+            jsonData["name"] = decodedId;
+            Console.WriteLine($"Prepared: {jsonData}");
+            Console.WriteLine(jsonData["name"].ToString());
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + _connectorAddress + "/ShowMailBox", jsonContent);
 
-                var result = await client.PostAsJsonAsync(domain + "/ShowMailBox", JsonConvert.SerializeObject(user));
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {

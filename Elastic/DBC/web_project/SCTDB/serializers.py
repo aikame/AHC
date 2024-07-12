@@ -5,7 +5,7 @@ class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=30)
     surname = serializers.CharField(max_length=30)
     patronymic = serializers.CharField(max_length=30)
-    email = serializers.CharField(max_length=30)
+    email = serializers.CharField(max_length=30, allow_blank=True)
     company = serializers.CharField(max_length=30)
     apply_date = serializers.DateField()
     appointment = serializers.CharField(max_length=30)

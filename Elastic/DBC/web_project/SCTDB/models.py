@@ -5,7 +5,7 @@ class Profile(models.Model):
     name = models.CharField(max_length=30)
     surname = models.CharField(max_length=30)
     patronymic = models.CharField(max_length=30)
-    email = models.CharField(max_length=30)
+    email = models.CharField(max_length=30,blank=True)
     company = models.CharField(max_length=30)
     apply_date = models.DateField()
     appointment = models.CharField(max_length=30)

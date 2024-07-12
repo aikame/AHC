@@ -23,7 +23,7 @@
 
         public string patronymic { get; set; }
 
-        public string email { get; set; }
+        public string email { get; set; } = " ";
 
         public string company { get; set; }
 
@@ -33,7 +33,9 @@
 
         public string city { get; set; }
 
-        public string department { get; set; }
+        public bool ADreq { get; set; }
+
+        //public string department { get; set; }
 
         public List<string> profiles { get; set; } = new List<string>();
         public string img_src { get; set; } = ".";
