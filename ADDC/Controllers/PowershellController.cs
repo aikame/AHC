@@ -22,6 +22,12 @@ namespace ADDC.Controllers
     [Route("/")]
     public class PowershellController : Controller
     {
+        private readonly string _AHCAdminGroup;
+
+        public PowershellController(IConfiguration configuration)
+        {
+            _AHCAdminGroup = configuration["AHCAdminGroupName"];
+        }
         [HttpPost("GetInfo")]
         public ActionResult GetInfo([FromBody] JObject data)
         {
@@ -148,6 +154,39 @@ namespace ADDC.Controllers
                     final += result.ToString();
                 }
                 if (final == "200")
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(final);
+                }
+            }
+        }
+        [HttpPost("Authentication")]
+        public ActionResult Authentication([FromBody] JObject data)
+        {
+            Console.WriteLine(JsonConvert.SerializeObject(data));
+            UserModel user = data["user"].ToObject<UserModel>();
+            string group = _AHCAdminGroup;
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/Authentication.ps1.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+                parameters.Add("groupName,", group);
+                parameters.Add("userLogin,", user.Name);
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "True")
                 {
                     return Ok();
                 }
