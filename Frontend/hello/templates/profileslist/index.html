@@ -79,7 +79,8 @@
                         <td class="image"></td>
                         <td class="Job title">Должность</td>
                         <td class="city">Город</td>
-                        <td class="Email">Эл. Почта</td>     
+                        <td class="Email">Эл. Почта</td>
+                        <td class="Email">Уволен</td>      
                     </tr>
                     
                     {% for row in profiles_json%}
@@ -89,6 +90,7 @@
                       <td class="Job title">{{row.source.appointment}}</td>
                       <td class="city">{{row.source.city}}</td>
                       <td class="Email">{{row.source.email}}</td>
+                      <td class="fired text-danger">{% if 'None' not in row.source.fire_date %}{{row.source.fire_date}}{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
