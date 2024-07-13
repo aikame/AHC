@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using ADDC.Models;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using System.Diagnostics;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace ADDC.Controllers
 {
@@ -22,12 +23,6 @@ namespace ADDC.Controllers
     [Route("/")]
     public class PowershellController : Controller
     {
-        private readonly string _AHCAdminGroup;
-
-        public PowershellController(IConfiguration configuration)
-        {
-            _AHCAdminGroup = configuration["AHCAdminGroupName"];
-        }
         [HttpPost("GetInfo")]
         public ActionResult GetInfo([FromBody] JObject data)
         {
@@ -167,15 +162,15 @@ namespace ADDC.Controllers
         public ActionResult Authentication([FromBody] JObject data)
         {
             Console.WriteLine(JsonConvert.SerializeObject(data));
-            UserModel user = data["user"].ToObject<UserModel>();
-            string group = _AHCAdminGroup;
+            string user = data["user"].ToString();
+            var password = data["password"].ToString();
             using (var ps = PowerShell.Create())
             {
                 InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/Authentication.ps1.ps1");
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/Authentication.ps1");
                 System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("groupName,", group);
-                parameters.Add("userLogin,", user.Name);
+                parameters.Add("username", user);
+                parameters.Add("password", password);
                 var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
                 string final = "";
                 foreach (var errorRecord in ps.Streams.Error)
