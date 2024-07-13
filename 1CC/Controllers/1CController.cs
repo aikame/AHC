@@ -47,7 +47,6 @@ namespace _1CC.Controllers
                 Console.WriteLine("Recieved data is ok");
             }
             var sdata = JsonConvert.SerializeObject(RecData);
-            Console.WriteLine(sdata.ToString());
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");

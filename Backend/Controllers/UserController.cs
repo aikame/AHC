@@ -68,7 +68,8 @@ namespace Backend.Controllers
                 {   
                     if (!user.ADreq)
                     {
-                        return Ok(result);
+                        Console.WriteLine(jsonProfile["_id"]);
+                        return Content(jsonProfile["_id"].ToString());
                     }
                     var resultAD = await client.PostAsync("https://"+ _connectorAddress + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
                         Encoding.UTF8, "application/json"));
@@ -105,7 +106,7 @@ namespace Backend.Controllers
                         Console.WriteLine(resultUpdProfile);
                         if (resultUpdProfile.IsSuccessStatusCode)
                         {
-                            return Ok(resultUpdProfile);
+                            return Content(jsonProfile["_id"].ToString());
                         }
                         else
                         {
