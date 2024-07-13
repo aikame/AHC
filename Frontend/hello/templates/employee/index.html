@@ -95,12 +95,19 @@
                 <div class="col-4">Город</div>
                 <div class="col-1 ">{{profile_json.city}} </div>
               </div>
+              <div class="w-100 border-top"></div>
+              {% if 'None' not in profile_json.fire_date %}
+              <div class="col row">
+                <div class="col-4">Дата увольнения</div>
+                <div class="col-1 text-danger">{{profile_json.fire_date}} </div>
+              </div>
+              {% endif %}
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
               {% for profile in profile_json.profiles %}
                   {% for key, value in profile.items %}
-                      <a href="/{{ key }}:{{value}}">
+                      <a href="/{{ key }}:{{value.user}}">
                           <div class="col">
                               {% if 'AD' in key %}
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-windows" viewBox="0 0 16 16">
@@ -113,7 +120,7 @@
                                       <path d="M7.001 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0z" />
                                   </svg>
                               {% endif %}
-                              {{ value }}
+                              {{ value.user }}
                           </div>
                       </a>
                       <div class="w-100 border-top"></div>

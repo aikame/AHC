@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Xml.Linq;
 
 namespace _1CC.Controllers
 {
@@ -67,8 +68,55 @@ namespace _1CC.Controllers
             var sendData = JsonConvert.SerializeObject(RecData);
             return Ok();
         }
+        [HttpPost("fire")]
+        public async Task<ActionResult> FireUser([FromBody] JObject data)
+        {
+            Console.WriteLine($"Fire: {data}");
+            var sdata = JsonConvert.SerializeObject(data);
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://localhost:7095/FireUser", jsonContent);
 
-        
+                var responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return Content(responseContent);
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+
+            return Ok();
+        }
+        [HttpPost("return")]
+        public async Task<ActionResult> ReturnUser([FromBody] JObject data)
+        {
+            Console.WriteLine($"Return: {data}");
+            var sdata = JsonConvert.SerializeObject(data);
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://localhost:7095/ReturnUser", jsonContent);
+
+                var responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return Content(responseContent);
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+            return Ok();
+        }
     }
     
 }

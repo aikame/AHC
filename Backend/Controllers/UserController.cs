@@ -12,6 +12,8 @@ using System.Web;
 using System.Text.Json;
 using System.Xml.Linq;
 using System;
+using System.Text.Json.Nodes;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Backend.Controllers
 {
@@ -89,17 +91,32 @@ namespace Backend.Controllers
                             Console.WriteLine(responseMail);
                             jsonMail = JObject.Parse(responseMail);
                         }
-                            
+
+
+                        string distinguishedName = jsonADData["DistinguishedName"].ToString();
+                        string[] parts = distinguishedName.Split(',');
+
+                        string domain = parts[2].Split('=')[1];
+
+                        // Создание нового JSON-объекта
+                        var newJson = new JObject(
+                            new JProperty("AD",
+                                new JObject(
+                                    new JProperty("domain", domain),
+                                    new JProperty("user", jsonADData["SamAccountName"])
+                                )
+                            )
+                        );
+
+                        // Преобразование нового JSON-объекта в строку
+                        string newJsonString = newJson.ToString(Formatting.Indented);
+                        Console.WriteLine(newJsonString);
+
+
                         JObject profileData = new JObject();
-                        JObject profileAdData = new JObject();
                         profileData["_id"] = jsonProfile["_id"];
-
-                        if (resultEmail.IsSuccessStatusCode)
-                            profileData["email"] = jsonMail["Address"];
-
-                        profileAdData["AD"] = jsonADData["SamAccountName"];
-                        profileData["profile"] = profileAdData;
-
+                        profileData["profile"] = newJson;
+                        profileData["email"] = jsonMail["Address"];
                         Console.WriteLine($"profile update: {profileData}");
                         var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles", new StringContent(JsonConvert.SerializeObject(profileData),
                                  Encoding.UTF8, "application/json"));
@@ -376,6 +393,91 @@ namespace Backend.Controllers
             }
         }
 
+        [HttpPost("FireUser")]
+        public async Task<IActionResult> FireUser([FromBody] JsonElement data)
+        {
+            //var temp = System.Text.Json.JsonSerializer.Serialize(data);
+            Console.WriteLine(data);
+            var id = new JsonObject
+            {
+                ["id"] = data.GetProperty("id").GetString()
+            };
+            Console.WriteLine(id.ToJsonString());
+            JsonElement fire_date = data.GetProperty("fire_date");
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+
+                var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("http://127.0.0.2:8000/api/getone", jsonContent);
+                string responseContent = await result.Content.ReadAsStringAsync();
+                JsonDocument document = JsonDocument.Parse(responseContent);
+                JsonElement root = document.RootElement;
+
+                JsonElement hits = root.GetProperty("hits").GetProperty("hits");
+
+                foreach (JsonElement hit in hits.EnumerateArray())
+                {
+                    JsonElement source = hit.GetProperty("_source");
+                    JsonElement profiles = source.GetProperty("profiles");
+
+                    foreach (JsonElement profile in profiles.EnumerateArray())
+                    {
+                        if (profile.TryGetProperty("AD", out JsonElement ad))
+                        {
+                            // Выполнение необходимого действия для каждого объекта "AD"
+                            string domain = ad.GetProperty("domain").GetString();
+                            string user = ad.GetProperty("user").GetString();
+                            var sdata = new JsonObject
+                            {
+                                ["name"] = user
+                            };
+
+
+                            var jsonUserBanContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+                            var banResult = await client.PostAsync("https://" + _connectorAddress + "/BanUser", jsonUserBanContent);
+                            // Пример действия: вывод на консоль
+                            Console.WriteLine($"Domain: {domain}, User: {user}");
+                        }
+                    }
+                }
+                Console.WriteLine($"fire date: {fire_date}");
+                var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/fire_user", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
+                         Encoding.UTF8, "application/json"));
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            return Ok();
+        }
+        [HttpPost("ReturnUser")]
+        public async Task<IActionResult> ReturnUser([FromBody] JsonElement data)
+        {
+            Console.WriteLine(data);
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+
+               
+                Console.WriteLine($"fire date: {data}");
+                var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/return_user", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
+                         Encoding.UTF8, "application/json"));
+
+                if (resultUpdProfile.IsSuccessStatusCode)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            return Ok();
+        }
 
     }
 }

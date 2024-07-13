@@ -19,6 +19,8 @@ def profile_detail(request):
         return Response(status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'POST':
+        if request.data['fire_date'] == '':
+            request.data['fire_date'] = None
         serializer = ProfileSerializer(data=request.data)
         print(serializer.is_valid())
         if serializer.is_valid():
@@ -30,6 +32,76 @@ def profile_detail(request):
     elif request.method == 'GET':
         response = requests.get('http://localhost:9200/users/_search')
         return Response(response.json())
+@api_view(['POST'])
+def fire_user(request):
+    data = json.loads(request.body)
+    profile_id = data.get('id')
+    fire_date = data.get('fire_date')
+    if not profile_id:
+        return Response({'error': '_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+    print(2)
+    if not fire_date:
+        return Response({'error': 'fire_date data is required'}, status=status.HTTP_400_BAD_REQUEST)
+    print(3)
+    search_url = 'http://localhost:9200/users/_search'
+    query = {
+        "query": {
+            "term": {
+                "_id": profile_id
+            }
+        }
+    }
+    response = requests.get(search_url, headers={"Content-Type": "application/json"}, json=query)
+    search_results = response.json()
+    
+    if not search_results['hits']['hits']:
+        return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    existing_profile_data = search_results['hits']['hits'][0]['_source']
+
+
+    existing_profile_data['fire_date'] = fire_date
+    update_url = f'http://localhost:9200/users/_doc/{profile_id}'
+    response = requests.put(update_url, headers={"Content-Type": "application/json"}, json=existing_profile_data)
+    
+    if response.status_code == 200:
+        return Response({'success': 'Profile updated successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Failed to update profile'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def return_user(request):
+    data = json.loads(request.body)
+    profile_id = data.get('id')
+    if not profile_id:
+        return Response({'error': '_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    search_url = 'http://localhost:9200/users/_search'
+    query = {
+        "query": {
+            "term": {
+                "_id": profile_id
+            }
+        }
+    }
+    response = requests.get(search_url, headers={"Content-Type": "application/json"}, json=query)
+    search_results = response.json()
+    
+    if not search_results['hits']['hits']:
+        return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    existing_profile_data = search_results['hits']['hits'][0]['_source']
+
+
+    existing_profile_data['fire_date'] = None
+    print(existing_profile_data)
+    update_url = f'http://localhost:9200/users/_doc/{profile_id}'
+    response = requests.put(update_url, headers={"Content-Type": "application/json"}, json=existing_profile_data)
+    print(response.content)
+    if response.status_code == 200:
+        return Response({'success': 'Profile updated successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Failed to update profile'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def add_to_profiles(request):
@@ -38,7 +110,7 @@ def add_to_profiles(request):
     profile_id = data.get('_id')
     profile_data = data.get('profile')
     mail = data.get("email")
-
+    print(profile_data)
     if not profile_id:
         return Response({'error': '_id is required'}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -89,7 +161,9 @@ def get_one(request):
         return Response(response.json())
     elif request.method == 'POST':
         print(request.body)
-        return Response(data="{'status':'success'}", status=status.HTTP_201_CREATED)
+        data = json.loads(request.body)
+        response = requests.get("http://localhost:9200/users/_search", data='{"query": {"term": {"_id": "'+ data["id"]+'"}}}',headers={"Content-Type":"application/json"})
+        return Response(response.json())
 @api_view(['GET'])
 def get_text(request):
     data = json.loads(request.body)

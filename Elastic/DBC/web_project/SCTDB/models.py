@@ -8,6 +8,7 @@ class Profile(models.Model):
     email = models.CharField(max_length=30,blank=True)
     company = models.CharField(max_length=30)
     apply_date = models.DateField()
+    fire_date = models.DateField(blank=True)
     appointment = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
     profiles = models.CharField(max_length=1024)

@@ -41,4 +41,6 @@ urlpatterns = [
     path('api/getone',views.get_one),
     path('api/get',views.get_text),
     path('api/add_to_profiles', views.add_to_profiles, name='add_to_profiles'),
+    path('api/fire_user', views.fire_user),
+    path('api/return_user', views.return_user),
 ]

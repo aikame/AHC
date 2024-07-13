@@ -28,7 +28,7 @@
         public string company { get; set; }
 
         public string apply_date { get; set; }
-
+        public string fire_date { get; set; } = "";
         public string appointment { get; set; }
 
         public string city { get; set; }
