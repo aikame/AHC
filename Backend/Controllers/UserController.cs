@@ -476,7 +476,51 @@ namespace Backend.Controllers
                     return BadRequest();
                 }
             }
-            return Ok();
+        }
+
+        [HttpPost("Authentication")]
+        public async Task<IActionResult> Authentication([FromBody] JsonElement data)
+        {
+            var temp = System.Text.Json.JsonSerializer.Serialize(data);
+            Console.WriteLine(temp);
+            JObject jsonData = JObject.Parse(temp);
+
+            
+
+            try
+            {
+               
+                string user = data.GetProperty("user").GetString();
+                string password = data.GetProperty("password").GetString();
+                string[] userParts = user.Split('\\');
+                string username = userParts.Length > 1 ? userParts[1] : userParts[0];
+                string domain = userParts.Length > 1 ? userParts[0] : "";
+                var newJson = new JsonObject
+                {
+                    ["user"] = username,
+                    ["password"] = password
+                };
+                using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+                {
+
+                    var jsonContent = new StringContent(newJson.ToString(), Encoding.UTF8, "application/json");
+                    var result = await client.PostAsync("https://" + _connectorAddress + "/Authentication", jsonContent);
+                    Console.WriteLine(result.ToString());
+                    if (result.IsSuccessStatusCode)
+                    {
+                        return Ok();
+                    }
+                    else
+                    {
+                        return BadRequest(result);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
     }
