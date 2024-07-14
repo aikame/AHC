@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from SCTDB.models import Profile
+from SCTDB.models import Profile,Computer
 
 class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=30)
@@ -29,6 +29,33 @@ class ProfileSerializer(serializers.Serializer):
         instance.city = validated_data.get('city',instance.city)
         instance.save()
         return instance
+    
+class ComputerSerializer(serializers.Serializer):
+    WindowsEdition = serializers.CharField(max_length=80)
+    IPAddress = serializers.CharField(max_length=20)
+    DomainName = serializers.CharField(max_length=30)
+    TotalRAMGB = serializers.IntegerField()
+    DiskSpace = serializers.JSONField()
+    CPUName = serializers.JSONField()
+    CPUCores = serializers.JSONField()
+    ComputerName = serializers.CharField(max_length=30)
+    Status = serializers.BooleanField(allow_null=True)
+
+    def create(self, validated_data):
+        return Computer.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.WindowsEdition = validated_data.get('WindowsEdition',instance.WindowsEdition)
+        instance.IPAddress = validated_data.get('IPAddress',instance.IPAddress)
+        instance.DomainName = validated_data.get('DomainName',instance.DomainName)
+        instance.TotalRAMGB = validated_data.get('TotalRAMGB',instance.TotalRAMGB)
+        instance.DiskSpace = validated_data.get('DiskSpace',instance.DiskSpace)
+        instance.CPUName = validated_data.get('CPUName',instance.CPUName)
+        instance.CPUCores = validated_data.get('CPUCores',instance.CPUCores)
+        instance.ComputerName = validated_data.get('ComputerName',instance.ComputerName)
+        instance.Status = validated_data.get('Status',instance.Status)
+        instance.save()
+        return instance    
     
 class IdSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=30)

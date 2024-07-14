@@ -239,6 +239,33 @@ namespace Backend.Controllers
                 }
             }
         }
+
+        [HttpPost("CollectComputerInfo")]
+        public async Task<IActionResult> CollectComputerInfo([FromBody] JsonElement data)
+        {
+            Console.WriteLine(data);
+            var domainName = data.GetProperty("DomainName");
+            Console.WriteLine(domainName);
+            ComputerModel computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(data.ToString());
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var result = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
+                                 Encoding.UTF8, "application/json"));
+
+                var jsonContent = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
+                //var result = await client.PostAsync("https://" + _connectorAddress + "/AddToGroup", jsonContent);
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+        }
+
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] JsonElement data)
         {

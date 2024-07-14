@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
-from SCTDB.models import Profile
-from SCTDB.serializers import ProfileSerializer,IdSerializer
+from SCTDB.models import Profile,Computer
+from SCTDB.serializers import ProfileSerializer,IdSerializer,ComputerSerializer
 import json
 import requests
 # Create your views here.
@@ -32,6 +32,50 @@ def profile_detail(request):
     elif request.method == 'GET':
         response = requests.get('http://localhost:9200/users/_search')
         return Response(response.json())
+    
+@api_view(['POST','GET'])
+def computer_data(request):
+    print(request.data)
+    try:
+        computer = Computer.objects
+    except Computer.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'POST':
+        serializer = ComputerSerializer(data=request.data)
+        print(serializer.is_valid())
+        if serializer.is_valid():
+            computerName = request.data['ComputerName']
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
+            search_results = response.json()
+            print(search_results)
+            if 'hits' in search_results and search_results['hits']['hits']:
+                existing_computer_data = search_results['hits']['hits'][0]['_source']
+                id = search_results['hits']['hits'][0]['_id']
+                existing_computer_data['WindowsEdition'] = request.data['WindowsEdition']
+                existing_computer_data['IPAddress'] = request.data['IPAddress']
+                existing_computer_data['DomainName'] = request.data['DomainName']
+                existing_computer_data['TotalRAMGB'] = request.data['TotalRAMGB']
+                existing_computer_data['DiskSpace'] = request.data['DiskSpace']
+                existing_computer_data['CPUName'] = request.data['CPUName']
+                existing_computer_data['CPUCores'] = request.data['CPUCores']
+                existing_computer_data['ComputerName'] = request.data['ComputerName']
+                existing_computer_data['Status'] = request.data['ComputerName']
+                print(f"update {computerName}")
+                response = requests.put(f"http://localhost:9200/computers/_doc/{id}", headers={"Content-Type": "application/json"}, json=existing_computer_data)
+            else:
+                content = JSONRenderer().render(serializer.data)
+                print(f"creating {computerName}")
+                response = requests.post('http://localhost:9200/computers/_doc',data=content,headers={"Content-Type":"application/json"})               
+
+            return Response(response.content)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'GET':
+        response = requests.get('http://localhost:9200/computers/_search')
+        return Response(response.json())
+
 @api_view(['POST'])
 def fire_user(request):
     data = json.loads(request.body)

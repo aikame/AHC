@@ -10,7 +10,7 @@ public class Program
         Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseUrls("https://localhost:7095/");
+                webBuilder.UseUrls("https://0.0.0.0:7095/");
                 webBuilder.UseStartup<Backend.Startup>();
             });
 }

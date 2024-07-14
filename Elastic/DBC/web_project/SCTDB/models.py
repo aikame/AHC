@@ -15,3 +15,14 @@ class Profile(models.Model):
     img_src = models.CharField(max_length=150)
     class Meta:
         ordering = ['created']
+
+class Computer(models.Model):
+    WindowsEdition = models.CharField(max_length=80)
+    IPAddress = models.CharField(max_length=20)
+    DomainName = models.CharField(max_length=30)
+    TotalRAMGB = models.IntegerField()
+    DiskSpace = models.JSONField(max_length=500)
+    CPUName = models.JSONField(max_length=500)
+    CPUCores = models.JSONField(max_length=50)
+    ComputerName = models.CharField(max_length=30)
+    Status = models.BooleanField()

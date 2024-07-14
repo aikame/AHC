@@ -1,4 +1,6 @@
-﻿namespace Backend.models
+﻿using System.Text.Json;
+
+namespace Backend.models
 {
     public class UserModel
     {
@@ -39,5 +41,18 @@
 
         public List<string> profiles { get; set; } = new List<string>();
         public string img_src { get; set; } = ".";
+    }
+    public class ComputerModel
+    {
+        public string WindowsEdition { get; set; }
+        public string IPAddress { get; set; }
+        public string DomainName { get; set; }
+        public float TotalRAMGB { get; set; }
+        public List<JsonElement> DiskSpace  { get; set; }
+        public List<string> CPUName { get; set; }
+        public List<int> CPUCores { get; set; }
+        public string ComputerName { get; set; }
+        public bool Status { get; set; } = true;
+
     }
 }
