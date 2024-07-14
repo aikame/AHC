@@ -1,23 +1,16 @@
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
 
+# Ensure the Active Directory module is available
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
     Import-Module ActiveDirectory
 }
 
-
-$os = Get-WmiObject -Class Win32_OperatingSystem
+# Get Windows Edition
+$os = Get-CimInstance -ClassName Win32_OperatingSystem
 $windowsEdition = $os.Caption
 
-
-$interfaces = Get-NetAdapter | Where-Object { $_.Status -eq "Up" }
-$ipAddress = ""
-foreach ($interface in $interfaces) {
-    $ip = Get-NetIPAddress -InterfaceAlias $interface.Name -AddressFamily IPv4 | Select-Object -First 1
-    if ($ip) {
-        $ipAddress = $ip.IPAddress
-        break
-    }
-}
+# Get IP Address
+$ipAddress = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -like 'Ethernet*' -or $_.PrefixOrigin -eq 'Manual' } | Select-Object -ExpandProperty IPAddress -First 1)
 
 if (-not $ipAddress) {
     $ipAddress = "IP Address not found"
@@ -32,11 +25,11 @@ catch {
     $domainName = "Domain not found or not accessible"
 }
 
-
+# Get Total RAM
 $totalRAM = [math]::round($os.TotalVisibleMemorySize / 1MB, 2)
 
-
-$disk = Get-WmiObject -Class Win32_LogicalDisk -Filter "DriveType=3"
+# Get Disk Space
+$disk = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3"
 $diskSpace = @()
 foreach ($d in $disk) {
     $diskSpace += [PSCustomObject]@{
@@ -46,15 +39,15 @@ foreach ($d in $disk) {
     }
 }
 
-
-$cpu = Get-WmiObject -Class Win32_Processor
+# Get CPU Info
+$cpu = Get-CimInstance -ClassName Win32_Processor
 $cpuName = $cpu.Name
 $cpuCores = $cpu.NumberOfCores
 
-
+# Get Computer Name
 $computerName = $env:COMPUTERNAME
 
-
+# Output information
 $info = [PSCustomObject]@{
     WindowsEdition = $windowsEdition
     IPAddress = $ipAddress
@@ -66,6 +59,7 @@ $info = [PSCustomObject]@{
     ComputerName = $computerName
 }
 
-$jsonInfo = $info | ConvertTO-json
+$jsonInfo = $info | ConvertTo-Json
 
+# Save the information to a file
 return $jsonInfo

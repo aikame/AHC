@@ -14,7 +14,8 @@ namespace ADDC.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private Timer _timer;
         string _coreAddress;
-        
+        PowerShell ps;
+        InitialSessionState iss;
         public ComputerInfoService(ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
@@ -22,8 +23,12 @@ namespace ADDC.Services
             string jsonText = System.IO.File.ReadAllText("config.txt");
 
             JObject config = JObject.Parse(jsonText);
-
             _coreAddress = config["core"].ToString();
+            ps = PowerShell.Create();
+            iss = InitialSessionState.CreateDefault();
+            string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CollectInfo.ps1");
+            ps.AddScript(scriptText);
+            
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -31,7 +36,7 @@ namespace ADDC.Services
             _logger.LogInformation("PostRequestService is starting.");
 
             SendPostRequest();
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(15));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
         }
@@ -44,23 +49,19 @@ namespace ADDC.Services
         private async Task<bool> SendPostRequest()
         {
             string final = "";
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CollectInfo.ps1");
-                var results = ps.AddScript(scriptText).Invoke();
+            
+            var results = ps.Invoke();
                 
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var scriptResult in results)
-                {
-
-                    final += scriptResult.ToString();
-                }
+            foreach (var errorRecord in ps.Streams.Error)
+            {
+                Console.WriteLine("Error: " + errorRecord.Exception.Message);
             }
+            foreach (var scriptResult in results)
+            {
+                final += scriptResult.ToString();
+            }
+            
             Console.WriteLine($"GetComputerinfo: {final}");
             JObject jsonData = JObject.Parse(final);
 
