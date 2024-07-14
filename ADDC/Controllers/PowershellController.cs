@@ -16,13 +16,35 @@ using ADDC.Models;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using System.Diagnostics;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ADDC.Controllers
 {
+    public class CustomHttpClientHandler : HttpClientHandler
+    {
+        public CustomHttpClientHandler()
+        {
+            ServerCertificateCustomValidationCallback = ValidateServerCertificate;
+        }
+
+        private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
+        {
+            if (errors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            // Для разработки, игнорируем ошибки сертификата
+            return true;
+        }
+    }
     [ApiController]
     [Route("/")]
     public class PowershellController : Controller
     {
+        
         [HttpPost("GetInfo")]
         public ActionResult GetInfo([FromBody] JObject data)
         {
@@ -62,6 +84,33 @@ namespace ADDC.Controllers
             };
 
                 var response = JsonConvert.SerializeObject(userModel);
+                return Content(response);
+            }
+        }
+        [HttpGet("GetComputerInfo")]
+        public ActionResult GetComputerInfo([FromQuery] string data)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CollectInfo.ps1");
+                var results = ps.AddScript(scriptText).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+                Console.WriteLine($"GetComputerinfo: {final}");
+                JObject jsonData = JObject.Parse(final);
+                
+
+                var response = JsonConvert.SerializeObject(jsonData);
                 return Content(response);
             }
         }
@@ -161,7 +210,7 @@ namespace ADDC.Controllers
         [HttpPost("Authentication")]
         public ActionResult Authentication([FromBody] JObject data)
         {
-            Console.WriteLine(JsonConvert.SerializeObject(data));
+
             string user = data["user"].ToString();
             var password = data["password"].ToString();
             using (var ps = PowerShell.Create())
