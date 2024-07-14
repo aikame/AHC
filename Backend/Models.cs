@@ -44,6 +44,7 @@ namespace Backend.models
     }
     public class ComputerModel
     {
+        public int? _Id { get; set; }
         public string WindowsEdition { get; set; }
         public string IPAddress { get; set; }
         public string DomainName { get; set; }

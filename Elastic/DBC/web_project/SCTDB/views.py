@@ -35,7 +35,6 @@ def profile_detail(request):
     
 @api_view(['POST','GET'])
 def computer_data(request):
-    print(request.data)
     try:
         computer = Computer.objects
     except Computer.DoesNotExist:
@@ -48,7 +47,6 @@ def computer_data(request):
             computerName = request.data['ComputerName']
             response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
             search_results = response.json()
-            print(search_results)
             if 'hits' in search_results and search_results['hits']['hits']:
                 existing_computer_data = search_results['hits']['hits'][0]['_source']
                 id = search_results['hits']['hits'][0]['_id']
@@ -60,7 +58,7 @@ def computer_data(request):
                 existing_computer_data['CPUName'] = request.data['CPUName']
                 existing_computer_data['CPUCores'] = request.data['CPUCores']
                 existing_computer_data['ComputerName'] = request.data['ComputerName']
-                existing_computer_data['Status'] = request.data['ComputerName']
+                existing_computer_data['Status'] = request.data['Status']
                 print(f"update {computerName}")
                 response = requests.put(f"http://localhost:9200/computers/_doc/{id}", headers={"Content-Type": "application/json"}, json=existing_computer_data)
             else:

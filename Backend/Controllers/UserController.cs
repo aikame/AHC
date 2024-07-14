@@ -17,6 +17,24 @@ using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext
 
 namespace Backend.Controllers
 {
+    public class CustomHttpClientHandler : HttpClientHandler
+    {
+        public CustomHttpClientHandler()
+        {
+            ServerCertificateCustomValidationCallback = ValidateServerCertificate;
+        }
+
+        private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
+        {
+            if (errors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            // Для разработки, игнорируем ошибки сертификата
+            return true; // !!! Не используйте в Production (как же похуй)
+        }
+    }
     [ApiController]
     [Route("/")]
     public class UserController : ControllerBase
@@ -27,24 +45,7 @@ namespace Backend.Controllers
         {
             _connectorAddress = configuration["ConnectorAddress"];
         }
-        public class CustomHttpClientHandler : HttpClientHandler
-        {
-            public CustomHttpClientHandler()
-            {
-                ServerCertificateCustomValidationCallback = ValidateServerCertificate;
-            }
-
-            private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
-            {
-                if (errors == SslPolicyErrors.None)
-                {
-                    return true;
-                }
-
-                // Для разработки, игнорируем ошибки сертификата
-                return true; // !!! Не используйте в Production (как же похуй)
-            }
-        }
+        
         [HttpPost("CreateProfile")]
         public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user)
         {

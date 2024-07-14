@@ -1,9 +1,11 @@
 using Backend;
+using Backend.Services;
 public class Program
 {
     public static void Main(string[] args)
     {
-        CreateHostBuilder(args).Build().Run();
+        var host = CreateHostBuilder(args).Build();
+        host.Run();
     }
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -12,5 +14,10 @@ public class Program
             {
                 webBuilder.UseUrls("https://0.0.0.0:7095/");
                 webBuilder.UseStartup<Backend.Startup>();
+            })
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.AddHttpClient();
+                services.AddHostedService<ComputerStateService>();
             });
 }
