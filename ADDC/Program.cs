@@ -28,7 +28,7 @@ namespace ADDC
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls("https://0.0.0.0:7093/");
-                    webBuilder.UseStartup<Startup>();                    
+                    webBuilder.UseStartup<Startup>();
                 });
     }
 }

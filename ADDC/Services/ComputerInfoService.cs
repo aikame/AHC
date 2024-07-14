@@ -35,7 +35,7 @@ namespace ADDC.Services
         {
             _logger.LogInformation("PostRequestService is starting.");
 
-            SendPostRequest();
+            //SendPostRequest();
             _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
 
             return Task.CompletedTask;
