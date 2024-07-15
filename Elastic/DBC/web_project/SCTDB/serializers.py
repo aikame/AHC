@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from SCTDB.models import Profile,Computer
-
+from django.utils import timezone
 class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=30)
     surname = serializers.CharField(max_length=30)
@@ -40,8 +40,10 @@ class ComputerSerializer(serializers.Serializer):
     CPUCores = serializers.JSONField()
     ComputerName = serializers.CharField(max_length=30)
     Status = serializers.BooleanField(allow_null=True)
-
+    updated = serializers.DateTimeField(read_only=True)
     def create(self, validated_data):
+        if 'updated' not in validated_data:
+            validated_data['updated'] = timezone.now()
         return Computer.objects.create(**validated_data)
     
     def update(self, instance, validated_data):
@@ -54,6 +56,7 @@ class ComputerSerializer(serializers.Serializer):
         instance.CPUCores = validated_data.get('CPUCores',instance.CPUCores)
         instance.ComputerName = validated_data.get('ComputerName',instance.ComputerName)
         instance.Status = validated_data.get('Status',instance.Status)
+        instance.updated = validated_data.get('updated', timezone.now())
         instance.save()
         return instance    
     

@@ -14,6 +14,9 @@ using System.Xml.Linq;
 using System;
 using System.Text.Json.Nodes;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using System.Net.NetworkInformation;
+using Backend.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Backend.Controllers
 {
@@ -35,17 +38,45 @@ namespace Backend.Controllers
             return true; // !!! Не используйте в Production (как же похуй)
         }
     }
+    
     [ApiController]
     [Route("/")]
     public class UserController : ControllerBase
     {
         private readonly string _connectorAddress;
-
-        public UserController(IConfiguration configuration)
+        private readonly ILogger<ComputerStateService> _logger;
+        public UserController(ILogger<ComputerStateService> logger,IConfiguration configuration)
         {
+            _logger = logger;
             _connectorAddress = configuration["ConnectorAddress"];
         }
-        
+        private bool CheckPing(string address)
+        {
+            using (var ping = new Ping())
+            {
+                try
+                {
+                    var reply = ping.Send("address");
+
+                    if (reply.Status == IPStatus.Success)
+                    {
+                        _logger.LogInformation("Ping to {address} successful: {RoundtripTime}ms", address, reply.RoundtripTime);
+                        return true;
+                    }
+                    else
+                    {
+                        _logger.LogError("Ping to {address} failed: {Status}", address, reply.Status);
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Ping to {address} failed: {Exception}", address, ex.Message);
+                    return false;
+                }
+            }
+        }
+
         [HttpPost("CreateProfile")]
         public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user)
         {
@@ -262,6 +293,30 @@ namespace Backend.Controllers
                 }
                 else
                 {
+                    return BadRequest();
+                }
+            }
+        }
+        [HttpGet("CheckComputer")]
+        public async Task<IActionResult> CheckComputer([FromQuery] string _id)
+        {
+            // http://127.0.0.2:8000/api/GetComputer?ComputerName=DC-1
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var result = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?_id={_id}");
+                string responseContent = await result.Content.ReadAsStringAsync();
+                ComputerModel computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(responseContent);
+                computer.Status = CheckPing(computer.IPAddress);
+                var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
+                        Encoding.UTF8, "application/json"));
+                if (result.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");
+                    return Ok();
+                }
+                else
+                {
+                    _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
                     return BadRequest();
                 }
             }

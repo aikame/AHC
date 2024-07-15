@@ -44,12 +44,21 @@ namespace Backend.Services
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
-                Console.WriteLine(result);
                 string responseContent = await result.Content.ReadAsStringAsync();
                 JsonDocument document = JsonDocument.Parse(responseContent);
                 JsonElement root = document.RootElement;
-
-                JsonElement hits = root.GetProperty("hits").GetProperty("hits");
+                JsonElement hitstemp, hits;
+                if(!root.TryGetProperty("hits",out hitstemp))
+                {
+                    _logger.LogError($"No computers at database");
+                    return;
+                }
+                if (!hitstemp.TryGetProperty("hits", out hits))
+                {
+                    _logger.LogError($"No computers at database");
+                    return;
+                }
+                //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
 
                 foreach (JsonElement hit in hits.EnumerateArray())
                 {
@@ -60,7 +69,6 @@ namespace Backend.Services
 
                     var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
                         Encoding.UTF8, "application/json"));
-                    Console.WriteLine($"{updResult}");
                     if (result.IsSuccessStatusCode)
                     {
                         _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");

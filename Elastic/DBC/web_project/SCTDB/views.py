@@ -8,6 +8,7 @@ from SCTDB.models import Profile,Computer
 from SCTDB.serializers import ProfileSerializer,IdSerializer,ComputerSerializer
 import json
 import requests
+from django.utils import timezone
 # Create your views here.
 
 @api_view(['POST','GET'])
@@ -48,22 +49,17 @@ def computer_data(request):
             response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
             search_results = response.json()
             if 'hits' in search_results and search_results['hits']['hits']:
-                existing_computer_data = search_results['hits']['hits'][0]['_source']
                 id = search_results['hits']['hits'][0]['_id']
-                existing_computer_data['WindowsEdition'] = request.data['WindowsEdition']
-                existing_computer_data['IPAddress'] = request.data['IPAddress']
-                existing_computer_data['DomainName'] = request.data['DomainName']
-                existing_computer_data['TotalRAMGB'] = request.data['TotalRAMGB']
-                existing_computer_data['DiskSpace'] = request.data['DiskSpace']
-                existing_computer_data['CPUName'] = request.data['CPUName']
-                existing_computer_data['CPUCores'] = request.data['CPUCores']
-                existing_computer_data['ComputerName'] = request.data['ComputerName']
-                existing_computer_data['Status'] = request.data['Status']
+                rawcontent = serializer.data
+                rawcontent['updated'] = timezone.now().isoformat()
+                content = JSONRenderer().render(rawcontent) 
                 print(f"update {computerName}")
-                response = requests.put(f"http://localhost:9200/computers/_doc/{id}", headers={"Content-Type": "application/json"}, json=existing_computer_data)
+                response = requests.put(f"http://localhost:9200/computers/_doc/{id}", headers={"Content-Type": "application/json"}, data=content)
             else:
-                content = JSONRenderer().render(serializer.data)
-                print(f"creating {computerName}")
+                rawcontent = serializer.data
+                rawcontent['updated'] = timezone.now().isoformat()
+                content = JSONRenderer().render(rawcontent) 
+                print(f"creating {content}")
                 response = requests.post('http://localhost:9200/computers/_doc',data=content,headers={"Content-Type":"application/json"})               
 
             return Response(response.content)
@@ -73,7 +69,21 @@ def computer_data(request):
     elif request.method == 'GET':
         response = requests.get('http://localhost:9200/computers/_search')
         return Response(response.json())
-
+@api_view(['GET'])
+def get_computer_data(request):
+    id = request.GET.get('_id', 'None')
+    computerName = request.GET.get('ComputerName', 'None')
+    if request.method == 'GET':
+        if id != "None":
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"term": {"_id": "'+ id+'"}}}',headers={"Content-Type":"application/json"})
+            return Response(response.json()['hits']['hits'][0]['_source'])
+        elif computerName !="None":
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
+            return Response(response.json()['hits']['hits'][0]['_source'])
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 @api_view(['POST'])
 def fire_user(request):
     data = json.loads(request.body)

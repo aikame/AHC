@@ -17,6 +17,7 @@ class Profile(models.Model):
         ordering = ['created']
 
 class Computer(models.Model):
+    updated = models.DateTimeField(auto_now_add=True)
     WindowsEdition = models.CharField(max_length=80)
     IPAddress = models.CharField(max_length=20)
     DomainName = models.CharField(max_length=30)
@@ -26,3 +27,5 @@ class Computer(models.Model):
     CPUCores = models.JSONField(max_length=50)
     ComputerName = models.CharField(max_length=30)
     Status = models.BooleanField()
+    class Meta:
+        ordering = ['updated']
