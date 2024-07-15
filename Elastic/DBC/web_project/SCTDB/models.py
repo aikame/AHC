@@ -26,6 +26,7 @@ class Computer(models.Model):
     CPUName = models.JSONField(max_length=500)
     CPUCores = models.JSONField(max_length=50)
     ComputerName = models.CharField(max_length=30)
+    ComputerRole = models.IntegerField()
     Status = models.BooleanField()
     class Meta:
         ordering = ['updated']

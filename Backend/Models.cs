@@ -53,6 +53,7 @@ namespace Backend.models
         public List<string> CPUName { get; set; }
         public List<int> CPUCores { get; set; }
         public string ComputerName { get; set; }
+        public int ComputerRole { get; set; }
         public bool Status { get; set; } = true;
 
     }

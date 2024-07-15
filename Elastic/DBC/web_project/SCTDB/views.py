@@ -73,6 +73,7 @@ def computer_data(request):
 def get_computer_data(request):
     id = request.GET.get('_id', 'None')
     computerName = request.GET.get('ComputerName', 'None')
+    computerDomain = request.GET.get('domain', 'None')
     if request.method == 'GET':
         if id != "None":
             response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"term": {"_id": "'+ id+'"}}}',headers={"Content-Type":"application/json"})
@@ -80,6 +81,14 @@ def get_computer_data(request):
         elif computerName !="None":
             response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
             return Response(response.json()['hits']['hits'][0]['_source'])
+        elif computerDomain !="None":
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerDomain +'*"}}}',headers={"Content-Type":"application/json"})
+            comps = response.json()['hits']['hits']
+            for comp in comps:
+                computer = comp['_source']
+                if computer["ComputerRole"] == 5:
+                    return Response(computer)
+            
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
     else:

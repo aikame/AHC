@@ -6,6 +6,7 @@
         async function hideMail() {
             let body = document.getElementById("hideMailModalBody");
             let id = encodeURIComponent("{{ id }}");
+            let dcip = encodeURIComponent("{{ip_address}}");
             try {
                 
                 var result = await fetch(`https://localhost:7095/HideMailBox?id=${id}`);
@@ -25,6 +26,7 @@
         async function showMail() {
             let id = encodeURIComponent("{{ id }}");
             let body = document.getElementById("showMailModalBody");
+            let dcip = encodeURIComponent("{{ip_address}}");
             try {
                 
                 var result =  await fetch(`https://localhost:7095/ShowMailBox?id=${id}`);
@@ -45,6 +47,7 @@
             let id = encodeURIComponent("{{ id }}");
             console.warn(id)
             let body = document.getElementById("banModalBody");
+            let dcip = encodeURIComponent("{{ip_address}}");
             try {
                 
                 var result = await fetch(`https://localhost:7095/BanUser?id=${id}`).then(response => response.json());
@@ -66,6 +69,7 @@
         async function unban() {
             let id = encodeURIComponent("{{ id }}");
             let body = document.getElementById("unbanModalBody");
+            let dcip = encodeURIComponent("{{ip_address}}");
             try {
                 
                 var result = await fetch(`https://localhost:7095/UnbanUser?id=${id}`).then(response => response.json());
@@ -88,6 +92,7 @@
             try {
                 let groupName = document.getElementById("group-name-add").value;
                 let id = encodeURIComponent("{{ id }}");
+                let dcip = encodeURIComponent("{{ip_address}}");
                 var result = await fetch(`https://localhost:7095/AddToGroup`, {
                     method:"POST",
                     headers: new Headers({
@@ -120,6 +125,7 @@
             try {
                 let groupName = document.getElementById("group-name-rem").value;
                 let id = encodeURIComponent("{{ id }}");
+                let dcip = encodeURIComponent("{{ip_address}}");
                 var result = await fetch(`https://localhost:7095/RemoveFromGroup`, {
                     method:"POST",
                     headers: new Headers({
@@ -152,6 +158,7 @@
             try {
                 let Passw = document.getElementById("password-field").value;
                 let id = encodeURIComponent("{{ id }}");
+                let dcip = encodeURIComponent("{{ip_address}}");
                 var result = await fetch(`https://localhost:7095/ChangePassword`, {
                     method:"POST",
                     headers: new Headers({
@@ -220,7 +227,7 @@
         <div class="row">
             {% include "../Base/sidebar.html" %}
             <main height="100%" class="col-md-9 col row ml-sm-auto col-lg-10 px-md-4">
-                <H1 class="w-100 mb-3">Учётная запись Active Directory: {{id}}</H1>
+                <H1 class="w-100 mb-3">Учётная запись Active Directory: {{domain}}\{{id}}</H1>
 
                 <div class="col row m-3 ">
 

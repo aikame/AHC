@@ -39,6 +39,7 @@ class ComputerSerializer(serializers.Serializer):
     CPUName = serializers.JSONField()
     CPUCores = serializers.JSONField()
     ComputerName = serializers.CharField(max_length=30)
+    ComputerRole = serializers.IntegerField()
     Status = serializers.BooleanField(allow_null=True)
     updated = serializers.DateTimeField(read_only=True)
     def create(self, validated_data):
@@ -55,6 +56,7 @@ class ComputerSerializer(serializers.Serializer):
         instance.CPUName = validated_data.get('CPUName',instance.CPUName)
         instance.CPUCores = validated_data.get('CPUCores',instance.CPUCores)
         instance.ComputerName = validated_data.get('ComputerName',instance.ComputerName)
+        instance.ComputerRole = validated_data.get('ComputerRole',instance.ComputerRole)
         instance.Status = validated_data.get('Status',instance.Status)
         instance.updated = validated_data.get('updated', timezone.now())
         instance.save()

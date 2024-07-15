@@ -58,16 +58,21 @@ def login(request):
         request,
         'login/index.html',
     )
-def active_directory(request,id):
+def active_directory(request,domain,id):
     print(id)
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id,verify=False)
+    domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
+    json_domain = json.loads(domain_data.content)
+    ip_address = json_domain["IPAddress"]
     data = json.loads(user_data.content)
     return render(
         request,
         "active_directory/index.html",
         {
             'id':id,
-            'ad_json':data
+            'ad_json':data,
+            'domain':domain,
+            'ip_address':ip_address
         }
 
     )

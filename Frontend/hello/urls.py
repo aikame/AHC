@@ -10,5 +10,5 @@ urlpatterns = [
     path("search", views.searchall, name="search"),
     path("search/", views.searchall, name="search"),
     path("login", views.login, name="login"),
-    path("AD:<str:id>",views.active_directory,name="AD"),
+    path("AD/<str:domain>/<str:id>",views.active_directory,name="AD"),
 ]
