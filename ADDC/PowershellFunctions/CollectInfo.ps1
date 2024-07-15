@@ -46,6 +46,7 @@ $cpuCores = $cpu.NumberOfCores
 
 # Get Computer Name
 $computerName = $env:COMPUTERNAME
+$role = Get-WmiObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty DomainRole
 
 # Output information
 $info = [PSCustomObject]@{
@@ -57,6 +58,7 @@ $info = [PSCustomObject]@{
     CPUName = $cpuName
     CPUCores = $cpuCores
     ComputerName = $computerName
+    ComputerRole = $role
 }
 
 $jsonInfo = $info | ConvertTo-Json
