@@ -93,6 +93,7 @@ namespace _1CC.Controllers
 
             return Ok();
         }
+
         [HttpPost("return")]
         public async Task<ActionResult> ReturnUser([FromBody] JObject data)
         {
@@ -102,6 +103,28 @@ namespace _1CC.Controllers
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("https://localhost:7095/ReturnUser", jsonContent);
+
+                var responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    return Content(responseContent);
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+            return Ok();
+        }
+        [HttpGet("domainList")]
+        public async Task<ActionResult> GetDomainList([FromQuery] string? data)
+        {
+
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var result = await client.GetAsync("https://localhost:7095/domainList");
 
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);

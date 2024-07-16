@@ -87,7 +87,7 @@ namespace Backend.Services
             {
                 try
                 {
-                    var reply = ping.Send("address");
+                    var reply = ping.Send(address);
 
                     if (reply.Status == IPStatus.Success)
                     {
