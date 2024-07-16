@@ -119,7 +119,7 @@ namespace Backend.Controllers
                         JObject jsonADData = JObject.Parse(responseADContent);
                         JObject mailProfile = new JObject();
                         mailProfile["name"] = jsonADData["SamAccountName"];
-                        var resultEmail = await client.PostAsync("https://" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
+                        var resultEmail = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
                             Encoding.UTF8, "application/json"));
                         JObject jsonMail =new JObject();
                         if (resultEmail.IsSuccessStatusCode)

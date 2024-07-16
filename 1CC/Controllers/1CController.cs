@@ -37,6 +37,8 @@ namespace _1CC.Controllers
         {
             Console.WriteLine("New Request");
             Console.WriteLine(data);
+            var domain = data["domain"];
+            Console.WriteLine(domain);
             var RecData = data.ToObject<ReceivedData>();
             if (!RecData.CheckForTroubles())
             {
@@ -51,7 +53,7 @@ namespace _1CC.Controllers
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://localhost:7095/CreateProfile", jsonContent);
+                var result = await client.PostAsync("https://localhost:7095/CreateProfile?domain="+domain, jsonContent);
 
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
