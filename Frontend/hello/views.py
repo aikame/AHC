@@ -1,19 +1,30 @@
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 import requests 
 import json
 
+def login(request):
+    return render(
+        request,
+        'login/index.html',
+    )
+
+@login_required
 def home(request):
     return render(
         request,
         'main_page/index.html',
     )
-
+@login_required
 def settings(request):
     return render(
         request,
         'settings/index.html',
     )
+@login_required
 def employee(request,id):
     user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
     data = json.loads(user_data.content)
@@ -22,11 +33,13 @@ def employee(request,id):
         'employee/index.html',
         {'profile_json':data["hits"]["hits"][0]["_source"]}
     )
+@login_required
 def computer(request):
     return render(
         request,
         'computer/index.html',
     )
+@login_required
 def searchall(request):
     json_data = requests.get('http://127.0.0.2:8000/api/getall')
     data = json.loads(json_data.content)
@@ -38,6 +51,7 @@ def searchall(request):
         'profileslist/index.html',
         {'profiles_json':data["hits"]["hits"]}
     )
+@login_required
 def search(request,text):
     print('"'+text+'"')
     if (text == ""):
@@ -53,11 +67,7 @@ def search(request,text):
         'profileslist/index.html',
         {'profiles_json':data["hits"]["hits"]}
     )
-def login(request):
-    return render(
-        request,
-        'login/index.html',
-    )
+@login_required
 def active_directory(request,domain,id):
     print(id)
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
