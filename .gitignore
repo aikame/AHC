@@ -378,3 +378,4 @@ FodyWeavers.xsd
 elasticsearch/
 Elastic/elasticsearch-8.1.0/lib/modules
 /Elastic/elasticsearch-8.1.0
+Frontend/*.sqlite3
