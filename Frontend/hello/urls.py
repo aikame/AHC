@@ -6,6 +6,7 @@ urlpatterns = [
     path("settings", views.settings, name="settings"),
     path("employee/<str:id>", views.employee, name="employee"),
     path("computer", views.computer, name="computer"),
+    path("computer/<str:id>", views.computer_detail, name="computer"),
     path("search/<str:text>", views.search, name="search"),
     path("search", views.searchall, name="search"),
     path("search/", views.searchall, name="search"),

@@ -108,10 +108,14 @@ def get_computer_data(request):
             comps = response.json()['hits']['hits']
             for comp in comps:
                 computer = comp['_source']
-                _id = response.json()['hits']['hits'][0]['_id']
+                _id = comp['_id']
+                print(computer)
+                print(_id)
                 computer = update_computer_status(id=_id,computer=computer)
-                if computer["ComputerRole"] == 5 & computer["status"] == True:
+                if computer["ComputerRole"] == 5 and computer["Status"] == True:
+                    print(computer)
                     return Response(computer)
+            return Response(status=status.HTTP_404_NOT_FOUND)
             
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
