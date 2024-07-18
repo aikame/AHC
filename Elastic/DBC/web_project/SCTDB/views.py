@@ -56,7 +56,7 @@ def computer_data(request):
         print(serializer.is_valid())
         if serializer.is_valid():
             computerName = request.data['ComputerName']
-            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"term": {"ComputerName.keyword": "'+ computerName+'"}}}',headers={"Content-Type":"application/json"})
             search_results = response.json()
             if 'hits' in search_results and search_results['hits']['hits']:
                 id = search_results['hits']['hits'][0]['_id']
