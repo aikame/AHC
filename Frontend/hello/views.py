@@ -1,20 +1,49 @@
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import User
 from django.contrib import messages
+#from rest_framework.renderers import JSONRenderer
+from django.views.decorators.csrf import csrf_protect
 import requests 
 import json
+from hello.AHCAuth import AHCAuthBackend
 
-def login(request):
+
+        
+
+@csrf_protect
+def login_page(request):
     return render(
         request,
         'login/index.html',
     )
 
+@csrf_protect
+def auth(request):
+    user = request.POST.get('user')
+    password = request.POST.get('password')
+    print("Creds: " + user + ' ' + password)
+    aBack = AHCAuthBackend()
+    user = aBack.authenticate(username=user,password=password)
+    if (user != 200):
+        login(request, user)    
+        return render(
+            request,
+            'main_page/index.html'
+        )
+    else:
+        return render(
+            request,
+            'login/index.html',
+        )
+
 @login_required
 def home(request):
-    return render(
+    return render( 
         request,
         'main_page/index.html',
     )

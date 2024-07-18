@@ -103,17 +103,18 @@
           </nav>-->
           <main class="text-center ml-sm-auto px-md-4">
           <h1 class="m-3"> Добро пожаловать</h1>
-            <form>
+            <form method="post" action="/auth">
+              {% csrf_token %}
             <div class="form-outline text-center mb-4">
-              <input type="email" id="form2Example1" class="form-control w-50 " placeholder="Электронная почта" />
+              <input type="text" id="loginId" name="user" class="form-control w-50 " placeholder="Domain\Login" />
             </div>
           
             <div class="form-outline text-center mb-4">
-              <input type="password" id="form2Example2" class="form-control w-50" placeholder="Пароль" />
+              <input type="password" id="passwordId" name="password" class="form-control w-50" placeholder="Password" />
             </div>
           
           
-            <button type="button" class="btn btn-primary btn-block w-50 mb-4">Sign in</button>
+            <button type="submit" class="btn btn-primary btn-block w-50 mb-4">Sign in</button>
           
           </form>
         </main>

@@ -653,7 +653,7 @@ namespace Backend.Controllers
                 };
                 using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
                 {
-                    var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
+                    var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                     string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                     JObject computer = JObject.Parse(searchComputer);
                     var jsonContent = new StringContent(newJson.ToString(), Encoding.UTF8, "application/json");
