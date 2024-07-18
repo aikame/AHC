@@ -16,6 +16,9 @@ Elastic/elasticsearch-8.1.0/*
 /Elastic/elasticsearch-8.14.1/
 /elasticsearch-8.14.1/
 Frontend/hello/__pycache__/
+/.venv/
+**/.venv/
+Elastic/DBC/.venv/
 # User-specific files
 *.rsuser
 *.suo
