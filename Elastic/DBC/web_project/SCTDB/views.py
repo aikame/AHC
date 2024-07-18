@@ -11,6 +11,16 @@ import requests
 from django.utils import timezone
 # Create your views here.
 
+def update_computer_status(id,computer):
+    now = timezone.now()
+    updated_time = timezone.datetime.fromisoformat(computer["updated"].replace('Z', '+00:00'))
+    if now - updated_time > timezone.timedelta(hours=1):
+        computer["status"]=False
+        content = JSONRenderer().render(computer)
+        response = requests.put(f"http://localhost:9200/computers/_doc/{id}", headers={"Content-Type": "application/json"}, data=content)
+        return computer 
+    return computer
+
 @api_view(['POST','GET'])
 def profile_detail(request):
     print(request.data)
@@ -77,16 +87,30 @@ def get_computer_data(request):
     if request.method == 'GET':
         if id != "None":
             response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"term": {"_id": "'+ id+'"}}}',headers={"Content-Type":"application/json"})
-            return Response(response.json()['hits']['hits'][0]['_source'])
+           
+            if "hits" in response.json():
+                computer = response.json()['hits']['hits'][0]['_source']
+                computer = update_computer_status(id=id,computer=computer)
+                return Response(computer)
+            else:
+                Response({'error': 'not found'}, status=status.HTTP_404_BAD_REQUEST)
         elif computerName !="None":
-            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
-            return Response(response.json()['hits']['hits'][0]['_source'])
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"term": {"ComputerName.keyword": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
+            if "hits" in response.json():
+                computer = response.json()['hits']['hits'][0]['_source']
+                _id =  response.json()['hits']['hits'][0]['_id']
+                computer = update_computer_status(id=_id,computer=computer)
+                return Response(computer)
+            else:
+                Response({'error': 'not found'}, status=status.HTTP_404_BAD_REQUEST)
         elif computerDomain !="None":
             response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerDomain +'*"}}}',headers={"Content-Type":"application/json"})
             comps = response.json()['hits']['hits']
             for comp in comps:
                 computer = comp['_source']
-                if computer["ComputerRole"] == 5:
+                _id = response.json()['hits']['hits'][0]['_id']
+                computer = update_computer_status(id=_id,computer=computer)
+                if computer["ComputerRole"] == 5 & computer["status"] == True:
                     return Response(computer)
             
         else:
