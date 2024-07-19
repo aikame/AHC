@@ -27,6 +27,9 @@
   {% bootstrap_css %}
   {% bootstrap_javascript %}
   <style>
+    .d-flex{
+      gap:2%;
+    }
     .sidebar {
       position: fixed;
       top: 0;
@@ -105,8 +108,23 @@
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+              <div class="d-flex w-50 ">
+                <select class="form-select " aria-label="Выберите домен">
+                    <option value="AD"> AD </option>
+                </select>
+                <select class="form-select" aria-label="Выберите домен">
+                  {% for domain in domains %}
+                    <option value="{{domain}}"> {{domain}} </option>
+                  {% endfor %}
+                </select>
+                <button class=" p-1 btn btn-outline-primary">Создать учётную запись</button>
+              </div>
+              <div name="profiles" class="mt-5">
               {% for profile in profile_json.profiles %}
                   {% for key, value in profile.items %}
+                  <div class="col row">
+                    <div class="col-4">{{value.domain}}</div>
+                    <div class="col-1 " style="width: 50%;">  
                       <a href="/{{ key }}/{{value.domain}}/{{value.user}}">
                           <div class="col">
                               {% if 'AD' in key %}
@@ -120,12 +138,15 @@
                                       <path d="M7.001 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0z" />
                                   </svg>
                               {% endif %}
-                              {{value.domain}}\{{value.user}}
+                              {{value.user}}
                           </div>
                       </a>
+                    </div>
+                  </div>
                       <div class="w-100 border-top"></div>
                   {% endfor %}
               {% endfor %}
+            </div>
           </div>
           </div>
 

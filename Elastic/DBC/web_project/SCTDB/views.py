@@ -15,7 +15,7 @@ def update_computer_status(id,computer):
     now = timezone.now()
     updated_time = timezone.datetime.fromisoformat(computer["updated"].replace('Z', '+00:00'))
     if now - updated_time > timezone.timedelta(hours=1):
-        computer["status"]=False
+        computer["Status"]=False
         content = JSONRenderer().render(computer)
         response = requests.put(f"http://localhost:9200/computers/_doc/{id}", headers={"Content-Type": "application/json"}, data=content)
         return computer 
