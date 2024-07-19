@@ -10,7 +10,10 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 import requests 
 import json
-from hello.AHCAuth import AHCAuthBackend
+from .AHCAuth import AHCAuthBackend
+from .forms import UploadFileForm
+from .EmployeeAvatar import upload_emp_avatar
+
 from django.utils.dateparse import parse_datetime
 from django import template
 from django.utils import timezone
@@ -71,6 +74,21 @@ def settings(request):
         'settings/index.html',
         {'domains':json.loads(domains.content)}
     )
+    
+@login_required
+def img_upload(request, id):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            upload_emp_avatar(request.FILES["file"])
+    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    data = json.loads(user_data.content)
+    return render(
+        request,
+        'employee/index.html',
+        {'profile_json':data["hits"]["hits"][0]["_source"]}
+    )
+
 @login_required
 def employee(request,id):
     user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')

@@ -21,6 +21,15 @@ def update_computer_status(id,computer):
         return computer 
     return computer
 
+@api_view(['POST'])
+def emp_avatar_upload(request, id):
+    print(request.file)
+    if not request.file:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    response = request.post("http://localhost:9200/users/_update/" + id, data='{"img_src":"'+request.file+'"}')
+    return Response(response.content)
+     
+
 @api_view(['POST','GET'])
 def profile_detail(request):
     print(request.data)

@@ -53,10 +53,20 @@
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
         <H1 class="w-100 mb-3">СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
         <div class="col-2 text-center">
-          <img width="200" height="200" src="/static/default.jpg" alt="">
+          {% if not '.jpg' in profile_json.img_src or not '.png' in profile_json.img_src%}
+          <img width="200" height="200" src="/static/default.jpg">
+          {% else %}
+          <img width="200" height="200" src="/static/media/employee_avatars/{{ profile_json.img_src }}">
+          {% endif %}
           <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
           <div>
             <button type="button" class="btn btn-outline-primary w-100 m-1">Активность</button>
+            <form method ="post" enctype="multipart/form-data" action="img_update">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <input type="file" id="emp_avatar" name="avatar" accept="image/png, image/jpeg" />
+              <button class="btn btn-outline-primary w-100 m-1" type="submit">Загрузить изображение</button>
+          </form>
           </div>
         </div>
 
