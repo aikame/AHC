@@ -186,7 +186,7 @@ else {
     Write-Verbose "VenvDir=$VenvDir"
 }
 
-# Next, read the `pyvenv.cfg` file to determine any required value such
+# Next, read the `pyvenv.cfg` file to determine any required value suchт
 # as `prompt`.
 $pyvenvCfg = Get-PyVenvConfig -ConfigDir $VenvDir
 

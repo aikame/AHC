@@ -16,5 +16,5 @@ urlpatterns = [
     path("accounts/login/", views.login_page, name="login"),
     path("AD/<str:domain>/<str:id>",views.active_directory,name="AD"),
     path("auth", views.auth, name="auth"),
-    static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    #static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]
