@@ -119,24 +119,32 @@
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-              <div class="d-flex w-50 ">
+              <div class="col row">
+                <div class="col-2">
                 <select class="form-select " aria-label="Выберите домен">
                     <option value="AD"> AD </option>
                 </select>
+              </div>
+              <div class="col-2">
                 <select class="form-select" id="domainSelect" aria-label="Выберите домен">
                   {% for domain in domains %}
                     <option value="{{domain}}"> {{domain}} </option>
                   {% endfor %}
                 </select>
-                <input type="checkbox" id="mailCheckbox">
-                <label for="mailCheckbox">Exchange</label>
-                <button id="createAccBtn" class=" p-1 btn btn-outline-primary">Создать</button>
+              </div>
+              <div class="col-1">
+                <input type="checkbox" class="btn-check" id="mailCheckbox" autocomplete="off">
+                <label class="btn btn-outline-info" for="mailCheckbox">Exchange</label>                              
+              </div>
+              <div class="col-1">
+                <button id="createAccBtn" class="btn btn-outline-primary">Создать</button>
+              </div>
               </div>
               <div name="profiles" class="mt-5">
               {% for profile in profile_json.profiles %}
                   {% for key, value in profile.items %}
                   <div class="col row">
-                    <div class="col-4">{{value.domain}}</div>
+                    <div class="col-6">{{value.domain}}</div>
                     <div class="col-1 " style="width: 50%;">  
                       <a href="/{{ key }}/{{value.domain}}/{{value.user}}">
                           <div class="col">
