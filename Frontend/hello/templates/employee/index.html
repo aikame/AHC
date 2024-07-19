@@ -7,6 +7,7 @@
       let UserLogin = document.getElementById("UserLoginforUserInfo").value;
       await fetch(`http://localhost:7095/User?UserLogin=${UserLogin}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
     }
+    
   </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
     integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
@@ -122,12 +123,12 @@
                 <select class="form-select " aria-label="Выберите домен">
                     <option value="AD"> AD </option>
                 </select>
-                <select class="form-select" aria-label="Выберите домен">
+                <select class="form-select" id="domainSelect" aria-label="Выберите домен">
                   {% for domain in domains %}
                     <option value="{{domain}}"> {{domain}} </option>
                   {% endfor %}
                 </select>
-                <button class=" p-1 btn btn-outline-primary">Создать учётную запись</button>
+                <button id="createAccBtn" class=" p-1 btn btn-outline-primary">Создать учётную запись</button>
               </div>
               <div name="profiles" class="mt-5">
               {% for profile in profile_json.profiles %}
@@ -171,5 +172,14 @@
   </div>
 
 </body>
+<script>
 
+createAccBtn = document.getElementById("createAccBtn")
+    createAccBtn.addEventListener("click", createAcc);
+    
+    async function createAcc(){
+      domain = document.getElementById("domainSelect").value;
+      console.error(domain)
+    }
+</script>
 </html>
