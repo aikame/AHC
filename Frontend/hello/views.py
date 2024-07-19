@@ -17,6 +17,8 @@ from .EmployeeAvatar import upload_emp_avatar
 from django.utils.dateparse import parse_datetime
 from django import template
 from django.utils import timezone
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 register = template.Library()
 
 ROLE_CHOICES = {
@@ -124,9 +126,16 @@ def computer_detail(request,id):
         request,
         'computer_detail/index.html',
         {'computer_json':data,
-         'difMinutes':last_upd
+         'difMinutes':last_upd,
+         'id':id
          }
     )
+
+@login_required
+def update_computer_status(request,id):
+    update = requests.get('https://localhost:7095/CheckComputer?_id='+id,verify=False)
+
+    return HttpResponseRedirect(reverse('computer', args=[id]))
 @login_required
 def computer(request):
     json_data = requests.get('http://127.0.0.2:8000/api/ComputerData')

@@ -87,15 +87,6 @@
                         <label for="city" class="col-form-label">Город:</label>
                         <input type="text" class="form-control" id="city" name="city" required>
 
-                        <label for="ADreq" class="col-form-label">Создать AD пользователю </label>
-                        <input type="checkbox" class="form-check-input" value="" id="ADreq" name="ADreq" required>
-                        
-                        <label for="domain" class="col-form-label">Домен:</label>
-                        <select name="domain" id="domain" disabled>
-                          {% for domain in domains %}
-                            <option value="{{domain}}"> {{domain}} </option>
-                          {% endfor %}
-                        </select>
                       </div>
                       <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
