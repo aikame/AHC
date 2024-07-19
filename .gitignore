@@ -4,8 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # Ignore all .venv directories
-# /.venv/
-# **/.venv/
+/.venv/
+**/.venv/
 # Elastic/DBC/.venv/
 # Ignore all __pycache__ directories
 __pycache__/
