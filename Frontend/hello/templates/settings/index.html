@@ -2,7 +2,15 @@
 <html>
 <head>
   <script>
-
+    const checkbox = document.getElementById('ADreq');
+    const domainselect = document.getElementById('domain');
+    checkbox.addEventListener('change', (event) => {
+      if (checkbox.checked) {
+        domainselect.disabled = true;
+      } else {
+        domainselect.disabled = false;
+      }
+    })
   </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
   integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
@@ -67,13 +75,10 @@
                         <label for="patronymic" class="col-form-label">Отчество:</label>
                         <input type="text" class="form-control" id="patronymic" name="patronymic" required>
             
-                        <label for="email" class="col-form-label">Почта:</label>
-                        <input type="text" class="form-control" id="email"  name="email" required>
-            
                         <label for="company" class="col-form-label">Компания:</label>
                         <input type="text" class="form-control" id="company" name="company"  required>
             
-                        <label for="apply_date" class="col-form-label">Дата:</label>
+                        <label for="apply_date" class="col-form-label">Дата принятия на работу:</label>
                         <input type="date" class="form-control" id="apply_date" name="apply_date"  required>
             
                         <label for="appointment" class="col-form-label">Должность:</label>
@@ -81,14 +86,20 @@
             
                         <label for="city" class="col-form-label">Город:</label>
                         <input type="text" class="form-control" id="city" name="city" required>
-            
-                        <label for="img_src" class="col-form-label">Ссылка на аватар:</label>
-                        <input type="text" class="form-control" id="img_src" name="img_src" required>
-            
+
+                        <label for="ADreq" class="col-form-label">Создать AD пользователю </label>
+                        <input type="checkbox" class="form-check-input" value="" id="ADreq" name="ADreq" required>
+                        
+                        <label for="domain" class="col-form-label">Домен:</label>
+                        <select name="domain" id="domain" disabled>
+                          {% for domain in domains %}
+                            <option value="{{domain}}"> {{domain}} </option>
+                          {% endfor %}
+                        </select>
                       </div>
                       <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-                    <button id=""type="submit" class="btn btn-primary">Добавить</button>
+                    <button id=""type="" class="btn btn-primary">Добавить</button>
                   </div>
                     </form>
                   </div>

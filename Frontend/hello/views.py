@@ -68,9 +68,11 @@ def home(request):
     )
 @login_required
 def settings(request):
+    domains = requests.get('https://localhost:7095/domainList/',verify=False)
     return render(
         request,
         'settings/index.html',
+        {'domains':json.loads(domains.content)}
     )
     
 @login_required
@@ -90,11 +92,21 @@ def img_upload(request, id):
 @login_required
 def employee(request,id):
     user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    domains_data = requests.get('https://localhost:7095/domainList/',verify=False)
+    domains = json.loads(domains_data.content)
+    domainsList = list(domains)
     data = json.loads(user_data.content)
+    user = data["hits"]["hits"][0]["_source"]
+    for profile in user["profiles"]:
+        if "AD" in profile:
+            for domain in domains:
+                if profile["AD"]["domain"] == domain:
+                    domainsList.remove(domain)
+    domains = json.dumps(domainsList)
     return render(
         request,
         'employee/index.html',
-        {'profile_json':data["hits"]["hits"][0]["_source"]}
+        {'profile_json':user, 'domains':domainsList}
     )
 @login_required
 def computer_detail(request,id):
