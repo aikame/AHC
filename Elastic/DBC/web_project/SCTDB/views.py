@@ -65,7 +65,7 @@ def computer_data(request):
         print(serializer.is_valid())
         if serializer.is_valid():
             computerName = request.data['ComputerName']
-            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"simple_query_string": {"query": "'+ computerName +'"}}}',headers={"Content-Type":"application/json"})
+            response = requests.get("http://localhost:9200/computers/_search", data='{"query": {"term": {"ComputerName.keyword": "'+ computerName+'"}}}',headers={"Content-Type":"application/json"})
             search_results = response.json()
             if 'hits' in search_results and search_results['hits']['hits']:
                 id = search_results['hits']['hits'][0]['_id']
@@ -117,10 +117,14 @@ def get_computer_data(request):
             comps = response.json()['hits']['hits']
             for comp in comps:
                 computer = comp['_source']
-                _id = response.json()['hits']['hits'][0]['_id']
+                _id = comp['_id']
+                print(computer)
+                print(_id)
                 computer = update_computer_status(id=_id,computer=computer)
-                if computer["ComputerRole"] == 5 & computer["status"] == True:
+                if computer["ComputerRole"] == 5 and computer["Status"] == True:
+                    print(computer)
                     return Response(computer)
+            return Response(status=status.HTTP_404_NOT_FOUND)
             
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -14,7 +14,24 @@ from .AHCAuth import AHCAuthBackend
 from .forms import UploadFileForm
 from .EmployeeAvatar import upload_emp_avatar
 
+from django.utils.dateparse import parse_datetime
+from django import template
+from django.utils import timezone
+register = template.Library()
 
+ROLE_CHOICES = {
+    0: "Standalone Workstation",
+    1: "Member Workstation",
+    2: "Standalone Server",
+    3: "Member Server",
+    4: "Backup Domain Controller (BDC)",
+    5: "Primary Domain Controller"
+}
+
+
+@register.filter
+def get_role_display(role_number):
+    return ROLE_CHOICES.get(role_number, "Unknown Role")
         
 
 @csrf_protect
@@ -80,10 +97,39 @@ def employee(request,id):
         {'profile_json':data["hits"]["hits"][0]["_source"]}
     )
 @login_required
+def computer_detail(request,id):
+    computer_data = requests.get('http://127.0.0.2:8000/api/GetComputer?_id='+id)
+    data = json.loads(computer_data.content)
+    role_number = data.get('ComputerRole', -1)
+    now = timezone.now()
+    time = parse_datetime(data['updated'])
+    updated_time = timezone.datetime.fromisoformat(data["updated"].replace('Z', '+00:00'))
+    difTime =  now - updated_time
+    last_upd = int(difTime.total_seconds() // 60)
+    data['updated'] = time  #parse_datetime(data['updated'])
+    data["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+    return render(
+        request,
+        'computer_detail/index.html',
+        {'computer_json':data,
+         'difMinutes':last_upd
+         }
+    )
+@login_required
 def computer(request):
+    json_data = requests.get('http://127.0.0.2:8000/api/ComputerData')
+    data = json.loads(json_data.content)
+
+    for i in data["hits"]["hits"]:
+        role_number = i['_source'].get('ComputerRole', -1)
+        i['_source']["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
+        i['source'] = i.pop('_source')
+        i['id'] = i.pop('_id')
     return render(
         request,
         'computer/index.html',
+        {'computers_json':data["hits"]["hits"]}
     )
 @login_required
 def searchall(request):
@@ -92,6 +138,7 @@ def searchall(request):
     for i in data["hits"]["hits"]:
         i['source'] = i.pop('_source')
         i['id'] = i.pop('_id')
+        
     return render(
         request,
         'profileslist/index.html',

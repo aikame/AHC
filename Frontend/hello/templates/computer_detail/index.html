@@ -22,6 +22,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <title>{% block title %}{% endblock %}</title>
   {% load bootstrap5 %}
   {% bootstrap_css %}
@@ -38,6 +40,15 @@
       /* Height of navbar */
       box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
     }
+    .status-icon {
+      font-size: 1em;
+    }
+    .status-true {
+        color: green;
+    }
+    .status-false {
+        color: red;
+    }
   </style>
 
 <body>
@@ -48,70 +59,79 @@
     <div class="row">
       {% include "../Base/sidebar.html" %}
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
-        <H1 class="w-100 mb-3">СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
-        <div class="col-2 text-center">
-          {% if not '.jpg' in profile_json.img_src or not '.png' in profile_json.img_src%}
-          <img width="200" height="200" src="/static/default.jpg">
+        <H1 class="w-100 mb-3">{% if computer_json.Status %}
+          <i class="fas fa-circle status-icon status-true"></i>
           {% else %}
-          <img width="200" height="200" src="/static/media/employee_avatars/{{ profile_json.img_src }}">
+          <i class="fas fa-circle status-icon status-false"></i>
           {% endif %}
-          <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
-          <div>
-            <button type="button" class="btn btn-outline-primary w-100 m-1">Активность</button>
-            <form method ="post" enctype="multipart/form-data" action="img_update">
-              {% csrf_token %}
-              {{ form.as_p }}
-              <input type="file" id="emp_avatar" name="avatar" accept="image/png, image/jpeg" />
-              <button class="btn btn-outline-primary w-100 m-1" type="submit">Загрузить изображение</button>
-          </form>
-          </div>
-        </div>
-
+          {{computer_json.ComputerName}}.{{computer_json.DomainName}}</H1>
+        
 
         <div class="col row m-3 ">
 
           <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
               <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab"
-                aria-controls="nav-home" aria-selected="true">Контактная информация</a>
+                aria-controls="nav-home" aria-selected="true">Информация</a>
               <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab"
-                aria-controls="nav-profile" aria-selected="false">Учётные записи</a>
+                aria-controls="nav-profile" aria-selected="false">Установленные приложения</a>
             </div>
           </nav>
+
+
           <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+              <div class="col row">
+                <div class="col-4">Обновлено: </div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.updated}} ( {{difMinutes}} минут назад)</div>
+              </div>
+              <div class="col row">
+                <div class="col-4">Операционная система</div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.WindowsEdition}} </div>
+              </div>
+              <div class="w-100 border-top"></div>
+              <div class="col row">
+                <div class="col-4"> IP</div>
+                <div class="col-1 "> {{computer_json.IPAddress}}</div>
+              </div>
+              <div class="w-100 border-top"></div>
+              <div class="col row">
+                <div class="col-4">Имя</div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.ComputerName}} </div>
+              </div>
+              <div class="w-100 border-top"></div>
+              <div class="col row">
+                <div class="col-4">Домен</div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.DomainName}} </div>
+              </div>
+              <div class="w-100 border-top"></div>
+              <div class="col row">
+                <div class="col-4">Роль</div>
+                <div class="col-1 "style="width: 50%;">{{computer_json.ComputerRole}} </div>
+              </div>
+              <div class="w-100 border-top"></div>
+              <div class="col row">
+                <div class="col-4">ОЗУ(гб)</div>
+                <div class="col-1 ">{{computer_json.TotalRAMGB}} </div>
+              </div>              
+              <div class="w-100 border-top"></div>
 
-              <div class="col row">
-                <div class="col-4">Электронная почта</div>
-                <div class="col-1 " style="width: 50%;"> {{profile_json.email}} </div>
-              </div>
+              {% for disk in computer_json.DiskSpace %}
               <div class="w-100 border-top"></div>
               <div class="col row">
-                <div class="col-4"> Дата приёма на работу</div>
-                <div class="col-1 "style="width: 50%;"> {{profile_json.apply_date}}</div>
-              </div>
+                <div class="col-4">Диск {{disk.DeviceID}}</div>
+                <div class="col-1 ">{{disk.FreeSpaceGB}}/{{disk.TotalSpaceGB}} гб</div>
+              </div>              
+              {% endfor %}
+ 
+              {% for cpu in computer_json.CPUName %}
               <div class="w-100 border-top"></div>
               <div class="col row">
-                <div class="col-4">Компания</div>
-                <div class="col-1 "> {{profile_json.company}} </div>
-              </div>
-              <div class="w-100 border-top"></div>
-              <div class="col row">
-                <div class="col-4">Должность</div>
-                <div class="col-1 "> {{profile_json.appointment}} </div>
-              </div>
-              <div class="w-100 border-top"></div>
-              <div class="col row">
-                <div class="col-4">Город</div>
-                <div class="col-1 ">{{profile_json.city}} </div>
-              </div>
-              <div class="w-100 border-top"></div>
-              {% if 'None' not in profile_json.fire_date %}
-              <div class="col row">
-                <div class="col-4">Дата увольнения</div>
-                <div class="col-1 text-danger" style="width: 50%;">{{profile_json.fire_date}} </div>
-              </div>
-              {% endif %}
+                <div class="col-4">ЦП</div>
+                <div class="col-1" style="width: 50%;">{{cpu}}</div>
+              </div>              
+              {% endfor %}
+
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
