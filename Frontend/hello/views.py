@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.http import HttpResponse, HttpRequest
+from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -19,6 +19,9 @@ from django import template
 from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.renderers import JSONRenderer
 register = template.Library()
 
 ROLE_CHOICES = {
@@ -108,7 +111,7 @@ def employee(request,id):
     return render(
         request,
         'employee/index.html',
-        {'profile_json':user, 'domains':domainsList}
+        {'profile_json':user, 'domains':domainsList,"id":id}
     )
 @login_required
 def computer_detail(request,id):
@@ -165,6 +168,21 @@ def searchall(request):
         'profileslist/index.html',
         {'profiles_json':data["hits"]["hits"]}
     )
+
+@login_required
+def createAD(request,id,domain):
+    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    mail = request.GET.get('mail')
+    print(mail)
+    user = user_data.json()["hits"]["hits"][0]
+    content = JSONRenderer().render(user)
+    result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
+    print(result.status_code)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+    else:
+        return Response({'error': 'Profile not updated successfully'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+
 @login_required
 def search(request,text):
     print('"'+text+'"')

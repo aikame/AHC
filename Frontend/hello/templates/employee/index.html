@@ -128,7 +128,9 @@
                     <option value="{{domain}}"> {{domain}} </option>
                   {% endfor %}
                 </select>
-                <button id="createAccBtn" class=" p-1 btn btn-outline-primary">Создать учётную запись</button>
+                <input type="checkbox" id="mailCheckbox">
+                <label for="mailCheckbox">Exchange</label>
+                <button id="createAccBtn" class=" p-1 btn btn-outline-primary">Создать</button>
               </div>
               <div name="profiles" class="mt-5">
               {% for profile in profile_json.profiles %}
@@ -174,12 +176,16 @@
 </body>
 <script>
 
-createAccBtn = document.getElementById("createAccBtn")
-    createAccBtn.addEventListener("click", createAcc);
-    
-    async function createAcc(){
-      domain = document.getElementById("domainSelect").value;
-      console.error(domain)
+  createAccBtn = document.getElementById("createAccBtn")
+  createAccBtn.addEventListener("click", createAcc);
+  async function createAcc(){
+    domain = document.getElementById("domainSelect").value;
+    mail = document.getElementById("mailCheckbox").checked;
+    console.error(domain)
+    let result = await fetch(`/createAD/`+domain+`/{{id}}?mail=` + mail);
+    if (result.status == 200){
+      window.location.reload();
     }
+  }
 </script>
 </html>

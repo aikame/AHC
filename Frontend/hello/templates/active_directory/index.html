@@ -248,30 +248,30 @@
                             aria-labelledby="nav-home-tab">
                             <div class="col row">
                                 <div class="col-4">Полное имя</div>
-                                <div class="col-1 "> {{ ad_json.DistinguishedName }}</div>
+                                <div class="col-1 w-50"> {{ ad_json.DistinguishedName }}</div>
                             </div>
                             <div class="col row">
                                 <div class="col-4">Имя</div>
-                                <div class="col-1 "> {{ ad_json.SamAccountName }}</div>
+                                <div class="col-1 w-50"> {{ ad_json.SamAccountName }}</div>
                             </div>
                             <div class="col row">
                                 <div class="col-4">Электронная почта</div>
-                                <div class="col-1 "> {{ ad_json.EmailAddress }}</div>
+                                <div class="col-1 w-50"> {{ ad_json.EmailAddress }}</div>
                             </div>
                             <div class="w-100 border-top"></div>
                             <div class="col row">
                                 <div class="col-4"> Статус учётной записи</div>
-                                <div class="col-1 "> {{ ad_json.Enabled }} </div>
+                                <div class="col-1 w-50"> {{ ad_json.Enabled }} </div>
                             </div>
                             <div class="w-100 border-top"></div>
                             <div class="col row">
                                 <div class="col-4">Пароль истек</div>
-                                <div class="col-1 "> {{ ad_json.PasswordExpired }} </div>
+                                <div class="col-1 w-50"> {{ ad_json.PasswordExpired }} </div>
                             </div>
                             <div class="w-100 border-top"></div>
                             <div class="col row">
                                 <div class="col-4">Дата смены пароля</div>
-                                <div class="col-1 "> {{ ad_json.PasswordLastSet }}</div>
+                                <div class="col-1 w-50"> {{ ad_json.PasswordLastSet }}</div>
                             </div>
                             <div class="w-100 border-top"></div>
                         </div>
@@ -285,7 +285,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="w-100 col ">
+                <div class="col col-lg-3">
                     <button type="button" onclick="ban()" class="btn btn-primary mx-1 my-1 col"> Заблокировать</button>
                     <button type="button" onclick="unban()" class="btn btn-primary mx-1 my-1 col"> Разблокировать</button>
                     <button type="button" data-toggle="modal" data-target="#addGroupModal" class="btn btn-primary mx-1 my-1 col"> Добавить в группу</button>
