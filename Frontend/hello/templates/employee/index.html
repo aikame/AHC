@@ -47,18 +47,17 @@
 <body>
 
   {% include "../Base/navbar.html" %}
-
+  {% load static %}
   <div class="container-fluid">
     <div class="row">
       {% include "../Base/sidebar.html" %}
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
         <H1 class="w-100 mb-3">СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
         <div class="col-2 text-center">
-          {% if not '.jpg' in profile_json.img_src or not '.png' in profile_json.img_src%}
+          {% if not '.jpg' in profile_json.img_src %}
           <img width="200" height="200" src="/static/default.jpg">
           {% else %}
-          <img width="200" height="200" src="/static/media/employee_avatars/{{ profile_json.img_src }}">
-          {% endif %}
+          <img width="200" height="200" src="{% static 'media/employee_avatars/'%}{{profile_json.img_src}}">{% endif %}
           <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
           <div>
             <button type="button" data-toggle="modal" data-target="#changeProfilePicModal" class="btn btn-outline-primary w-100 m-1"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-bounding-box" viewBox="0 0 16 16">
@@ -66,12 +65,6 @@
               <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
             </svg> Изменить аватар</button>
             <button type="button" class="btn btn-outline-primary w-100 m-1">Активность</button>
-            <form method ="post" enctype="multipart/form-data" action="img_update">
-              {% csrf_token %}
-              {{ form.as_p }}
-              <input type="file" id="emp_avatar" name="avatar" accept="image/png, image/jpeg" />
-              <button class="btn btn-outline-primary w-100 m-1" type="submit">Загрузить изображение</button>
-          </form>
           </div>
         </div>
 

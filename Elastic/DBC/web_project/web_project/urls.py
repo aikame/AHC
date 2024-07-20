@@ -39,7 +39,7 @@ urlpatterns = [
     path('api/put', views.profile_detail),
     path('api/getall', views.profile_detail),
     path('api/getone',views.get_one),
-    path("api/img_upload", views.emp_avatar_upload),
+    path("api/img_upload/<str:id>", views.emp_avatar_upload),
     path('api/get',views.get_text),
     path('api/add_to_profiles', views.add_to_profiles, name='add_to_profiles'),
     path('api/fire_user', views.fire_user),

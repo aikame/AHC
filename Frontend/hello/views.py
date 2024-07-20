@@ -10,10 +10,11 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 import requests 
 import json
+from django.conf import settings
 from .AHCAuth import AHCAuthBackend
 from .forms import UploadFileForm
 from .EmployeeAvatar import upload_emp_avatar
-
+import os
 from django.utils.dateparse import parse_datetime
 from django import template
 from django.utils import timezone
@@ -72,7 +73,7 @@ def home(request):
         'main_page/index.html',
     )
 @login_required
-def settings(request):
+def preferences(request):
     domains = requests.get('https://localhost:7095/domainList/',verify=False)
     return render(
         request,
@@ -85,9 +86,14 @@ def img_upload(request, id):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            avatar_inst, created = EMPImage.objects.get_or_create(user_id=user_id)
-            avatar_inst.avatar = form.cleaned_data['avatar']
-            avatar_inst.save()
+            avatar = form.cleaned_data['avatar']
+            avatar_path = os.path.join(settings.MEDIA_ROOT, 'employee_avatars', f'{id}.jpg')
+            with open(avatar_path, 'wb+') as destination:
+                for chunk in avatar.chunks():
+                    destination.write(chunk)
+            data = '{"doc": {"img_src" : "' + id +'.jpg"} }'
+            content = JSONRenderer().render(data)
+            requests.post('http://127.0.0.2:8000/api/img_upload/' + id, data=content, verify=False,headers={"Content-Type": "application/json"})
             return redirect('search')
     else:
         form = UploadFileForm()
