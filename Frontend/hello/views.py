@@ -82,6 +82,7 @@ def settings(request):
     
 @login_required
 def img_upload(request, id):
+    print(id)
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
