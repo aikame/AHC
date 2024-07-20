@@ -181,7 +181,7 @@ def createAD(request,id,domain):
     if result.status_code ==200:
         return JsonResponse({'success': 'Profile updated successfully'}, status=200)
     else:
-        return Response({'error': 'Profile not updated successfully'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+        return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
 
 @login_required
 def search(request,text):
@@ -216,3 +216,40 @@ def active_directory(request,domain,id):
         }
 
     )
+
+@login_required
+def create_profile(request):
+    #user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    #mail = request.GET.get('mail')
+    if request.method == 'POST':
+        data = {
+            'name': request.POST.get('name'),
+            'surname': request.POST.get('surname'),
+            'patronymic': request.POST.get('patronymic'),
+            'company': request.POST.get('company'),
+            'apply_date': request.POST.get('apply_date'),
+            'appointment': request.POST.get('appointment'),
+            'city': request.POST.get('city'),
+            'ADreq': False
+        }
+        print(data)
+        user = json.dumps(data)
+        print(user)
+        result = requests.post(f'https://localhost:7095/CreateProfile',data=user,verify=False,headers={"Content-Type": "application/json"})
+        print(result.text)
+        if result.status_code ==200:
+            return JsonResponse({'success': 'Profile created successfully'}, status=200)
+        else:
+            return JsonResponse({'error': 'Profile not created successfully'}, status=500)
+        
+    else:
+        return JsonResponse({'success': 'Invalid request'}, status=400)
+
+    user = user_data.json()["hits"]["hits"][0]
+    content = JSONRenderer().render(user)
+    result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
+    print(result.status_code)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Profile not updated successfully'}, status=500)

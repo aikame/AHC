@@ -79,7 +79,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost("CreateProfile")]
-        public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user, [FromQuery] string domain)
+        public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user, [FromQuery] string? domain)
         {
 
             Console.WriteLine(user.name);

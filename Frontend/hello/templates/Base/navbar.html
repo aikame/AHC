@@ -10,7 +10,7 @@
     }
   }
 </script>
-
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap mb-3 p-0 shadow">
     <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/">Admin Helper Center</a>
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <form  method="POST">
+          <form  method="POST" action="/createProfile" id="profileForm">
             {% csrf_token %}
             <div class="form-group">
               <label for="name" class="col-form-label">Имя:</label>
@@ -77,3 +77,24 @@
     </div>
   </div>
 </main>
+
+<script>
+  $(document).ready(function() {
+      $('#profileForm').on('submit', function(e) {
+          e.preventDefault();
+          
+          $.ajax({
+              type: 'POST',
+              url: $(this).attr('action'),
+              data: $(this).serialize(),
+              success: function(response) {
+                  console.log('Profile created:', response);
+                  location.reload();
+              },
+              error: function(error) {
+                  console.error('Error:', error);
+              }
+          });
+      });
+  });
+</script>

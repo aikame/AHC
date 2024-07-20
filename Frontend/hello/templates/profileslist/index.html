@@ -75,7 +75,7 @@
                     {% for row in profiles_json%}
                     <tr onclick='window.location="/employee/{{row.id}}";'>
                       <td class="fullName">{{row.source.name}} {{row.source.surname}}</td>
-                      {% if '.'  in row.source.img_src %}<td class="image"><img width="100" height="100" src="static/default.jpg" alt=""></td> {%else%} <td class="image"><img width="100" height="100" src="{{row.source.img_src}}" alt=""></td> {% endif %}
+                      {% if '.'  in row.source.img_src %}<td class="image"><img width="100" height="100" src="/static/default.jpg" alt=""></td> {%else%} <td class="image"><img width="100" height="100" src="{{row.source.img_src}}" alt=""></td> {% endif %}
                       <td class="Job title">{{row.source.appointment}}</td>
                       <td class="city">{{row.source.city}}</td>
                       <td class="Email">{{row.source.email}}</td>

@@ -17,6 +17,7 @@ urlpatterns = [
     path("AD/<str:domain>/<str:id>",views.active_directory,name="AD"),
     path("auth", views.auth, name="auth"),
     path("updateComputerStatus/<str:id>", views.update_computer_status, name="upd"),
-    path("createAD/<str:domain>/<str:id>",views.createAD,name="createAD")
+    path("createAD/<str:domain>/<str:id>",views.createAD,name="createAD"),
+    path("createProfile",views.create_profile,name="createProfile"),
     #static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]
