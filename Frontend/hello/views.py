@@ -13,7 +13,6 @@ import json
 from django.conf import settings
 from .AHCAuth import AHCAuthBackend
 from .forms import UploadFileForm
-from .EmployeeAvatar import upload_emp_avatar
 import os
 from django.utils.dateparse import parse_datetime
 from django import template
