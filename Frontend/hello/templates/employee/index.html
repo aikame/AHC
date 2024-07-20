@@ -7,6 +7,7 @@
       let UserLogin = document.getElementById("UserLoginforUserInfo").value;
       await fetch(`http://localhost:7095/User?UserLogin=${UserLogin}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
     }
+    
   </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
     integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
@@ -60,8 +61,12 @@
           {% endif %}
           <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
           <div>
+            <button type="button" data-toggle="modal" data-target="#changeProfilePicModal" class="btn btn-outline-primary w-100 m-1"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-bounding-box" viewBox="0 0 16 16">
+              <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5M.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5"/>
+              <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+            </svg> Изменить аватар</button>
             <button type="button" class="btn btn-outline-primary w-100 m-1">Активность</button>
-            <form method ="post" enctype="multipart/form-data" action="{{user_id}}/img_upload">
+            <form method ="post" enctype="multipart/form-data" action="img_update">
               {% csrf_token %}
               {{ form.as_p }}
               <input type="file" id="emp_avatar" name="avatar" accept="image/png, image/jpeg" />
@@ -118,22 +123,32 @@
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-              <div class="d-flex w-50 ">
+              <div class="col row">
+                <div class="col-2">
                 <select class="form-select " aria-label="Выберите домен">
                     <option value="AD"> AD </option>
                 </select>
-                <select class="form-select" aria-label="Выберите домен">
+              </div>
+              <div class="col-2">
+                <select class="form-select" id="domainSelect" aria-label="Выберите домен">
                   {% for domain in domains %}
                     <option value="{{domain}}"> {{domain}} </option>
                   {% endfor %}
                 </select>
-                <button class=" p-1 btn btn-outline-primary">Создать учётную запись</button>
+              </div>
+              <div class="col-1">
+                <input type="checkbox" class="btn-check" id="mailCheckbox" autocomplete="off">
+                <label class="btn btn-outline-info" for="mailCheckbox">Exchange</label>                              
+              </div>
+              <div class="col-1">
+                <button id="createAccBtn" class="btn btn-outline-primary">Создать</button>
+              </div>
               </div>
               <div name="profiles" class="mt-5">
               {% for profile in profile_json.profiles %}
                   {% for key, value in profile.items %}
                   <div class="col row">
-                    <div class="col-4">{{value.domain}}</div>
+                    <div class="col-6">{{value.domain}}</div>
                     <div class="col-1 " style="width: 50%;">  
                       <a href="/{{ key }}/{{value.domain}}/{{value.user}}">
                           <div class="col">
@@ -168,8 +183,53 @@
 
   </div>
 
-  </div>
+  <main>
+    <div class="modal fade" id="changeProfilePicModal" tabindex="-1" role="dialog" aria-labelledby="changeProfilePicModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="changeProfilePicModalLabel">Изменить изображение профиля</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-body">
+              <form method ="post" enctype="multipart/form-data" action="/img_upload/{{id}}">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="input-group">
+                <input class="form-control" type="file" id="emp_avatar" name="avatar" accept="image/png, image/jpeg">
+                <button class="btn btn-outline-primary" type="submit">Загрузить</button>
+              </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                
+              </div>
+            </div>
+            </form>
+          </div>
+          
+        </div>
+      </div>
+  </main>
+
+
 
 </body>
+<script>
 
+  createAccBtn = document.getElementById("createAccBtn")
+  createAccBtn.addEventListener("click", createAcc);
+  async function createAcc(){
+    domain = document.getElementById("domainSelect").value;
+    mail = document.getElementById("mailCheckbox").checked;
+    console.error(domain)
+    let result = await fetch(`/createAD/`+domain+`/{{id}}?mail=` + mail);
+    if (result.status == 200){
+      window.location.reload();
+    }
+  }
+</script>
 </html>

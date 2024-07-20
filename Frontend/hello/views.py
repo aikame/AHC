@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.http import HttpResponse, HttpRequest
+from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -17,6 +17,11 @@ from .EmployeeAvatar import upload_emp_avatar
 from django.utils.dateparse import parse_datetime
 from django import template
 from django.utils import timezone
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.renderers import JSONRenderer
 register = template.Library()
 
 ROLE_CHOICES = {
@@ -77,7 +82,6 @@ def settings(request):
     
 @login_required
 def img_upload(request, id):
-    user_id = id
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
@@ -108,7 +112,7 @@ def employee(request,id):
     return render(
         request,
         'employee/index.html',
-        {'profile_json':user, 'domains':domainsList, 'user_id': user_id}
+        {'profile_json':user, 'domains':domainsList,"id":id}
     )
 @login_required
 def computer_detail(request,id):
@@ -126,9 +130,16 @@ def computer_detail(request,id):
         request,
         'computer_detail/index.html',
         {'computer_json':data,
-         'difMinutes':last_upd
+         'difMinutes':last_upd,
+         'id':id
          }
     )
+
+@login_required
+def update_computer_status(request,id):
+    update = requests.get('https://localhost:7095/CheckComputer?_id='+id,verify=False)
+
+    return HttpResponseRedirect(reverse('computer', args=[id]))
 @login_required
 def computer(request):
     json_data = requests.get('http://127.0.0.2:8000/api/ComputerData')
@@ -158,6 +169,21 @@ def searchall(request):
         'profileslist/index.html',
         {'profiles_json':data["hits"]["hits"]}
     )
+
+@login_required
+def createAD(request,id,domain):
+    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    mail = request.GET.get('mail')
+    print(mail)
+    user = user_data.json()["hits"]["hits"][0]
+    content = JSONRenderer().render(user)
+    result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
+    print(result.status_code)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
+
 @login_required
 def search(request,text):
     print('"'+text+'"')
@@ -191,3 +217,40 @@ def active_directory(request,domain,id):
         }
 
     )
+
+@login_required
+def create_profile(request):
+    #user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    #mail = request.GET.get('mail')
+    if request.method == 'POST':
+        data = {
+            'name': request.POST.get('name'),
+            'surname': request.POST.get('surname'),
+            'patronymic': request.POST.get('patronymic'),
+            'company': request.POST.get('company'),
+            'apply_date': request.POST.get('apply_date'),
+            'appointment': request.POST.get('appointment'),
+            'city': request.POST.get('city'),
+            'ADreq': False
+        }
+        print(data)
+        user = json.dumps(data)
+        print(user)
+        result = requests.post(f'https://localhost:7095/CreateProfile',data=user,verify=False,headers={"Content-Type": "application/json"})
+        print(result.text)
+        if result.status_code ==200:
+            return JsonResponse({'success': 'Profile created successfully'}, status=200)
+        else:
+            return JsonResponse({'error': 'Profile not created successfully'}, status=500)
+        
+    else:
+        return JsonResponse({'success': 'Invalid request'}, status=400)
+
+    user = user_data.json()["hits"]["hits"][0]
+    content = JSONRenderer().render(user)
+    result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
+    print(result.status_code)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
