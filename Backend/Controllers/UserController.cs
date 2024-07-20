@@ -528,16 +528,22 @@ namespace Backend.Controllers
                     string newJsonString = newJson.ToString(Formatting.Indented);
                     Console.WriteLine(newJsonString);
 
-
                     JObject profileData = new JObject();
                     profileData["_id"] = user.GetProperty("_id").ToString();
+
+                    var userData = user.GetProperty("_source");
+                    JsonElement jsonExMail = new JsonElement();
                     profileData["profile"] = newJson;
                     if (mail)
                     {
                         profileData["email"] = jsonMail["Address"];
-                    } else
+                    } else if (userData.TryGetProperty("email", out jsonExMail))
                     {
-                        profileData["email"] = user.GetProperty("email").ToString();
+                        profileData["email"] = jsonExMail.ToString();
+                    }
+                    else
+                    {
+                        profileData["email"] = "";
                     }
 
                     Console.WriteLine($"profile update: {profileData}");
