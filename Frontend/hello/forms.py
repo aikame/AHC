@@ -1,6 +1,5 @@
 from django import forms
-
+from .models import EMPImage
 
 class UploadFileForm(forms.Form):
-    title = forms.CharField(max_length=256)
-    file = forms.FileField()
+        fields = ['avatar']

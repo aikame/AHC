@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import HttpResponse, HttpRequest
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.backends import BaseBackend
@@ -77,17 +77,18 @@ def settings(request):
     
 @login_required
 def img_upload(request, id):
+    user_id = id
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            upload_emp_avatar(request.FILES["file"])
-    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
-    data = json.loads(user_data.content)
-    return render(
-        request,
-        'employee/index.html',
-        {'profile_json':data["hits"]["hits"][0]["_source"]}
-    )
+            avatar_inst, created = EMPImage.objects.get_or_create(user_id=user_id)
+            avatar_inst.avatar = form.cleaned_data['avatar']
+            avatar_inst.save()
+            return redirect('search')
+    else:
+        form = UploadFileForm()
+    return render(request, 
+                  'img_upload/index.html')
 
 @login_required
 def employee(request,id):
@@ -97,6 +98,7 @@ def employee(request,id):
     domainsList = list(domains)
     data = json.loads(user_data.content)
     user = data["hits"]["hits"][0]["_source"]
+    user_id = data["hits"]["hits"][0]["_id"]
     for profile in user["profiles"]:
         if "AD" in profile:
             for domain in domains:
@@ -106,7 +108,7 @@ def employee(request,id):
     return render(
         request,
         'employee/index.html',
-        {'profile_json':user, 'domains':domainsList}
+        {'profile_json':user, 'domains':domainsList, 'user_id': user_id}
     )
 @login_required
 def computer_detail(request,id):
@@ -176,8 +178,8 @@ def search(request,text):
 def active_directory(request,domain,id):
     print(id)
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
-    #domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
-    #json_domain = json.loads(domain_data.content)
+    domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
+    json_domain = json.loads(domain_data.content)
     data = json.loads(user_data.content)
     return render(
         request,

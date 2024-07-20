@@ -61,7 +61,7 @@
           <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
           <div>
             <button type="button" class="btn btn-outline-primary w-100 m-1">Активность</button>
-            <form method ="post" enctype="multipart/form-data" action="img_update">
+            <form method ="post" enctype="multipart/form-data" action="{{user_id}}/img_upload">
               {% csrf_token %}
               {{ form.as_p }}
               <input type="file" id="emp_avatar" name="avatar" accept="image/png, image/jpeg" />

@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -124,8 +124,8 @@ STATIC_URL = 'static/'
 
 LOGIN_URL='/login'
 LOGIN_REDIRECT_URL='/login'
-MEDIA_ROOT = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/static/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
 
 
 # Default primary key field type

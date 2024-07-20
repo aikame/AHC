@@ -1,3 +1,5 @@
+import os
+
 """
 Django settings for web_project project.
 
@@ -129,3 +131,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL='/accounts/login'
 LOGIN_REDIRECT_URL='/accounts/login'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
