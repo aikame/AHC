@@ -579,9 +579,7 @@ namespace Backend.Controllers
             JsonElement fire_date = data.GetProperty("fire_date");
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
-                var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
-                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                JObject computer = JObject.Parse(searchComputer);
+                
                 var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("http://127.0.0.2:8000/api/getone", jsonContent);
                 string responseContent = await result.Content.ReadAsStringAsync();
@@ -599,7 +597,9 @@ namespace Backend.Controllers
                     {
                         if (profile.TryGetProperty("AD", out JsonElement ad))
                         {
-                            // Выполнение необходимого действия для каждого объекта "AD"
+                            var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
+                            string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+                            JObject computer = JObject.Parse(searchComputer);
                             string domain = ad.GetProperty("domain").GetString();
                             string user = ad.GetProperty("user").GetString();
                             var sdata = new JsonObject
