@@ -33,6 +33,14 @@ ROLE_CHOICES = {
     5: "Primary Domain Controller"
 }
 
+# Высрал здесь роли на будущее
+
+USER_ROLE = {
+    "AHC_ADM": "AHC-Administrator",
+    "SECU": "IT-Security",
+    "ADM": "Administrator",
+    "1CADM": "1C-Administrator",
+}
 
 @register.filter
 def get_role_display(role_number):
