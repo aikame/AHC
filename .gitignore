@@ -389,3 +389,6 @@ Elastic/elasticsearch-8.1.0/lib/modules
 Frontend/*.sqlite3
 Elastic/DBC/.venv/pyvenv.cfg
 /Frontend/static/media/employee_avatars/*
+Elastic/DBC/.venv/pyvenv.cfg
+Frontend/.venv/pyvenv.cfg
+Frontend/db.sqlite3
