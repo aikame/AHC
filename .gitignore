@@ -16,6 +16,8 @@ Elastic/elasticsearch-8.1.0/*
 /Elastic/elasticsearch-8.14.1/
 /elasticsearch-8.14.1/
 Frontend/hello/__pycache__/
+Frontend/db.sqlite3
+Frontend\hello\static\media\employee_avatars\*
 /.venv/
 **/.venv/
 Elastic/DBC/.venv/
