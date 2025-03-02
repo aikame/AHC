@@ -87,6 +87,34 @@ namespace ADDC.Controllers
                 return Content(response);
             }
         }
+
+        [HttpGet("GetAppInfo")]
+        public ActionResult GetAppInfo()
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetAppInfo.ps1");
+                var results = ps.AddScript(scriptText).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+                Console.WriteLine($"GetAppinfo: {final}");
+                JObject jsonData = JObject.Parse(final);
+                Console.WriteLine($"GetAppInfo: {jsonData}");
+                var response = JsonConvert.SerializeObject(jsonData);
+                return Content(response);
+            }
+        }
+
         [HttpGet("GetComputerInfo")]
         public ActionResult GetComputerInfo([FromQuery] string data)
         {
