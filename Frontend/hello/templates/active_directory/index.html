@@ -3,23 +3,35 @@
 
 <head>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            $('#addGroupModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+            $('#remGroupModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+            $('#changePassw').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+        });
+
         async function hideMail() {
             let body = document.getElementById("hideMailModalBody");
             let id = encodeURIComponent("{{ id }}");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-                
+
                 var result = await fetch(`https://localhost:7095/HideMailBox?id=${id}&domain=${domain}`);
-                
+
                 body.innerText = "Почтовый ящик был успешно скрыт";
             } catch {
-                body.innerText = "Почтовый ящик не удалось скрыть"; 
+                body.innerText = "Почтовый ящик не удалось скрыть";
             }
-            if (result.ok){
+            if (result.ok) {
                 body.innerText = "Почтовый ящик был успешно скрыт";
 
             } else {
-                body.innerText = "Почтовый ящик не удалось скрыть"; 
+                body.innerText = "Почтовый ящик не удалось скрыть";
             }
             $('#hideMailModal').modal('show');
         }
@@ -28,18 +40,18 @@
             let body = document.getElementById("showMailModalBody");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-                
-                var result =  await fetch(`https://localhost:7095/ShowMailBox?id=${id}&domain=${domain}`);
-                
+
+                var result = await fetch(`https://localhost:7095/ShowMailBox?id=${id}&domain=${domain}`);
+
                 body.innerText = "Почтовый ящик снова показан";
             } catch {
-                body.innerText = "Почтовый ящик не удалось показать"; 
+                body.innerText = "Почтовый ящик не удалось показать";
             }
-            if (result.ok){
+            if (result.ok) {
                 body.innerText = "Почтовый ящик снова показан";
 
             } else {
-                body.innerText = "Почтовый ящик не удалось показать"; 
+                body.innerText = "Почтовый ящик не удалось показать";
             }
             $('#showMailModal').modal('show');
         }
@@ -49,15 +61,15 @@
             let domain = encodeURIComponent("{{ domain }}");
             let body = document.getElementById("banModalBody");
             try {
-                
+
                 var result = await fetch(`https://localhost:7095/BanUser?id=${id}&domain=${domain}`).then(response => response.json());
-                
-            } catch(error) {
+
+            } catch (error) {
                 console.warn(error)
-                body.innerText = "Пользователя не удалось заблокировать: " + error; 
-                
+                body.innerText = "Пользователя не удалось заблокировать: " + error;
+
             }
-            if (result.ok){
+            if (result.ok) {
                 body.innerText = "Пользователь был заблокирован";
 
             }
@@ -71,17 +83,17 @@
             let body = document.getElementById("unbanModalBody");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-                
+
                 var result = await fetch(`https://localhost:7095/UnbanUser?id=${id}&domain=${domain}`).then(response => response.json());
-                
+
                 body.innerText = "Пользователя удалось разблокировать";
-            } catch(error) {
-                body.innerText = "Пользователя не удалось разблокировать: " + error; 
+            } catch (error) {
+                body.innerText = "Пользователя не удалось разблокировать: " + error;
                 $('#unbanModal').modal('show');
             }
-            if (result.ok){
+            if (result.ok) {
                 body.innerText = "Пользователь был разблокировать";
-                
+
             }
             $('#unbanModal').modal('show');
             $('#unbanModal').on('hidden.bs.modal', function () {
@@ -94,33 +106,31 @@
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
                 var result = await fetch(`https://localhost:7095/AddToGroup`, {
-                    method:"POST",
+                    method: "POST",
                     headers: new Headers({
-                        'content-Type':'application/json'
-                    }),                    
+                        'content-Type': 'application/json'
+                    }),
                     body: JSON.stringify({
-                        "user":{
-                            "name":id
+                        "user": {
+                            "name": id
                         },
-                        "group":groupName,
-                        "domain":domain
+                        "group": groupName,
+                        "domain": domain
                     })
                 })
                 let body = document.getElementById("addGroupStatus");
-                if (result.ok){
+                if (result.ok) {
                     body.innerHTML = '<span id="addGroupStatus" class="text-success">Пользователь добавлен в группу</span>';
-                } else{
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
                     body.innerHTML = '<span id="addGroupStatus" class="text-danger">Пользователь не был добавлен в группу!</span>';
                 }
-                
-                
-            } catch(err) {
+
+
+            } catch (err) {
                 let body = document.getElementById("addGroupStatus");
                 body.innerHTML = `<span id="addGroupStatus" class="text-danger">${err}</span>`;
             }
-            $('#addGroupModal').on('hidden.bs.modal', function () {
-                window.location.reload();
-            });
         }
         async function remFromGroup() {
             try {
@@ -128,33 +138,31 @@
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
                 var result = await fetch(`https://localhost:7095/RemoveFromGroup`, {
-                    method:"POST",
+                    method: "POST",
                     headers: new Headers({
-                        'content-Type':'application/json'
-                    }),                    
+                        'content-Type': 'application/json'
+                    }),
                     body: JSON.stringify({
-                        "user":{
-                            "name":id
+                        "user": {
+                            "name": id
                         },
-                        "group":groupName,
-                        "domain":domain
+                        "group": groupName,
+                        "domain": domain
                     })
                 })
                 let body = document.getElementById("remGroupStatus");
-                if (result.ok){
+                if (result.ok) {
                     body.innerHTML = '<span id="remGroupStatus" class="text-success">Пользователь был исключен из группы</span>';
-                } else{
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
                     body.innerHTML = '<span id="remGroupStatus" class="text-danger">Пользователь не был исключен из группы!</span>';
                 }
-                
-                
-            } catch(err) {
+
+
+            } catch (err) {
                 let body = document.getElementById("remGroupStatus");
                 body.innerHTML = `<span id="remGroupStatus" class="text-danger">${err}</span>`;
             }
-            $('#remGroupModal').on('hidden.bs.modal', function () {
-                window.location.reload();
-            });
         }
         async function ChangePassword() {
             try {
@@ -162,22 +170,23 @@
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
                 var result = await fetch(`https://localhost:7095/ChangePassword`, {
-                    method:"POST",
+                    method: "POST",
                     headers: new Headers({
-                        'content-Type':'application/json'
-                    }),   
+                        'content-Type': 'application/json'
+                    }),
                     body: JSON.stringify({
-                        "user":{
-                            "name":id
+                        "user": {
+                            "name": id
                         },
-                        "password":Passw,
-                        "domain":domain
+                        "password": Passw,
+                        "domain": domain
                     })
                 })
                 let body = document.getElementById("changePasswStatus");
-                if (result.ok){
+                if (result.ok) {
                     body.innerHTML = '<span id="changePasswStatus" class="text-success">Пароль успешно изменён</span>';
-                } else{
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
                     body.innerHTML = '<span id="changePasswStatus" class="text-danger">Пароль не удалось изменить</span>';
                 }
             } catch {
@@ -206,18 +215,17 @@
     {% bootstrap_javascript %}
     <style>
         .sidebar {
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          z-index: 100;
-          /* Behind the navbar */
-          padding: 48px 0 0;
-          /* Height of navbar */
-          box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            /* Behind the navbar */
+            padding: 48px 0 0;
+            /* Height of navbar */
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
         }
-    
-      </style>
+    </style>
 </head>
 
 
@@ -231,7 +239,7 @@
             {% include "../Base/sidebar.html" %}
             <main height="100%" class="col-md-9 col row ml-sm-auto col-lg-10 px-md-4">
                 <H1 class="w-100 mb-3">Учётная запись Active Directory: {{domain}}\{{id}}</H1>
-                
+
                 <div class="col row m-3 ">
 
                     <nav>
@@ -239,9 +247,12 @@
                             <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home"
                                 role="tab" aria-controls="nav-home" aria-selected="true">Главная</a>
                             <a class="nav-item nav-link" id="nav-groups-tab" data-toggle="tab" href="#nav-groups"
-                                role="tab" aria-controls="nav-groups" aria-selected="false"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-                                  </svg> Группы</a>
+                                role="tab" aria-controls="nav-groups" aria-selected="false"><svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-people-fill" viewBox="0 0 16 16">
+                                    <path
+                                        d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5" />
+                                </svg> Группы</a>
                         </div>
 
                     </nav>
@@ -288,49 +299,79 @@
                     </div>
                 </div>
                 <div class="col col-lg-3">
-                    <button class="btn btn-outline-primary dropdown-toggle col" type="button" data-bs-toggle="dropdown" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
-                        <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
-                        <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
-                      </svg> Действия</button>
+                    <button class="btn btn-outline-primary dropdown-toggle col" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+                            <path
+                                d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0" />
+                            <path
+                                d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z" />
+                        </svg> Действия</button>
                     <ul class="dropdown-menu">
-                        <li><button type="button" onclick="ban()" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill-slash" viewBox="0 0 16 16">
-                            <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
-                          </svg> Заблокировать</button></li>
-                        <li><button type="button" onclick="unban()" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-fill-check" viewBox="0 0 16 16">
-                            <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                            <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
-                          </svg> Разблокировать</button></li>
-                        <li><button type="button" data-toggle="modal" data-target="#addGroupModal" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  fill="currentColor" class="bi bi-person-fill-add" viewBox="0 0 16 16">
-                            <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                            <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
-                          </svg> Добавить в группу</button></li>
-                        <li><button type="button" data-toggle="modal" data-target="#remGroupModal" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  fill="currentColor" class="bi bi-person-fill-dash" viewBox="0 0 16 16">
-                            <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M11 12h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m0-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                            <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
-                          </svg> Исключить из группы</button></li>
-                        <li><button type="button" data-toggle="modal" data-target="#changePassw" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  fill="currentColor" class="bi bi-person-fill-lock" viewBox="0 0 16 16">
-                            <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5v-1a2 2 0 0 1 .01-.2 4.49 4.49 0 0 1 1.534-3.693Q8.844 9.002 8 9c-5 0-6 3-6 4m7 0a1 1 0 0 1 1-1v-1a2 2 0 1 1 4 0v1a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zm3-3a1 1 0 0 0-1 1v1h2v-1a1 1 0 0 0-1-1"/>
-                          </svg> Сменить пароль</button></li>
-                        <li><button type="button" onclick="hideMail()" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  fill="currentColor" class="bi bi-envelope-x-fill" viewBox="0 0 16 16">
-                            <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z"/>
-                            <path d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-4.854-1.354a.5.5 0 0 0 0 .708l.647.646-.647.646a.5.5 0 0 0 .708.708l.646-.647.646.647a.5.5 0 0 0 .708-.708l-.647-.646.647-.646a.5.5 0 0 0-.708-.708l-.646.647-.646-.647a.5.5 0 0 0-.708 0"/>
-                          </svg> Скрыть ящик из адресной книги</button></li>
-                        <li><button type="button" onclick="showMail()" class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"  fill="currentColor" class="bi bi-envelope-check-fill" viewBox="0 0 16 16">
-                            <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z"/>
-                            <path d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-1.993-1.679a.5.5 0 0 0-.686.172l-1.17 1.95-.547-.547a.5.5 0 0 0-.708.708l.774.773a.75.75 0 0 0 1.174-.144l1.335-2.226a.5.5 0 0 0-.172-.686"/>
-                          </svg> Показать ящик в адресной книге</button></li>
-                    </div>
-                    </div>
-                    </ul>
-                       
-                    
+                        <li><button type="button" onclick="ban()" class="dropdown-item"><svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-person-fill-slash" viewBox="0 0 16 16">
+                                    <path
+                                        d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+                                </svg> Заблокировать</button></li>
+                        <li><button type="button" onclick="unban()" class="dropdown-item"><svg
+                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                    class="bi bi-person-fill-check" viewBox="0 0 16 16">
+                                    <path
+                                        d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                    <path
+                                        d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+                                </svg> Разблокировать</button></li>
+                        <li><button type="button" data-toggle="modal" data-target="#addGroupModal"
+                                class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                    fill="currentColor" class="bi bi-person-fill-add" viewBox="0 0 16 16">
+                                    <path
+                                        d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                    <path
+                                        d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+                                </svg> Добавить в группу</button></li>
+                        <li><button type="button" data-toggle="modal" data-target="#remGroupModal"
+                                class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                    fill="currentColor" class="bi bi-person-fill-dash" viewBox="0 0 16 16">
+                                    <path
+                                        d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M11 12h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m0-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                    <path
+                                        d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+                                </svg> Исключить из группы</button></li>
+                        <li><button type="button" data-toggle="modal" data-target="#changePassw"
+                                class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                    fill="currentColor" class="bi bi-person-fill-lock" viewBox="0 0 16 16">
+                                    <path
+                                        d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5v-1a2 2 0 0 1 .01-.2 4.49 4.49 0 0 1 1.534-3.693Q8.844 9.002 8 9c-5 0-6 3-6 4m7 0a1 1 0 0 1 1-1v-1a2 2 0 1 1 4 0v1a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zm3-3a1 1 0 0 0-1 1v1h2v-1a1 1 0 0 0-1-1" />
+                                </svg> Сменить пароль</button></li>
+                        <li><button type="button" onclick="hideMail()" class="dropdown-item"><svg
+                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                    class="bi bi-envelope-x-fill" viewBox="0 0 16 16">
+                                    <path
+                                        d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z" />
+                                    <path
+                                        d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-4.854-1.354a.5.5 0 0 0 0 .708l.647.646-.647.646a.5.5 0 0 0 .708.708l.646-.647.646.647a.5.5 0 0 0 .708-.708l-.647-.646.647-.646a.5.5 0 0 0-.708-.708l-.646.647-.646-.647a.5.5 0 0 0-.708 0" />
+                                </svg> Скрыть ящик из адресной книги</button></li>
+                        <li><button type="button" onclick="showMail()" class="dropdown-item"><svg
+                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                    class="bi bi-envelope-check-fill" viewBox="0 0 16 16">
+                                    <path
+                                        d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z" />
+                                    <path
+                                        d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-1.993-1.679a.5.5 0 0 0-.686.172l-1.17 1.95-.547-.547a.5.5 0 0 0-.708.708l.774.773a.75.75 0 0 0 1.174-.144l1.335-2.226a.5.5 0 0 0-.172-.686" />
+                                </svg> Показать ящик в адресной книге</button></li>
                 </div>
-            </main>
-            
         </div>
+        </ul>
+
+
+    </div>
+    </main>
+
     </div>
     </div>
-<!--Разблокировать пользователя-->
+    </div>
+    <!--Разблокировать пользователя-->
     <div class="modal fade" id="unbanModal" tabindex="-1" role="dialog" aria-labelledby="unbanModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -338,7 +379,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="unbanModalLabel">Разблокировать пользователя</h5>
                 </div>
-                <div class="modal-body" >
+                <div class="modal-body">
                     <span id="unbanModalBody"> Пользователь не удалось разблокировать. </span>
                 </div>
             </div>
@@ -352,7 +393,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="banModalLabel">Заблокировать пользователя</h5>
                 </div>
-                <div class="modal-body" >
+                <div class="modal-body">
                     <span id="banModalBody"> Пользователя удалось заблокировать. </span>
                 </div>
             </div>
@@ -366,7 +407,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="showModalLabel">Показать почтовый ящик</h5>
                 </div>
-                <div class="modal-body" >
+                <div class="modal-body">
                     <!--Поле для ответа Показать почтовый ящик-->
                     <span id="showMailModalBody"></span>
                 </div>
@@ -381,91 +422,94 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="hideMailModalLabel">Скрыть почтовый ящик</h5>
                 </div>
-                <div class="modal-body" >
+                <div class="modal-body">
                     <!--Поле для ответа Скрыть почтовый ящик-->
                     <span id="hideMailModalBody"></span>
                 </div>
             </div>
         </div>
     </div>
-<!-- Добавление в группу-->
-    <div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="addGroupModalLabel" aria-hidden="true">
+    <!-- Добавление в группу-->
+    <div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="addGroupModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="addGroupModalLabel">Добваить в группу</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              <form>
-                <div class="form-group">
-                  <label for="group-name" class="col-form-label">Название группы:</label>
-                  <input type="text" class="form-control" id="group-name-add">
-                  <span id="addGroupStatus"></span>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addGroupModalLabel">Добваить в группу</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-              </form>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="group-name" class="col-form-label">Название группы:</label>
+                            <input type="text" class="form-control" id="group-name-add">
+                            <span id="addGroupStatus"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="button" onclick="addToGroup()" class="btn btn-primary">Добавить</button>
+                </div>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-              <button type="button" onclick="addToGroup()" class="btn btn-primary">Добавить</button>
-            </div>
-          </div>
         </div>
-      </div>
-      <!-- Исключение из группы-->
-    <div class="modal fade" id="remGroupModal" tabindex="-1" role="dialog" aria-labelledby="remGroupModalLabel" aria-hidden="true">
+    </div>
+    <!-- Исключение из группы-->
+    <div class="modal fade" id="remGroupModal" tabindex="-1" role="dialog" aria-labelledby="remGroupModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="remGroupModalLabel">Исключить из группы</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              <form>
-                <div class="form-group">
-                  <label for="group-name" class="col-form-label">Название группы:</label>
-                  <input type="text" class="form-control" id="group-name-rem">
-                  <span id="remGroupStatus"></span>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="remGroupModalLabel">Исключить из группы</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-              </form>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="group-name" class="col-form-label">Название группы:</label>
+                            <input type="text" class="form-control" id="group-name-rem">
+                            <span id="remGroupStatus"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="button" onclick="remFromGroup()" class="btn btn-primary">Исключить</button>
+                </div>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-              <button type="button" onclick="remFromGroup()" class="btn btn-primary">Исключить</button>
-            </div>
-          </div>
         </div>
-      </div>
+    </div>
     <!-- Смена пароля-->
-    <div class="modal fade" id="changePassw" tabindex="-1" role="dialog" aria-labelledby="changePasswLabel" aria-hidden="true">
+    <div class="modal fade" id="changePassw" tabindex="-1" role="dialog" aria-labelledby="changePasswLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title" id="changePasswLabel">Сменить пароля</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            </div>
-            <div class="modal-body">
-            <form>
-                <div class="form-group">
-                <label for="group-name" class="col-form-label">Новый пароль:</label>
-                <input type="password" class="form-control" id="password-field">
-                <span id="changePasswStatus"></span>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswLabel">Сменить пароля</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-            </form>
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-            <button type="button" onclick="ChangePassword()" class="btn btn-primary">Изменить</button>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="group-name" class="col-form-label">Новый пароль:</label>
+                            <input type="password" class="form-control" id="password-field">
+                            <span id="changePasswStatus"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="button" onclick="ChangePassword()" class="btn btn-primary">Изменить</button>
+                </div>
             </div>
         </div>
-        </div>
-    </div>      
+    </div>
 </body>
 
 </html>

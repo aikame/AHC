@@ -57,7 +57,7 @@ namespace Backend.Controllers
             {
                 try
                 {
-                    var reply = ping.Send("address");
+                    var reply = ping.Send(address);
 
                     if (reply.Status == IPStatus.Success)
                     {
@@ -81,101 +81,84 @@ namespace Backend.Controllers
         [HttpPost("CreateProfile")]
         public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user, [FromQuery] string? domain)
         {
+            Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
 
-            Console.WriteLine(user.name);
-            //Console.WriteLine(domain);
-
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(2) })
             {
+                // 1. Параллельно запускаем создание профиля в БД и поиск компьютера
+                var profileTask = client.PostAsync("http://127.0.0.2:8000/api/put",
+                    new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
 
-                Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
-                var result = await client.PostAsync("http://127.0.0.2:8000/api/put", new StringContent(JsonConvert.SerializeObject(user),
-                                 Encoding.UTF8, "application/json"));
-                string responseContent = await result.Content.ReadAsStringAsync();
-
-                var unescapedContent = JsonConvert.DeserializeObject<string>(responseContent);
-
-                // Преобразование ответа в JSON объект
-                var jsonProfile = JsonConvert.DeserializeObject<JObject>(unescapedContent);
-                Console.WriteLine("Parsed JSON Response: " + jsonProfile.ToString());
-
-                Console.WriteLine(responseContent);
-                if (result.IsSuccessStatusCode)
-                {   
-                    if (!user.ADreq)
-                    {
-                        Console.WriteLine(jsonProfile["_id"]);
-                        return Content(jsonProfile["_id"].ToString());
-                    }
-                    var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
-                    string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                    JObject computer = JObject.Parse(searchComputer);
-                    var resultAD = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
-                        Encoding.UTF8, "application/json"));
-                    string responseADContent = await resultAD.Content.ReadAsStringAsync();
-                    Console.WriteLine(responseADContent);
-                    if (resultAD.IsSuccessStatusCode)
-                    {
-                        JObject jsonADData = JObject.Parse(responseADContent);
-                        JObject mailProfile = new JObject();
-                        mailProfile["name"] = jsonADData["SamAccountName"];
-                        var resultEmail = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
-                            Encoding.UTF8, "application/json"));
-                        JObject jsonMail =new JObject();
-                        if (resultEmail.IsSuccessStatusCode)
-                        {
-                            string responseMail = await resultEmail.Content.ReadAsStringAsync();
-                            Console.WriteLine(responseMail);
-                            jsonMail = JObject.Parse(responseMail);
-                        }
-
-
-                        string distinguishedName = jsonADData["DistinguishedName"].ToString();
-                        string[] parts = distinguishedName.Split(',');
-
-
-                        // Создание нового JSON-объекта
-                        var newJson = new JObject(
-                            new JProperty("AD",
-                                new JObject(
-                                    new JProperty("domain", domain),
-                                    new JProperty("user", jsonADData["SamAccountName"])
-                                )
-                            )
-                        );
-
-                        // Преобразование нового JSON-объекта в строку
-                        string newJsonString = newJson.ToString(Formatting.Indented);
-                        Console.WriteLine(newJsonString);
-
-
-                        JObject profileData = new JObject();
-                        profileData["_id"] = jsonProfile["_id"];
-                        profileData["profile"] = newJson;
-                        profileData["email"] = jsonMail["Address"];
-                        Console.WriteLine($"profile update: {profileData}");
-                        var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles", new StringContent(JsonConvert.SerializeObject(profileData),
-                                 Encoding.UTF8, "application/json"));
-                        Console.WriteLine(resultUpdProfile);
-                        if (resultUpdProfile.IsSuccessStatusCode)
-                        {
-                            return Content(jsonProfile["_id"].ToString());
-                        }
-                        else
-                        {
-                            return BadRequest(resultUpdProfile);
-                        }
-                    }
-                    else
-                    {
-                        return BadRequest("Произошла ошибка при создании AD профиля.");
-                    }
-
-                }
-                else
+                Task<HttpResponseMessage>? searchComputerTask = null;
+                if (user.ADreq)
                 {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                    searchComputerTask = client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 }
+
+                // Ждем создания профиля в БД
+                var profileResponse = await profileTask;
+                if (!profileResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании профиля.");
+
+                string responseContent = await profileResponse.Content.ReadAsStringAsync();
+                var jsonProfile = JsonConvert.DeserializeObject<JObject>(JsonConvert.DeserializeObject<string>(responseContent));
+                Console.WriteLine($"Parsed JSON Response: {jsonProfile}");
+
+                // Если AD не нужен, сразу возвращаем ID
+                if (!user.ADreq)
+                {
+                    return Content(jsonProfile["_id"].ToString());
+                }
+
+                // Ждем поиска компьютера
+                if (searchComputerTask == null) return BadRequest("Ошибка при поиске компьютера.");
+                var searchComputerResponse = await searchComputerTask;
+                if (!searchComputerResponse.IsSuccessStatusCode) return BadRequest("Ошибка при получении компьютера.");
+
+                JObject computer = JObject.Parse(await searchComputerResponse.Content.ReadAsStringAsync());
+
+                // 2. Запускаем создание AD-учетки
+                var adTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/UserCreation",
+                    new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
+
+                var adResponse = await adTask;
+                if (!adResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании AD профиля.");
+
+                JObject jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
+
+                // 3. После успешного создания AD-учетки запускаем создание почтового ящика
+                var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
+                var emailTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/CreateMailBox",
+                    new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json"));
+
+                // 4. Заполняем данные профиля
+                var newJson = new JObject
+                {
+                    ["AD"] = new JObject
+                    {
+                        ["domain"] = domain,
+                        ["user"] = jsonADData["SamAccountName"]
+                    }
+                };
+
+                JObject profileData = new JObject
+                {
+                    ["_id"] = jsonProfile["_id"],
+                    ["profile"] = newJson
+                };
+
+                // Ждем ответа от почты
+                var emailResponse = await emailTask;
+                if (emailResponse.IsSuccessStatusCode)
+                {
+                    JObject jsonMail = JObject.Parse(await emailResponse.Content.ReadAsStringAsync());
+                    profileData["email"] = jsonMail["Address"];
+                }
+
+                // 5. Обновляем профиль
+                var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles",
+                    new StringContent(JsonConvert.SerializeObject(profileData), Encoding.UTF8, "application/json"));
+
+                return resultUpdProfile.IsSuccessStatusCode ? Content(jsonProfile["_id"].ToString()) : BadRequest("Ошибка обновления профиля.");
             }
         }
         [HttpGet("GetInfo")]

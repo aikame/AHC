@@ -45,6 +45,7 @@ namespace Backend.Services
             {
                 var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
                 string responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
                 JsonDocument document = JsonDocument.Parse(responseContent);
                 JsonElement root = document.RootElement;
                 JsonElement hitstemp, hits;

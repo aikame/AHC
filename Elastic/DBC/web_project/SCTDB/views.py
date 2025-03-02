@@ -87,6 +87,7 @@ def computer_data(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'GET':
+        print("Get computer")
         response = requests.get('http://localhost:9200/computers/_search')
         return Response(response.json())
 @api_view(['GET'])
