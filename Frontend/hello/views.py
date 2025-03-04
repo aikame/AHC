@@ -128,24 +128,49 @@ def employee(request,id):
         {'profile_json':user, 'domains':domainsList,"id":id}
     )
 @login_required
-def computer_detail(request,id):
-    computer_data = requests.get('http://127.0.0.2:8000/api/GetComputer?_id='+id)
+def computer_detail(request, id):
+    computer_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?_id={id}')
     data = json.loads(computer_data.content)
+
+    apps = None  # Если не достучались до пк
+    try:
+        installed_apps = requests.get(
+            f'https://localhost:7095/GetAppInfo?Computer={data["ComputerName"]}&domain={data["DomainName"]}', 
+            verify=False,
+            timeout=5 
+        )
+        installed_apps.raise_for_status() 
+        apps = json.loads(installed_apps.content).get("AppList", [])
+
+        for app in apps:
+            app["DisplayVersion"] = app.get("DisplayVersion") or ""
+            app["Publisher"] = app.get("Publisher") or ""
+            install_date = app.get("InstallDate")
+            if install_date and len(install_date) == 8:
+                app["InstallDate"] = f"{install_date[6:8]}.{install_date[4:6]}.{install_date[:4]}"
+            else:
+                app["InstallDate"] = ""
+
+    except (requests.RequestException, json.JSONDecodeError) as e:
+        print(f"Ошибка: {e}") 
+
     role_number = data.get('ComputerRole', -1)
     now = timezone.now()
-    time = parse_datetime(data['updated'])
     updated_time = timezone.datetime.fromisoformat(data["updated"].replace('Z', '+00:00'))
-    difTime =  now - updated_time
-    last_upd = int(difTime.total_seconds() // 60)
-    data['updated'] = time  #parse_datetime(data['updated'])
+    last_upd = int((now - updated_time).total_seconds() // 60)
+
+    data['updated'] = parse_datetime(data['updated'])
     data["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+
     return render(
         request,
         'computer_detail/index.html',
-        {'computer_json':data,
-         'difMinutes':last_upd,
-         'id':id
-         }
+        {
+            'computer_json': data,
+            'difMinutes': last_upd,
+            'id': id,
+            "apps": apps  # None если не достучались до пк
+        }
     )
 
 @login_required

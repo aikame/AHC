@@ -22,8 +22,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <title>{% block title %}{% endblock %}</title>
   {% load bootstrap5 %}
   {% bootstrap_css %}
@@ -40,14 +40,17 @@
       /* Height of navbar */
       box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
     }
+
     .status-icon {
       font-size: 1em;
     }
+
     .status-true {
-        color: green;
+      color: green;
     }
+
     .status-false {
-        color: red;
+      color: red;
     }
   </style>
 
@@ -64,10 +67,14 @@
           {% else %}
           <i class="fas fa-circle status-icon status-false"></i>
           {% endif %}
-          {{computer_json.ComputerName}}.{{computer_json.DomainName}} <a href="/updateComputerStatus/{{ id }}"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-repeat" viewBox="0 0 16 16">
-            <path d="M11 5.466V4H5a4 4 0 0 0-3.584 5.777.5.5 0 1 1-.896.446A5 5 0 0 1 5 3h6V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m3.81.086a.5.5 0 0 1 .67.225A5 5 0 0 1 11 13H5v1.466a.25.25 0 0 1-.41.192l-2.36-1.966a.25.25 0 0 1 0-.384l2.36-1.966a.25.25 0 0 1 .41.192V12h6a4 4 0 0 0 3.585-5.777.5.5 0 0 1 .225-.67Z"/>
-          </svg></a></H1>
-          
+          {{computer_json.ComputerName}}.{{computer_json.DomainName}} <a href="/updateComputerStatus/{{ id }}"><svg
+              xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-repeat"
+              viewBox="0 0 16 16">
+              <path
+                d="M11 5.466V4H5a4 4 0 0 0-3.584 5.777.5.5 0 1 1-.896.446A5 5 0 0 1 5 3h6V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m3.81.086a.5.5 0 0 1 .67.225A5 5 0 0 1 11 13H5v1.466a.25.25 0 0 1-.41.192l-2.36-1.966a.25.25 0 0 1 0-.384l2.36-1.966a.25.25 0 0 1 .41.192V12h6a4 4 0 0 0 3.585-5.777.5.5 0 0 1 .225-.67Z" />
+            </svg></a>
+        </H1>
+
 
         <div class="col row m-3 ">
 
@@ -109,56 +116,61 @@
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Роль</div>
-                <div class="col-1 "style="width: 50%;">{{computer_json.ComputerRole}} </div>
+                <div class="col-1 " style="width: 50%;">{{computer_json.ComputerRole}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">ОЗУ(гб)</div>
                 <div class="col-1 ">{{computer_json.TotalRAMGB}} </div>
-              </div>              
+              </div>
               <div class="w-100 border-top"></div>
 
               {% for disk in computer_json.DiskSpace %}
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Диск {{disk.DeviceID}}</div>
-                <div class="col-1 ">{{disk.FreeSpaceGB}}/{{disk.TotalSpaceGB}} гб</div>
-              </div>              
+                <div class="col-1 " style="width: 50%;">{{disk.FreeSpaceGB}}/{{disk.TotalSpaceGB}} Гб</div>
+              </div>
               {% endfor %}
- 
+
               {% for cpu in computer_json.CPUName %}
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">ЦП</div>
                 <div class="col-1" style="width: 50%;">{{cpu}}</div>
-              </div>              
+              </div>
               {% endfor %}
 
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-              {% for profile in profile_json.profiles %}
-                  {% for key, value in profile.items %}
-                      <a href="/{{ key }}/{{value.domain}}/{{value.user}}">
-                          <div class="col">
-                              {% if 'AD' in key %}
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-windows" viewBox="0 0 16 16">
-                                      <path d="M6.555 1.375 0 2.237v5.45h6.555V1.375zM0 13.795l6.555.933V8.313H0v5.482zm7.278-5.4.026 6.378L16 16V8.395H7.278zM16 0 7.33 1.244v6.414H16V0z" />
-                                  </svg>
-                              {% else %}
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-patch-question" viewBox="0 0 16 16">
-                                      <path d="M8.05 9.6c.336 0 .504-.24.554-.627.04-.534.198-.815.847-1.26.673-.475 1.049-1.09 1.049-1.986 0-1.325-.92-2.227-2.262-2.227-1.02 0-1.792.492-2.1 1.29A1.71 1.71 0 0 0 6 5.48c0 .393.203.64.545.64.272 0 .455-.147.564-.51.158-.592.525-.915 1.074-.915.61 0 1.03.446 1.03 1.084 0 .563-.208.885-.822 1.325-.619.433-.926.914-.926 1.64v.111c0 .428.208.745.585.745z" />
-                                      <path d="m10.273 2.513-.921-.944.715-.698.622.637.89-.011a2.89 2.89 0 0 1 2.924 2.924l-.01.89.636.622a2.89 2.89 0 0 1 0 4.134l-.637.622.011.89a2.89 2.89 0 0 1-2.924 2.924l-.89-.01-.622.636a2.89 2.89 0 0 1-4.134 0l-.622-.637-.89.011a2.89 2.89 0 0 1-2.924-2.924l.01-.89-.636-.622a2.89 2.89 0 0 1 0-4.134l.637-.622-.011-.89a2.89 2.89 0 0 1 2.924-2.924l.89.01.622-.636a2.89 2.89 0 0 1 4.134 0l-.715.698a1.89 1.89 0 0 0-2.704 0l-.92.944-1.32-.016a1.89 1.89 0 0 0-1.911 1.912l.016 1.318-.944.921a1.89 1.89 0 0 0 0 2.704l.944.92-.016 1.32a1.89 1.89 0 0 0 1.912 1.911l1.318-.016.921.944a1.89 1.89 0 0 0 2.704 0l.92-.944 1.32.016a1.89 1.89 0 0 0 1.911-1.912l-.016-1.318.944-.921a1.89 1.89 0 0 0 0-2.704l-.944-.92.016-1.32a1.89 1.89 0 0 0-1.912-1.911l-1.318.016z" />
-                                      <path d="M7.001 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0z" />
-                                  </svg>
-                              {% endif %}
-                              {{value.domain}}\{{value.user}}
-                          </div>
-                      </a>
-                      <div class="w-100 border-top"></div>
+              <div class="container">
+                {% if apps is None %}
+                <div class="alert alert-danger text-center mt-3">
+                  Не удалось получить данные
+                </div>
+                {% else %}
+                <div class="container">
+                  <div class="row fw-bold border-bottom py-2 bg-light">
+                    <div class="col-4">Приложение</div>
+                    <div class="col-4">Издатель</div>
+                    <div class="col-2 text-center">Версия</div>
+                    <div class="col-2 text-center">Дата установки</div>
+                  </div>
+                  {% for app in apps %}
+                  <div class="row border-bottom py-2 align-items-center">
+                    <div class="col-4">{{ app.DisplayName }}</div>
+                    <div class="col-4">{{ app.Publisher }}</div>
+                    <div class="col-2 text-center">{{ app.DisplayVersion }}</div>
+                    <div class="col-2 text-center">{{ app.InstallDate }}</div>
+                  </div>
                   {% endfor %}
-              {% endfor %}
-          </div>
+                </div>
+                {% endif %}
+
+              </div>
+            </div>
+
           </div>
 
 
