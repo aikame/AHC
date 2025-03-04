@@ -144,32 +144,30 @@
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-              <div class="container">
-                {% if apps is None %}
-                <div class="alert alert-danger text-center mt-3">
-                  Не удалось получить данные
-                </div>
-                {% else %}
-                <div class="container">
-                  <div class="row fw-bold border-bottom py-2 bg-light">
-                    <div class="col-4">Приложение</div>
-                    <div class="col-4">Издатель</div>
-                    <div class="col-2 text-center">Версия</div>
-                    <div class="col-2 text-center">Дата установки</div>
+              {% if apps is None %}
+                  <div class="alert alert-danger text-center mt-3">
+                      Не удалось получить данные
                   </div>
-                  {% for app in apps %}
-                  <div class="row border-bottom py-2 align-items-center">
-                    <div class="col-4">{{ app.DisplayName }}</div>
-                    <div class="col-4">{{ app.Publisher }}</div>
-                    <div class="col-2 text-center">{{ app.DisplayVersion }}</div>
-                    <div class="col-2 text-center">{{ app.InstallDate }}</div>
+              {% else %}
+                  <div class="container-fluid px-0">
+                      <div class="row fw-bold border-bottom py-2 bg-light ms-0">
+                          <div class="col-4">Приложение</div>
+                          <div class="col-4">Издатель</div>
+                          <div class="col-2 text-center">Версия</div>
+                          <div class="col-2 text-center">Дата установки</div>
+                      </div>
+                      {% for app in apps %}
+                      <div class="row border-bottom py-2 align-items-center ms-0">
+                          <div class="col-4">{{ app.DisplayName }}</div>
+                          <div class="col-4">{{ app.Publisher }}</div>
+                          <div class="col-2 text-center">{{ app.DisplayVersion }}</div>
+                          <div class="col-2 text-center">{{ app.InstallDate }}</div>
+                      </div>
+                      {% endfor %}
                   </div>
-                  {% endfor %}
-                </div>
-                {% endif %}
-
-              </div>
-            </div>
+              {% endif %}
+          </div>
+          
 
           </div>
 
