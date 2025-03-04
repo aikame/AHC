@@ -85,17 +85,16 @@ namespace Backend.Controllers
 
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(2) })
             {
-                // 1. Параллельно запускаем создание профиля в БД и поиск компьютера
                 var profileTask = client.PostAsync("http://127.0.0.2:8000/api/put",
                     new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
-
+                
+                // ищем DC
                 Task<HttpResponseMessage>? searchComputerTask = null;
                 if (user.ADreq)
                 {
                     searchComputerTask = client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 }
 
-                // Ждем создания профиля в БД
                 var profileResponse = await profileTask;
                 if (!profileResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании профиля.");
 
@@ -109,14 +108,13 @@ namespace Backend.Controllers
                     return Content(jsonProfile["_id"].ToString());
                 }
 
-                // Ждем поиска компьютера
                 if (searchComputerTask == null) return BadRequest("Ошибка при поиске компьютера.");
                 var searchComputerResponse = await searchComputerTask;
                 if (!searchComputerResponse.IsSuccessStatusCode) return BadRequest("Ошибка при получении компьютера.");
 
                 JObject computer = JObject.Parse(await searchComputerResponse.Content.ReadAsStringAsync());
 
-                // 2. Запускаем создание AD-учетки
+                // создание AD-учетки
                 var adTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/UserCreation",
                     new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
 
@@ -125,12 +123,12 @@ namespace Backend.Controllers
 
                 JObject jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
 
-                // 3. После успешного создания AD-учетки запускаем создание почтового ящика
+                //создание почтового ящика
                 var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
                 var emailTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/CreateMailBox",
                     new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json"));
 
-                // 4. Заполняем данные профиля
+                
                 var newJson = new JObject
                 {
                     ["AD"] = new JObject
@@ -146,15 +144,13 @@ namespace Backend.Controllers
                     ["profile"] = newJson
                 };
 
-                // Ждем ответа от почты
                 var emailResponse = await emailTask;
                 if (emailResponse.IsSuccessStatusCode)
                 {
                     JObject jsonMail = JObject.Parse(await emailResponse.Content.ReadAsStringAsync());
                     profileData["email"] = jsonMail["Address"];
                 }
-
-                // 5. Обновляем профиль
+                // обновляем профиль
                 var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/add_to_profiles",
                     new StringContent(JsonConvert.SerializeObject(profileData), Encoding.UTF8, "application/json"));
 
@@ -397,6 +393,30 @@ namespace Backend.Controllers
                 if (result.IsSuccessStatusCode)
                 {
                     return Ok("Запрос выполнен успешно.");
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+        }
+
+        [HttpGet("GetAppInfo")]
+        public async Task<IActionResult> GetAppInfo([FromQuery] string computer, [FromQuery] string domain)
+        {
+            Console.WriteLine(computer + " get apps");
+
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?ComputerName={computer}");
+                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+                JObject computerObj = JObject.Parse(searchComputer);
+                var result = await client.GetAsync("https://" + computerObj["IPAddress"].ToString() + ":" + _connectorPort + "/GetAppInfo");
+                Console.WriteLine(result.ToString());
+                string responseContent = await result.Content.ReadAsStringAsync();
+                if (result.IsSuccessStatusCode)
+                {
+                    return Content(responseContent);
                 }
                 else
                 {
