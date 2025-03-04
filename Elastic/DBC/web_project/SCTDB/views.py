@@ -51,8 +51,18 @@ def profile_detail(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'GET':
-        response = requests.get('http://localhost:9200/users/_search')
+        query = {
+            "size": 10,  
+            "sort": [
+                {"apply_date": {"order": "desc"}} 
+            ]
+        }
+        response = requests.get(
+            'http://localhost:9200/users/_search', 
+            json=query
+        )
         return Response(response.json())
+
     
 @api_view(['POST','GET'])
 def computer_data(request):
