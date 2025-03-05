@@ -66,6 +66,7 @@ class ComputerSerializer(serializers.Serializer):
 class GroupSerializer(serializers.Serializer):
     PSComputerName = serializers.CharField(max_length=100)
     RunspaceId = serializers.CharField(max_length=100)
+    Description = serializers.CharField(max_length=200)
     DistinguishedName = serializers.CharField(max_length=100)
     GroupCategory = serializers.CharField(max_length=20)
     GroupScope = serializers.CharField(max_length=20)

@@ -34,6 +34,7 @@ class Computer(models.Model):
 class Group(models.Model):
     updated = models.DateTimeField(auto_now_add=True)
     PSComputerName = models.CharField(max_length=100)
+    Description = models.CharField(max_length=200)
     RunspaceId = models.CharField(max_length=100)
     DistinguishedName = models.CharField(max_length=100)
     GroupCategory = models.CharField(max_length=20)
