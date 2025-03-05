@@ -223,20 +223,31 @@ def createAD(request,id,domain):
         return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
 
 @login_required
-def search(request,text):
-    print('"'+text+'"')
+def search(request,location,text):
+    print('"'+location+"/"+text+'"')
     if (text == ""):
         text = "*"
-    search_text = '{"text":"'+text+'"}'
+    search_text = '{"text":"'+text+'", "location":"'+location+'"}'
     json_data = requests.get('http://127.0.0.2:8000/api/get',data=search_text.encode('utf-8'),headers={"Content-Type":"application/json"})
     data = json.loads(json_data.content)
     for i in data["hits"]["hits"]:
         i['source'] = i.pop('_source')
         i['id'] = i.pop('_id')
+    renderurl = ""
+    rendername = ""
+    if (location == "users"):
+        renderurl = 'profileslist/index.html'
+        rendername = 'profiles_json'
+    elif (location == "computers"):
+        renderurl = 'computer/index.html'
+        rendername = 'computers_json'
+    else:
+        renderurl = 'groups/index.html'
+        rendername = 'groups_json'
     return render(
         request,
-        'profileslist/index.html',
-        {'profiles_json':data["hits"]["hits"]}
+        renderurl,
+        {rendername:data["hits"]["hits"]}
     )
 @login_required
 def active_directory(request,domain,id):

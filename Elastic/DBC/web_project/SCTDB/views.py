@@ -278,5 +278,5 @@ def get_one(request):
 def get_text(request):
     data = json.loads(request.body)
     data_text = '{"query": {"simple_query_string": {"query": "'+ data["text"] +'"}}}'
-    response = requests.get("http://localhost:9200/users/_search", data=data_text.encode('utf-8'),headers={"Content-Type":"application/json"})
+    response = requests.get(f'http://localhost:9200/{data["location"]}/_search', data=data_text.encode('utf-8'),headers={"Content-Type":"application/json"})
     return Response(response.json())
