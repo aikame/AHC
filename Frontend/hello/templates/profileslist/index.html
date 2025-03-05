@@ -60,20 +60,20 @@
           {% include "../Base/sidebar.html" %}
           <main  class=" row ml-sm-auto h-100 col-lg-10 pl-md-4">
             <div id="table_profiles">
-              <table>
                 <table class="table table-hover">
-                  <tbody>
-                    <tr>
-                        <td class="fullName">Имя</td>
-                        <td class="image"></td>
-                        <td class="Job title">Должность</td>
-                        <td class="city">Город</td>
-                        <td class="Email">Эл. Почта</td>
-                        <td class="Email">Уволен</td>      
+                  <thead>
+                    <tr class="fw-bold border-bottom py-2 bg-light ms-0">
+                        <th class="fullName">Имя</th>
+                        <th class="image"></th>
+                        <th class="Job title">Должность</th>
+                        <th class="city">Город</th>
+                        <th class="Email">Эл. Почта</th>
+                        <th class="Email">Уволен</th>      
                     </tr>
-                    
+                  </thead>
+                    <tbody>
                     {% for row in profiles_json%}
-                    <tr onclick='window.location="/employee/{{row.id}}";'>
+                    <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/employee/{{row.id}}";'>
                       <td class="fullName">{{row.source.name}} {{row.source.surname}}</td>
                       {% if not '.jpg' in row.source.img_src %}
                         <td class="image"><img width="100" height="100" src="/static/default.jpg" alt=""></td> 

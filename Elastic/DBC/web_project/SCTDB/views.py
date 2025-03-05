@@ -97,6 +97,7 @@ def computer_data(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'GET':
+        
         print("Get computer")
         response = requests.get('http://localhost:9200/computers/_search')
         return Response(response.json())
@@ -133,9 +134,20 @@ def group(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'GET':
-        print("Get groups")
-        response = requests.get('http://localhost:9200/groups/_search')
-        return Response(response.json())    
+        id = request.GET.get('_id', 'None')
+        if id != 'None':
+            print("Get 1 group")
+            response = requests.get("http://localhost:9200/groups/_search", data='{"query": {"term": {"_id": "'+ id+'"}}}',headers={"Content-Type":"application/json"})
+           
+            if "hits" in response.json():
+                group = response.json()
+                return Response(group)
+            else:
+                Response({'error': 'not found'}, status=status.HTTP_404_BAD_REQUEST)
+        else:
+            print("Get groups")
+            response = requests.get('http://localhost:9200/groups/_search')
+            return Response(response.json())    
 
 @api_view(['GET'])
 def get_computer_data(request):

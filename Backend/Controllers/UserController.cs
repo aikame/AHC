@@ -454,6 +454,29 @@ namespace Backend.Controllers
                 }
             }
         }
+
+        [HttpGet("GetGroupMembers")]
+        public async Task<IActionResult> GetGroupMembers([FromQuery] string group, [FromQuery] string domain)
+        {
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
+                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+                JObject computer = JObject.Parse(searchComputer);
+                var result = await client.GetAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group="+group);
+                string responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);
+                Console.WriteLine(result);
+                if (result.IsSuccessStatusCode)
+                {
+                    return Content(responseContent);
+                }
+                else
+                {
+                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                }
+            }
+        }
         [HttpPost("RemoveFromGroup")]
         public async Task<IActionResult> RemoveFromGroup([FromBody] JsonElement data)
         {

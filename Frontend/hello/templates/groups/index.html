@@ -74,17 +74,19 @@
           <main  class=" row ml-sm-auto h-100 col-lg-10 pl-md-4">
             <div id="table_computers">
               <table>
-                <table class="table table-hover">
-                  <tbody>
-                    <tr>
+                <table class="table table-hover table-striped">
+                    <thead>
+                  
+                    <tr class="fw-bold border-bottom py-2 bg-light ms-0">
                         <td class="Name">Название</td>
                         <td class="GroupCategory">Категория</td>
                         <td class="GroupScope">Область действия</td>
                         <td class="DistinguishedName">Полное имя</td>                             
                     </tr>
-                    
+                </thead>
+                <tbody>
                     {% for row in groups_json%}
-                    <tr onclick='window.location="/group/{{row.id}}";'>
+                    <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/group/{{row.id}}";'>
                       <td class="Name">{{row.source.Name}}</td>
                       <td class="GroupCategory">{{row.source.GroupCategory}}</td>
                       <td class="GroupScope">{{ row.source.GroupScope }}</td>

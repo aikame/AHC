@@ -74,18 +74,19 @@
           <main  class=" row ml-sm-auto h-100 col-lg-10 pl-md-4">
             <div id="table_computers">
               <table>
-                <table class="table table-hover">
-                  <tbody>
-                    <tr>
+                <table class="table table-hover table-striped">
+                  <thead>
+                    <tr class="fw-bold border-bottom py-2 bg-light ms-0">
                         <td class="Status">Статус</td>
                         <td class="DomainName">Компьютер</td>
                         <td class="IPAddress">IP</td>
                         <td class="ComputerRole">Роль</td>                        
                         <td class="updated">Обновлен</td>      
                     </tr>
-                    
+                  </thead>
+                    <tbody>
                     {% for row in computers_json%}
-                    <tr onclick='window.location="/computer/{{row.id}}";'>
+                    <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/computer/{{row.id}}";'>
                       <td class="Status">
                         {% if row.source.Status %}
                         <i class="fas fa-circle status-icon status-true"></i>

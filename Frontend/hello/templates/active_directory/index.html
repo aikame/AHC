@@ -444,7 +444,12 @@
                     <form>
                         <div class="form-group">
                             <label for="group-name" class="col-form-label">Название группы:</label>
-                            <input type="text" class="form-control" id="group-name-add">
+                            <select class="form-select" id="group-name-add" aria-label="Default select example">
+                                <option selected>Выберите группу</option>
+                                {% for group in groups %}
+                                <option value="{{ group.source.Name }}">{{ group.source.Name }}</option>
+                                {% endfor %}
+                              </select>
                             <span id="addGroupStatus"></span>
                         </div>
                     </form>

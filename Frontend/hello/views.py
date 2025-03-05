@@ -22,6 +22,8 @@ from django.urls import reverse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
+import re
+import urllib.parse
 register = template.Library()
 
 ROLE_CHOICES = {
@@ -213,12 +215,39 @@ def groups(request):
 def group_detail(request, id):
     group_data = requests.get(f'http://127.0.0.2:8000/api/group?_id={id}')
     data = json.loads(group_data.content)
+    group = data["hits"]["hits"][0]["_source"]
+    members = None
+    try:
+        dn = group.get("DistinguishedName", "")
+
+        dc_parts = re.findall(r"DC=([^,]+)", dn)
+
+        domain = ".".join(dc_parts)
+        group_name_encoded = urllib.parse.quote(group["Name"]).replace("%20", "+")
+        print(domain) 
+        getMembersReq = requests.get(f'https://127.0.0.1:7095/GetGroupMembers?group={group_name_encoded}&domain={domain}',verify = False, timeout=20)
+        getMembersReq.raise_for_status()
+        members_data= json.loads(getMembersReq.content).get("Members")
+        if isinstance(members_data, dict):
+            members = [members_data]
+        else:
+            members = members_data
+        for mem in members:
+            mem["extensionAttribute1"] = mem.get('extensionAttribute1') or "" #################################!!!!!!!!!!!!!!!!
+            mem["extensionAttribute2"] = mem.get('extensionAttribute2') or ""
+            mem["extensionAttribute3"] = mem.get('extensionAttribute3') or ""
+            mem["Title"] = mem.get('Title') or ""
+        print(members)
+    except (requests.RequestException, json.JSONDecodeError) as e:
+        print(f"Ошибка: {e}")  
     return render(
         request,
         'group/index.html',
         {
             'group_json': data["hits"]["hits"][0]["_source"],
             'id': id,
+            'members':members, # =null
+            'domain':domain
         }
     )
 
@@ -282,8 +311,14 @@ def active_directory(request,domain,id):
     print(id)
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
     domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
+    groups_req = requests.get(f'http://127.0.0.2:8000/api/group')
     json_domain = json.loads(domain_data.content)
     data = json.loads(user_data.content)
+    groups = json.loads(groups_req.content)
+    for i in groups["hits"]["hits"]:
+        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
+        i['source'] = i.pop('_source')
+        i['id'] = i.pop('_id')
     return render(
         request,
         "active_directory/index.html",
@@ -291,6 +326,7 @@ def active_directory(request,domain,id):
             'id':id,
             'ad_json':data,
             'domain':domain,
+            'groups':groups["hits"]["hits"]
         }
 
     )
