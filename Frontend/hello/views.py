@@ -194,6 +194,34 @@ def computer(request):
         'computer/index.html',
         {'computers_json':data["hits"]["hits"]}
     )
+
+@login_required
+def groups(request):
+    json_data = requests.get('http://127.0.0.2:8000/api/group')
+    data = json.loads(json_data.content)
+    for i in data["hits"]["hits"]:
+        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
+        i['source'] = i.pop('_source')
+        i['id'] = i.pop('_id')
+    return render(
+        request,
+        'groups/index.html',
+        {'groups_json':data["hits"]["hits"]}
+    )
+
+@login_required
+def group_detail(request, id):
+    group_data = requests.get(f'http://127.0.0.2:8000/api/group?_id={id}')
+    data = json.loads(group_data.content)
+    return render(
+        request,
+        'group/index.html',
+        {
+            'group_json': data["hits"]["hits"][0]["_source"],
+            'id': id,
+        }
+    )
+
 @login_required
 def searchall(request):
     json_data = requests.get('http://127.0.0.2:8000/api/getall')
@@ -266,6 +294,30 @@ def active_directory(request,domain,id):
         }
 
     )
+
+
+@login_required
+def create_group(request):
+    #user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    #mail = request.GET.get('mail')
+    if request.method == 'POST':
+        data = {
+            'Name': request.POST.get('Name'),
+            'Description': request.POST.get('Description'),
+            'domain': request.POST.get('Domain'),
+        }
+        print(data)
+        user = json.dumps(data)
+        print(user)
+        result = requests.post(f'https://localhost:7095/CreateGroup',data=user,verify=False,headers={"Content-Type": "application/json"})
+        print(result.text)
+        if result.status_code ==200:
+            return redirect("/settings")
+        else:
+            return JsonResponse({'error': 'grupu not created successfully'}, status=500)
+        
+    else:
+        return JsonResponse({'success': 'Invalid request'}, status=400)
 
 @login_required
 def create_profile(request):

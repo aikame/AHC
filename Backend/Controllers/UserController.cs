@@ -424,6 +424,36 @@ namespace Backend.Controllers
                 }
             }
         }
+        [HttpPost("CreateGroup")]
+        public async Task<IActionResult> CreateGroup([FromBody] JsonElement data)
+        {
+            var temp = System.Text.Json.JsonSerializer.Serialize(data);
+            Console.WriteLine(temp);
+            JObject jsonData = JObject.Parse(temp);
+
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            {
+                var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
+                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+                JObject computer = JObject.Parse(searchComputer);
+                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
+
+                string responseContent = await result.Content.ReadAsStringAsync();
+                var databaseReq = client.PostAsync("http://127.0.0.2:8000/api/group",
+                    new StringContent(responseContent, Encoding.UTF8, "application/json"));
+
+                Console.WriteLine(result.ToString());
+                if (result.IsSuccessStatusCode)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+        }
         [HttpPost("RemoveFromGroup")]
         public async Task<IActionResult> RemoveFromGroup([FromBody] JsonElement data)
         {

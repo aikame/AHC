@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
-from SCTDB.models import Profile,Computer
-from SCTDB.serializers import ProfileSerializer,IdSerializer,ComputerSerializer
+from SCTDB.models import Profile,Computer,Group
+from SCTDB.serializers import ProfileSerializer,IdSerializer,ComputerSerializer,GroupSerializer
 import json
 import requests
 from django.utils import timezone
@@ -100,6 +100,43 @@ def computer_data(request):
         print("Get computer")
         response = requests.get('http://localhost:9200/computers/_search')
         return Response(response.json())
+@api_view(['POST','GET'])
+def group(request):
+    try:
+        group = Group.objects
+    except Group.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'POST':
+        serializer = GroupSerializer(data=request.data)
+        print(serializer.is_valid())
+        if serializer.is_valid():
+            groupName = request.data['Name']
+            response = requests.get("http://localhost:9200/groups/_search", data='{"query": {"term": {"Name.keyword": "'+ groupName+'"}}}',headers={"Content-Type":"application/json"})
+            search_results = response.json()
+            if 'hits' in search_results and search_results['hits']['hits']:
+                id = search_results['hits']['hits'][0]['_id']
+                rawcontent = serializer.data
+                rawcontent['updated'] = timezone.now().isoformat()
+                content = JSONRenderer().render(rawcontent) 
+                print(f"update {groupName}")
+                response = requests.put(f"http://localhost:9200/groups/_doc/{id}", headers={"Content-Type": "application/json"}, data=content)
+            else:
+                rawcontent = serializer.data
+                rawcontent['updated'] = timezone.now().isoformat()
+                content = JSONRenderer().render(rawcontent) 
+                print(f"creating {content}")
+                response = requests.post('http://localhost:9200/groups/_doc',data=content,headers={"Content-Type":"application/json"})               
+
+            return Response(response.content)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'GET':
+        print("Get groups")
+        response = requests.get('http://localhost:9200/groups/_search')
+        return Response(response.json())    
+
 @api_view(['GET'])
 def get_computer_data(request):
     id = request.GET.get('_id', 'None')

@@ -37,6 +37,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),
     path('api/put', views.profile_detail),
+    path('api/group', views.group),
     path('api/getall', views.profile_detail),
     path('api/getone',views.get_one),
     path("api/img_upload/<str:id>", views.emp_avatar_upload),

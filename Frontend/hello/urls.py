@@ -11,6 +11,8 @@ urlpatterns = [
     path("img_upload/<str:id>", views.img_upload, name="img_upload"),
     path("computers", views.computer, name="computer"),
     path("computer/<str:id>", views.computer_detail, name="computer"),
+    path("groups", views.groups, name="groups"),
+    path("group/<str:id>", views.group_detail, name="group"),
     path("search/<str:location>/<str:text>", views.search, name="search"),
     path("users", views.searchall, name="search"),
     path("users/", views.searchall, name="search"),
@@ -20,5 +22,6 @@ urlpatterns = [
     path("updateComputerStatus/<str:id>", views.update_computer_status, name="upd"),
     path("createAD/<str:domain>/<str:id>",views.createAD,name="createAD"),
     path("createProfile",views.create_profile,name="createProfile"),
+    path("createGroup",views.create_group,name="createGroup"),
     #static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]

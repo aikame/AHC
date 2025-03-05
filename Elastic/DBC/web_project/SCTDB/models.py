@@ -30,3 +30,18 @@ class Computer(models.Model):
     Status = models.BooleanField()
     class Meta:
         ordering = ['updated']
+
+class Group(models.Model):
+    updated = models.DateTimeField(auto_now_add=True)
+    PSComputerName = models.CharField(max_length=100)
+    RunspaceId = models.CharField(max_length=100)
+    DistinguishedName = models.CharField(max_length=100)
+    GroupCategory = models.CharField(max_length=20)
+    GroupScope = models.CharField(max_length=20)
+    Name = models.CharField(max_length=100)
+    ObjectClass = models.CharField(max_length=20)
+    ObjectGUID = models.CharField(max_length=100)
+    SamAccountName = models.CharField(max_length=100)
+    SID = models.CharField(max_length=100)
+    class Meta:
+        ordering = ['updated']
