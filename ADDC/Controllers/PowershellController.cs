@@ -114,6 +114,34 @@ namespace ADDC.Controllers
                 return Content(response);
             }
         }
+        [HttpGet("GetGroupMembers")]
+        public ActionResult GetGroupMembers([FromQuery] string group)
+        {
+            Console.WriteLine(group);
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetGroupMembers.ps1");
+
+                var results = ps.AddScript(scriptText).AddParameter("GroupID",group).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+                Console.WriteLine($"GetGroupMem: {final}");
+                JObject jsonData = JObject.Parse(final);
+                Console.WriteLine($"GetGroupMem: {jsonData}");
+                var response = JsonConvert.SerializeObject(jsonData);
+                return Content(response);
+            }
+        }
 
         [HttpGet("GetComputerInfo")]
         public ActionResult GetComputerInfo([FromQuery] string data)
@@ -172,7 +200,32 @@ namespace ADDC.Controllers
                 }
             }
         }
+        [HttpPost("CreateGroup")]
+        public ActionResult CreateGroup([FromBody] JObject data)
+        {
+            Console.WriteLine($"CreateGroup: {data}");
+ 
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
 
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateGroup.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+                parameters.Add("grpName", data["Name"].ToString());
+                parameters.Add("Description", data["Description"].ToString());
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                return Content(final);
+            }
+        }
         [HttpPost("UnbanUser")]
         public ActionResult UnbanUser([FromBody] JObject data)
         {
