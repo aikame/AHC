@@ -25,9 +25,16 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <button type="button" data-toggle="modal" data-target="#createUserModal" class="btn btn-primary mx-1 my-1 col"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
-      <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-      <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
-    </svg> Создать</button>
+      <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+      <path d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4"/>
+    
+    </svg> </button>
+    <button type="button" data-toggle="modal" data-target="#createGroupModal" class="btn btn-primary mx-1 my-1 col"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+      <path d="m.5 3 .04.87a2 2 0 0 0-.342 1.311l.637 7A2 2 0 0 0 2.826 14H9v-1H2.826a1 1 0 0 1-.995-.91l-.637-7A1 1 0 0 1 2.19 4h11.62a1 1 0 0 1 .996 1.09L14.54 8h1.005l.256-2.819A2 2 0 0 0 13.81 3H9.828a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 6.172 1H2.5a2 2 0 0 0-2 2m5.672-1a1 1 0 0 1 .707.293L7.586 3H2.19q-.362.002-.683.12L1.5 2.98a1 1 0 0 1 1-.98z"/>
+      <path d="M13.5 9a.5.5 0 0 1 .5.5V11h1.5a.5.5 0 1 1 0 1H14v1.5a.5.5 0 1 1-1 0V12h-1.5a.5.5 0 0 1 0-1H13V9.5a.5.5 0 0 1 .5-.5"/>
+    
+      
+    </svg> </button>
     <input class="form-control form-control-dark w-100" type="text" placeholder="Поиск" id="searchText" aria-label="Search" onkeydown="trySearchtext()">
     <ul class="navbar-nav px-1">
       <button type="button" onclick="trySearch()" class="btn btn-dark">Найти</button>
@@ -72,6 +79,38 @@
   
               <label for="city" class="col-form-label">Город:</label>
               <input type="text" class="form-control" id="city" name="city" required>
+
+            </div>
+            <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+          <button id=""type="" class="btn btn-primary">Добавить</button>
+        </div>
+          </form>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ccreateGroupModalLabel">Создать группу</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form  method="POST" action="/createGroup" id="groupForm">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="Name" class="col-form-label">Имя:</label>
+              <input type="text" class="form-control" id="Name" name="Name"  required>
+  
+              <label for="Description" class="col-form-label">Описание:</label>
+              <input type="text" class="form-control" id="Description" name="Description"  required>
+              <label for="Domain" class="col-form-label">Домен:</label>
+              <input type="text" class="form-control" id="Domain" name="Domain"  required>
 
             </div>
             <div class="modal-footer">
