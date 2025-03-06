@@ -52,10 +52,10 @@
         <div class="row">
           {% include "../Base/sidebar.html" %}
           <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
-            <button type="button" data-toggle="modal" data-target="#createUserModal" class="btn btn-primary mx-1 my-1 col"> Создать пользователя</button>
-            <button type="button" data-toggle="modal" data-target="#createGroupModal" class="btn btn-primary mx-1 my-1 col"> Создать группу</button>
+            <button type="button" data-toggle="modal" data-target="#createUserModalSettings" class="btn btn-primary mx-1 my-1 col"> Создать пользователя</button>
+            <button type="button" data-toggle="modal" data-target="#createGroupModalSettings" class="btn btn-primary mx-1 my-1 col"> Создать группу</button>
 
-            <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+            <div class="modal fade" id="createGroupModalSettings" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
@@ -74,12 +74,16 @@
                         <label for="Description" class="col-form-label">Описание:</label>
                         <input type="text" class="form-control" id="Description" name="Description"  required>
                         <label for="Domain" class="col-form-label">Домен:</label>
-                        <input type="text" class="form-control" id="Domain" name="Domain"  required>
+                        <select class="form-select" id="Domain" name="Domain" aria-label="Выберите домен">
+                          {% for domain in domains %}
+                            <option value="{{domain}}"> {{domain}} </option>
+                          {% endfor %}
+                        </select>
 
                       </div>
                       <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-                    <button id=""type="" class="btn btn-primary">Добавить</button>
+                    <button id=""type="" class="btn btn-primary">Создать</button>
                   </div>
                     </form>
                   </div>
@@ -88,7 +92,7 @@
               </div>
             </div>
 
-            <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
+            <div class="modal fade" id="createUserModalSettings" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">

@@ -311,7 +311,9 @@ def active_directory(request,domain,id):
     print(id)
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
     domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
-    groups_req = requests.get(f'http://127.0.0.2:8000/api/group')
+    clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
+    search_groups = '{"text":"'+clean_domain+'", "location":"groups"}'
+    groups_req = requests.get(f'http://127.0.0.2:8000/api/get',data=search_groups.encode('utf-8'),headers={"Content-Type":"application/json"})
     search_text = '{"text":"'+id+'", "location":"users"}'
     profile_data = requests.get('http://127.0.0.2:8000/api/get',data=search_text.encode('utf-8'),headers={"Content-Type":"application/json"})
     profile = json.loads(profile_data.content)

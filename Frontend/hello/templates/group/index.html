@@ -7,13 +7,46 @@
       let UserLogin = document.getElementById("UserLoginforUserInfo").value;
       await fetch(`http://localhost:7095/User?UserLogin=${UserLogin}`).then(response => response.json()).then(data => alert(JSON.stringify(data)));
     }
-    $(document).ready(function(){
-    $(".hoverDiv").hover(function(){
+    $(document).ready(function () {
+      $(".hoverDiv").hover(function () {
         $(this).css("background", "#f5f5f5");
-    }, function(){
+      }, function () {
         $(this).css("background", "#fff");
+      });
     });
-});
+
+    async function addToGroup() {
+            try {
+                let groupName = encodeURIComponent("{{group_json.Name}}");//document.getElementById("group-name-add").value;
+                let id = document.getElementById("user-name").value;
+                let domain = encodeURIComponent("{{ domain }}");
+                var result = await fetch(`https://localhost:7095/AddToGroup`, {
+                    method: "POST",
+                    headers: new Headers({
+                        'content-Type': 'application/json'
+                    }),
+                    body: JSON.stringify({
+                        "user": {
+                            "name": id
+                        },
+                        "group": groupName,
+                        "domain": domain
+                    })
+                })
+                let body = document.getElementById("addGroupStatus");
+                if (result.ok) {
+                    body.innerHTML = '<span id="addGroupStatus" class="text-success">Пользователь добавлен в группу</span>';
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    body.innerHTML = '<span id="addGroupStatus" class="text-danger">Пользователь не был добавлен в группу!</span>';
+                }
+
+
+            } catch (err) {
+                let body = document.getElementById("addGroupStatus");
+                body.innerHTML = `<span id="addGroupStatus" class="text-danger">${err}</span>`;
+            }
+        }
   </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
     integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
@@ -69,8 +102,8 @@
     <div class="row">
       {% include "../Base/sidebar.html" %}
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
-    <H1>
-          {{group_json.Name}} 
+        <H1>
+          {{group_json.Name}}
         </H1>
 
 
@@ -127,49 +160,86 @@
                 <div class="col-4">SID</div>
                 <div class="col-4 ">{{group_json.SID}} </div>
               </div>
-              
+
               <div class="w-100 border-top"></div>
 
             </div>
             <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-                {% if members is None %}
-                    <div class="alert alert-danger text-center mt-3">
-                        Не удалось получить список пользователей
-                    </div>
-                {% else %}
-                <table class="table table-hover table-striped">
-                    <thead>
-                      <tr class="fw-bold border-bottom py-2 bg-light ms-0">
-                          <th class="text-center">Фамилия</th>
-                          <th class="text-center">Имя</th>
-                          <th class="text-center">Отчество</th>
-                          <th class="text-center">Должность</th>
-                          <th class="text-center">AD</th>
-                      </tr>
-                    </thead>
-                      <tbody>
-                        {% for member in members %}
-                      <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/AD/{{domain}}/{{member.Name}}";'>
-                        <td class="text-center">{{ member.extensionAttribute1 }}</td>
-                        <td class="text-center">{{ member.extensionAttribute2 }}</td>
-                        <td class="text-center">{{ member.extensionAttribute3 }}</td>
-                        <td class="text-center">{{ member.Title }}</td>
-                        <td class="text-center text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-windows" viewBox="0 0 16 16">
-                            <path d="M6.555 1.375 0 2.237v5.45h6.555V1.375zM0 13.795l6.555.933V8.313H0v5.482zm7.278-5.4.026 6.378L16 16V8.395H7.278zM16 0 7.33 1.244v6.414H16V0z" />
-                        </svg>
-                        {{ domain }}\{{ member.Name }}</td>
-                      </tr>
-                      {% endfor %}
-                  </tbody>
-                </table>
-                {% endif %}
+              <button type="button" data-toggle="modal" class="btn btn-primary mx-1 my-1" data-target="#addGroupModal"><svg
+                  xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                  class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                  <path
+                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                  <path
+                    d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+                </svg> Добавить пользователя</button>
+              {% if members is None %}
+              <div class="alert alert-danger text-center mt-3">
+                Не удалось получить список пользователей
+              </div>
+              {% else %}
+              <table class="table table-hover table-striped">
+                <thead>
+                  <tr class="fw-bold border-bottom py-2 bg-light ms-0">
+                    <th class="text-center">Фамилия</th>
+                    <th class="text-center">Имя</th>
+                    <th class="text-center">Отчество</th>
+                    <th class="text-center">Должность</th>
+                    <th class="text-center">AD</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for member in members %}
+                  <tr class="border-bottom py-2 align-items-center ms-0"
+                    onclick='window.location="/AD/{{domain}}/{{member.Name}}";'>
+                    <td class="text-center">{{ member.extensionAttribute1 }}</td>
+                    <td class="text-center">{{ member.extensionAttribute2 }}</td>
+                    <td class="text-center">{{ member.extensionAttribute3 }}</td>
+                    <td class="text-center">{{ member.Title }}</td>
+                    <td class="text-center text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        fill="currentColor" class="bi bi-windows" viewBox="0 0 16 16">
+                        <path
+                          d="M6.555 1.375 0 2.237v5.45h6.555V1.375zM0 13.795l6.555.933V8.313H0v5.482zm7.278-5.4.026 6.378L16 16V8.395H7.278zM16 0 7.33 1.244v6.414H16V0z" />
+                      </svg>
+                      {{ domain }}\{{ member.Name }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% endif %}
             </div>
-            
-          
+
+
 
           </div>
 
 
+        </div>
+        <div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="addGroupModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addGroupModalLabel">Добавить в группу {{group_json.Name}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form>
+                  <div class="form-group">
+                    <label for="user-name" class="col-form-label">Введите логин пользователя:</label>
+                    <input type="text" class="form-control" id="user-name">
+                    <span id="addGroupStatus"></span>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" onclick="addToGroup()" class="btn btn-primary">Добавить</button>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 

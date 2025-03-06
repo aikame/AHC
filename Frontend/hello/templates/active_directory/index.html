@@ -481,7 +481,13 @@
                     <form>
                         <div class="form-group">
                             <label for="group-name" class="col-form-label">Название группы:</label>
-                            <input type="text" class="form-control" id="group-name-rem">
+                            <select class="form-select" id="group-name-rem" aria-label="Default select example">
+                                <option selected>Выберите группу</option>
+                                {% for group in ad_json.MemberOf %}
+                                <option value="{{ group }}">{{ group }}</option>
+                                {% endfor %}
+                              </select>
+                            <span id="addGroupStatus"></span>
                             <span id="remGroupStatus"></span>
                         </div>
                     </form>
