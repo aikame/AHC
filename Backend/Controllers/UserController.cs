@@ -83,7 +83,7 @@ namespace Backend.Controllers
         {
             Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(2) })
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
                 var profileTask = client.PostAsync("http://127.0.0.2:8000/api/put",
                     new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
@@ -535,7 +535,7 @@ namespace Backend.Controllers
         {
             Console.WriteLine(user);
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -633,7 +633,7 @@ namespace Backend.Controllers
             };
             Console.WriteLine(id.ToJsonString());
             JsonElement fire_date = data.GetProperty("fire_date");
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler() ) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
                 
                 var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
@@ -768,7 +768,7 @@ namespace Backend.Controllers
                     ["user"] = username,
                     ["password"] = password
                 };
-                using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+                using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
                 {
                     var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                     string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();

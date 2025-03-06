@@ -139,7 +139,7 @@ def computer_detail(request, id):
         installed_apps = requests.get(
             f'https://localhost:7095/GetAppInfo?Computer={data["ComputerName"]}&domain={data["DomainName"]}', 
             verify=False,
-            timeout=5 
+            timeout=30 
         )
         installed_apps.raise_for_status() 
         apps = json.loads(installed_apps.content).get("AppList", [])
@@ -211,6 +211,7 @@ def groups(request):
         {'groups_json':data["hits"]["hits"]}
     )
 
+
 @login_required
 def group_detail(request, id):
     group_data = requests.get(f'http://127.0.0.2:8000/api/group?_id={id}')
@@ -225,7 +226,7 @@ def group_detail(request, id):
         domain = ".".join(dc_parts)
         group_name_encoded = urllib.parse.quote(group["Name"]).replace("%20", "+")
         print(domain) 
-        getMembersReq = requests.get(f'https://127.0.0.1:7095/GetGroupMembers?group={group_name_encoded}&domain={domain}',verify = False, timeout=20)
+        getMembersReq = requests.get(f'https://127.0.0.1:7095/GetGroupMembers?group={group_name_encoded}&domain={domain}',verify = False, timeout=30)
         getMembersReq.raise_for_status()
         members_data= json.loads(getMembersReq.content).get("Members")
         if isinstance(members_data, dict):
