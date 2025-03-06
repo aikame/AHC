@@ -312,6 +312,16 @@ def active_directory(request,domain,id):
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
     domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
     groups_req = requests.get(f'http://127.0.0.2:8000/api/group')
+    search_text = '{"text":"'+id+'", "location":"users"}'
+    profile_data = requests.get('http://127.0.0.2:8000/api/get',data=search_text.encode('utf-8'),headers={"Content-Type":"application/json"})
+    profile = json.loads(profile_data.content)
+    profile_result = None
+    if profile["hits"]["total"]["value"] > 0:
+        for i in profile["hits"]["hits"]:
+            i['source'] = i.pop('_source')
+            i['id'] = i.pop('_id')
+        profile_result = profile["hits"]["hits"][0]
+    
     json_domain = json.loads(domain_data.content)
     data = json.loads(user_data.content)
     groups = json.loads(groups_req.content)
@@ -326,7 +336,8 @@ def active_directory(request,domain,id):
             'id':id,
             'ad_json':data,
             'domain':domain,
-            'groups':groups["hits"]["hits"]
+            'groups':groups["hits"]["hits"],
+            'profile': profile_result
         }
 
     )

@@ -3,7 +3,7 @@
     
     let text = document.getElementById("searchText").value;
     let location;
-    if (window.location.pathname.includes("users"))
+    if (window.location.pathname.includes("users") || window.location.pathname.includes("employee") || window.location.pathname.includes("AD"))
       location = "users"
     else if (window.location.pathname.includes("computers"))
       location = "computers"

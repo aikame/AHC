@@ -238,7 +238,12 @@
         <div class="row">
             {% include "../Base/sidebar.html" %}
             <main height="100%" class="col-md-9 col row ml-sm-auto col-lg-10 px-md-4">
-                <H1 class="w-100 mb-3">Учётная запись Active Directory: {{domain}}\{{id}}</H1>
+                {% if profile is None %}
+                    <H2 class="w-100 mb-3">Нет профиля</H2>
+                {% else %}
+                    <H2 class="w-100 mb-3 text-primary"  ><a href="/employee/{{profile.id}}">{{ profile.source.surname }} {{ profile.source.name }} {{ profile.source.patronymic}}</a></H2>
+                {% endif %}
+                <H2 class="w-100 mb-3">Учётная запись Active Directory: {{domain}}\{{id}}</H2>
 
                 <div class="col row m-3 ">
 
