@@ -14,18 +14,42 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ADDC.Models;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using System.Diagnostics;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ADDC.Controllers
 {
+    public class CustomHttpClientHandler : HttpClientHandler
+    {
+        public CustomHttpClientHandler()
+        {
+            ServerCertificateCustomValidationCallback = ValidateServerCertificate;
+        }
+
+        private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
+        {
+            if (errors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+
+            // Для разработки, игнорируем ошибки сертификата
+            return true;
+        }
+    }
     [ApiController]
     [Route("/")]
     public class PowershellController : Controller
     {
+        
         [HttpPost("GetInfo")]
         public ActionResult GetInfo([FromBody] JObject data)
         {
             Console.WriteLine($"Getinfo: {data}");
-            var userName = data["Login"].ToString();
+            var userName = data["login"].ToString();
             //var userName = JsonConvert.DeserializeObject<string>(data);
             using (var ps = PowerShell.Create())
             {
@@ -63,6 +87,89 @@ namespace ADDC.Controllers
                 return Content(response);
             }
         }
+
+        [HttpGet("GetAppInfo")]
+        public ActionResult GetAppInfo()
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetAppInfo.ps1");
+                var results = ps.AddScript(scriptText).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+                Console.WriteLine($"GetAppinfo: {final}");
+                JObject jsonData = JObject.Parse(final);
+                Console.WriteLine($"GetAppInfo: {jsonData}");
+                var response = JsonConvert.SerializeObject(jsonData);
+                return Content(response);
+            }
+        }
+        [HttpGet("GetGroupMembers")]
+        public ActionResult GetGroupMembers([FromQuery] string group)
+        {
+            Console.WriteLine(group);
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetGroupMembers.ps1");
+
+                var results = ps.AddScript(scriptText).AddParameter("GroupID",group).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+                Console.WriteLine($"GetGroupMem: {final}");
+                JObject jsonData = JObject.Parse(final);
+                Console.WriteLine($"GetGroupMem: {jsonData}");
+                var response = JsonConvert.SerializeObject(jsonData);
+                return Content(response);
+            }
+        }
+
+        [HttpGet("GetComputerInfo")]
+        public ActionResult GetComputerInfo([FromQuery] string data)
+        {
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CollectInfo.ps1");
+                var results = ps.AddScript(scriptText).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+
+                    final += result.ToString();
+                }
+                Console.WriteLine($"GetComputerinfo: {final}");
+                JObject jsonData = JObject.Parse(final);
+                
+
+                var response = JsonConvert.SerializeObject(jsonData);
+                return Content(response);
+            }
+        }
         [HttpPost("BanUser")]
         public ActionResult BanUser([FromBody] JObject data)
         {
@@ -93,7 +200,32 @@ namespace ADDC.Controllers
                 }
             }
         }
+        [HttpPost("CreateGroup")]
+        public ActionResult CreateGroup([FromBody] JObject data)
+        {
+            Console.WriteLine($"CreateGroup: {data}");
+ 
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
 
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateGroup.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+                parameters.Add("grpName", data["Name"].ToString());
+                parameters.Add("Description", data["Description"].ToString());
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                return Content(final);
+            }
+        }
         [HttpPost("UnbanUser")]
         public ActionResult UnbanUser([FromBody] JObject data)
         {
@@ -126,6 +258,7 @@ namespace ADDC.Controllers
 
         [HttpPost("AddToGroup")]
         public ActionResult AddToGroup([FromBody] JObject data) {
+            Console.WriteLine(JsonConvert.SerializeObject(data));
             UserModel user = data["user"].ToObject<UserModel>();
             string group = data["group"].ToString();
             using (var ps = PowerShell.Create())
@@ -146,6 +279,39 @@ namespace ADDC.Controllers
                     final += result.ToString();
                 }
                 if (final == "200")
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(final);
+                }
+            }
+        }
+        [HttpPost("Authentication")]
+        public ActionResult Authentication([FromBody] JObject data)
+        {
+
+            string user = data["user"].ToString();
+            var password = data["password"].ToString();
+            using (var ps = PowerShell.Create())
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/Authentication.ps1");
+                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+                parameters.Add("username", user);
+                parameters.Add("password", password);
+                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
+                string final = "";
+                foreach (var errorRecord in ps.Streams.Error)
+                {
+                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                }
+                foreach (var result in results)
+                {
+                    final += result.ToString();
+                }
+                if (final == "True")
                 {
                     return Ok();
                 }
@@ -192,31 +358,52 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("CreateMailBox")]
-        public ActionResult CreateMailBox([FromBody] JObject  data)
+        public ActionResult CreateMailBox([FromBody] JObject data)
         {
+            Console.WriteLine($"CreateMailBox {data}");
             var user = data.ToObject<UserModel>();
-            using (var ps = PowerShell.Create())
+   
+            var userName = data["name"].ToString();
+            Console.WriteLine(userName);
+            
+            var startInfo = new ProcessStartInfo
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Unrestricted  -File \"./PowershellFunctions/CreateMailBox.ps1\" -userLogin \"{userName}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
+           
+            using (var process = Process.Start(startInfo))
+            {
+                var output = process.StandardOutput.ReadToEnd();
+                var errors = process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(errors))
                 {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
+                    Console.WriteLine("Error: " + errors);
+                    return BadRequest(errors);
                 }
-                foreach (var result in results)
+                Console.WriteLine(output);
+                try
                 {
-                    final += result.ToString();
+                    // Пытаемся распарсить JSON-ответ от PowerShell скрипта
+                    var jsonData = JObject.Parse(output);
+
+
+
+
+                    return Content(jsonData.ToString(), "application/json");
                 }
-                if (final == "200")
+                catch (JsonException ex)
                 {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
+                    Console.WriteLine("Error parsing JSON: " + ex.Message);
+                    return BadRequest("Error parsing JSON from PowerShell output");
                 }
             }
         }
@@ -327,7 +514,7 @@ namespace ADDC.Controllers
 
                 parameters.Add("name", user.Name);
                 parameters.Add("surname", user.SurName);
-                parameters.Add("midname", user.MidName);
+                parameters.Add("midname", user.Patronymic);
                 parameters.Add("city", user.City);
                 parameters.Add("company", user.Company);
                 parameters.Add("department", user.Department);
@@ -346,13 +533,13 @@ namespace ADDC.Controllers
                 {
                     Console.WriteLine("Error: " + errorRecord.Exception.Message);
                 }
-                if (final == "200")
+                if (final == "400")
                 {
-                    return Ok();
+                    return BadRequest(final);
                 }
                 else
                 {
-                    return BadRequest(final);
+                    return Ok(final);
                 }
             }
         }
