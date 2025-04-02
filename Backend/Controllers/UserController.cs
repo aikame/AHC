@@ -39,14 +39,14 @@ namespace Backend.Controllers
             return true; // !!! Не используйте в Production (как же похуй)
         }
     }
-    
+
     [ApiController]
     [Route("/")]
     public class UserController : ControllerBase
     {
         private readonly string _connectorPort;
         private readonly ILogger<ComputerStateService> _logger;
-        public UserController(ILogger<ComputerStateService> logger,IConfiguration configuration)
+        public UserController(ILogger<ComputerStateService> logger, IConfiguration configuration)
         {
             _logger = logger;
             _connectorPort = configuration["connectorPort"];
@@ -57,7 +57,7 @@ namespace Backend.Controllers
             {
                 try
                 {
-                    var reply = ping.Send(address);
+                    var reply= ping.Send(address);
 
                     if (reply.Status == IPStatus.Success)
                     {
@@ -87,7 +87,7 @@ namespace Backend.Controllers
             {
                 var profileTask = client.PostAsync("http://127.0.0.2:8000/api/put",
                     new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
-                
+
                 // ищем DC
                 Task<HttpResponseMessage>? searchComputerTask = null;
                 if (user.ADreq)
@@ -128,7 +128,7 @@ namespace Backend.Controllers
                 var emailTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/CreateMailBox",
                     new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json"));
 
-                
+
                 var newJson = new JObject
                 {
                     ["AD"] = new JObject
@@ -172,7 +172,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort +"/GetInfo", jsonContent);
+                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
@@ -189,7 +189,7 @@ namespace Backend.Controllers
         public async Task<IActionResult> BanUser([FromQuery] string id, [FromQuery] string domain)
         {
             string decodedId = HttpUtility.HtmlDecode(id);
-            Console.WriteLine(id +" -> "+ decodedId);
+            Console.WriteLine(id + " -> " + decodedId);
             JObject sdata = new JObject();
             sdata["name"] = decodedId;
             Console.WriteLine($"Prepared: {sdata}");
@@ -463,7 +463,7 @@ namespace Backend.Controllers
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
-                var result = await client.GetAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group="+group);
+                var result = await client.GetAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group=" + group);
                 string responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 Console.WriteLine(result);
@@ -593,7 +593,8 @@ namespace Backend.Controllers
                     if (mail)
                     {
                         profileData["email"] = jsonMail["Address"];
-                    } else if (userData.TryGetProperty("email", out jsonExMail))
+                    }
+                    else if (userData.TryGetProperty("email", out jsonExMail))
                     {
                         profileData["email"] = jsonExMail.ToString();
                     }
@@ -633,9 +634,9 @@ namespace Backend.Controllers
             };
             Console.WriteLine(id.ToJsonString());
             JsonElement fire_date = data.GetProperty("fire_date");
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler() ) { Timeout = TimeSpan.FromMinutes(10.0) })
+            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
-                
+
                 var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("http://127.0.0.2:8000/api/getone", jsonContent);
                 string responseContent = await result.Content.ReadAsStringAsync();
@@ -693,7 +694,7 @@ namespace Backend.Controllers
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
 
-               
+
                 Console.WriteLine($"fire date: {data}");
                 var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/return_user", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
                          Encoding.UTF8, "application/json"));
@@ -726,11 +727,12 @@ namespace Backend.Controllers
                 {
                     JsonElement source = hit.GetProperty("_source");
                     string domain = source.GetProperty("DomainName").ToString();
-                    if (!domains.Contains(domain)) { 
+                    if (!domains.Contains(domain))
+                    {
                         domains.Add(domain);
                     }
                 }
-                
+
 
                 if (domains.Count > 0)
                 {
@@ -753,11 +755,11 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            
+
 
             try
             {
-               
+
                 string user = data.GetProperty("user").GetString();
                 string password = data.GetProperty("password").GetString();
                 string[] userParts = user.Split('\\');
