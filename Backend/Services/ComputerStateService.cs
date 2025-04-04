@@ -43,42 +43,50 @@ namespace Backend.Services
 
             using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
             {
-                var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
-                string responseContent = await result.Content.ReadAsStringAsync();
-                Console.WriteLine(responseContent);
-                JsonDocument document = JsonDocument.Parse(responseContent);
-                JsonElement root = document.RootElement;
-                JsonElement hitstemp, hits;
-                if(!root.TryGetProperty("hits",out hitstemp))
+                try
                 {
-                    _logger.LogError($"No computers at database");
-                    return;
-                }
-                if (!hitstemp.TryGetProperty("hits", out hits))
-                {
-                    _logger.LogError($"No computers at database");
-                    return;
-                }
-                //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
-
-                foreach (JsonElement hit in hits.EnumerateArray())
-                {
-                    JsonElement source = hit.GetProperty("_source");
-                    string address = source.GetProperty("IPAddress").ToString();
-                    var computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(source);
-                    computer.Status = CheckPing(address);
-
-                    var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
-                        Encoding.UTF8, "application/json"));
-                    if (result.IsSuccessStatusCode)
+                    var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
+                    string responseContent = await result.Content.ReadAsStringAsync();
+                    Console.WriteLine(responseContent);
+                    JsonDocument document = JsonDocument.Parse(responseContent);
+                    JsonElement root = document.RootElement;
+                    JsonElement hitstemp, hits;
+                    if (!root.TryGetProperty("hits", out hitstemp))
                     {
-                        _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");
+                        _logger.LogError($"No computers at database");
+                        return;
                     }
-                    else
+                    if (!hitstemp.TryGetProperty("hits", out hits))
                     {
-                        _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
+                        _logger.LogError($"No computers at database");
+                        return;
+                    }
+                    //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
+
+                    foreach (JsonElement hit in hits.EnumerateArray())
+                    {
+                        JsonElement source = hit.GetProperty("_source");
+                        string address = source.GetProperty("IPAddress").ToString();
+                        var computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(source);
+                        computer.Status = CheckPing(address);
+
+                        var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
+                            Encoding.UTF8, "application/json"));
+                        if (result.IsSuccessStatusCode)
+                        {
+                            _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");
+                        }
+                        else
+                        {
+                            _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError("failed to check ComputerState or database in unavailable");
+                }
+                
             }
 
         }
