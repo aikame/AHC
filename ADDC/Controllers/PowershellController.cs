@@ -304,7 +304,7 @@ namespace ADDC.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError("[UserCreation] JSON Parse Error: " + e.Message);
+                _logger.LogError("[UserCreation] JSON Parse Error: " + e.Message + " | " + result);
                 return BadRequest("Ошибка обработки данных");
             }
         }

@@ -15,6 +15,7 @@ namespace ADDC
             services.AddControllers();
             services.AddHttpClient();
             services.AddHostedService<ComputerInfoService>();
+            services.AddSingleton<PowershellSessionPoolService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
