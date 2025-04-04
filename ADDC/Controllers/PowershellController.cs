@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using ADDC.Services;
 
 namespace ADDC.Controllers
 {
@@ -44,34 +45,30 @@ namespace ADDC.Controllers
     [Route("/")]
     public class PowershellController : Controller
     {
-        
+        private readonly PowershellSessionPoolService _sessionPool;
+        private readonly ILogger<PowershellController> _logger;
+
+        public PowershellController(PowershellSessionPoolService sessionPool, ILogger<PowershellController> logger)
+        {
+            _sessionPool = sessionPool;
+            _logger = logger;
+        }
+
+
         [HttpPost("GetInfo")]
         public ActionResult GetInfo([FromBody] JObject data)
         {
-            Console.WriteLine($"Getinfo: {data}");
+            _logger.LogInformation($"[Getinfo]: \n{data}");
             var userName = data["login"].ToString();
-            //var userName = JsonConvert.DeserializeObject<string>(data);
-            using (var ps = PowerShell.Create())
+
+            string result = _sessionPool.ExecuteFunction("GetUserInfo", ("UserLogin", userName));
+
+            try
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetUserInfo.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", userName).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-
-                    final += result.ToString();
-                }
-                Console.WriteLine($"Getinfo: {final}");
-                JObject jsonData = JObject.Parse(final);
-                Console.WriteLine($"Getinfo: {jsonData}");
+                JObject jsonData = JObject.Parse(result);
                 string StringPasswordLastSet = jsonData["PasswordLastSet"]?.ToString();
                 var PasswordLastSet = DateTime.Parse(StringPasswordLastSet);
+
                 var userModel = new ADUserModel
                 {
                     DistinguishedName = jsonData["DistinguishedName"].ToString(),
@@ -81,245 +78,143 @@ namespace ADDC.Controllers
                     PasswordLastSet = PasswordLastSet,
                     PasswordExpired = jsonData["PasswordExpired"].ToString() == "True",
                     MemberOf = jsonData["MemberOf"].ToObject<List<string>>()
-            };
+                };
 
-                var response = JsonConvert.SerializeObject(userModel);
-                return Content(response);
+                return Content(JsonConvert.SerializeObject(userModel));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[GetInfo] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
 
         [HttpGet("GetAppInfo")]
         public ActionResult GetAppInfo()
         {
-            using (var ps = PowerShell.Create())
+            _logger.LogInformation($"GetAppInfo");
+            
+            string result = _sessionPool.ExecuteFunction("GetAppInfo");
+
+            try
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                JObject jsonData = JObject.Parse(result);
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetAppInfo.ps1");
-                var results = ps.AddScript(scriptText).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-
-                    final += result.ToString();
-                }
-                Console.WriteLine($"GetAppinfo: {final}");
-                JObject jsonData = JObject.Parse(final);
-                Console.WriteLine($"GetAppInfo: {jsonData}");
-                var response = JsonConvert.SerializeObject(jsonData);
-                return Content(response);
+                return Content(JsonConvert.SerializeObject(jsonData));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[GetAppInfo] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
         [HttpGet("GetGroupMembers")]
         public ActionResult GetGroupMembers([FromQuery] string group)
         {
-            Console.WriteLine(group);
-            using (var ps = PowerShell.Create())
+            _logger.LogInformation($"[GetGroupMembers]: {group}");
+            string result = _sessionPool.ExecuteFunction("GetGroupMembers", ("GroupID", group));
+            try
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                JObject jsonData = JObject.Parse(result);
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/GetGroupMembers.ps1");
-
-                var results = ps.AddScript(scriptText).AddParameter("GroupID",group).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-
-                    final += result.ToString();
-                }
-                Console.WriteLine($"GetGroupMem: {final}");
-                JObject jsonData = JObject.Parse(final);
-                Console.WriteLine($"GetGroupMem: {jsonData}");
-                var response = JsonConvert.SerializeObject(jsonData);
-                return Content(response);
+                return Content(JsonConvert.SerializeObject(jsonData));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[GetGroupMembers] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
 
         [HttpGet("GetComputerInfo")]
         public ActionResult GetComputerInfo([FromQuery] string data)
         {
-            using (var ps = PowerShell.Create())
+            _logger.LogInformation($"[GetComputerInfo]: {data}");
+            string result = _sessionPool.ExecuteFunction("CollectInfo");
+            try
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                JObject jsonData = JObject.Parse(result);
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CollectInfo.ps1");
-                var results = ps.AddScript(scriptText).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-
-                    final += result.ToString();
-                }
-                Console.WriteLine($"GetComputerinfo: {final}");
-                JObject jsonData = JObject.Parse(final);
-                
-
-                var response = JsonConvert.SerializeObject(jsonData);
-                return Content(response);
+                return Content(JsonConvert.SerializeObject(jsonData));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[GetComputerInfo] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
+
         [HttpPost("BanUser")]
         public ActionResult BanUser([FromBody] JObject data)
         {
-            Console.WriteLine($"BanUser: {data}");
+            _logger.LogInformation($"[BanUser]: \n{data}");
             var user = data.ToObject<UserModel>();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+            string result = _sessionPool.ExecuteFunction("BanUser",("UserLogin", user.Name));
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/BanUser.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.Name).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+            return result == "200" ? Ok() : BadRequest(result);
         }
+
         [HttpPost("CreateGroup")]
         public ActionResult CreateGroup([FromBody] JObject data)
         {
-            Console.WriteLine($"CreateGroup: {data}");
- 
-            using (var ps = PowerShell.Create())
+            _logger.LogInformation($"[CreateGroup]: \n{data.ToString()}");
+            string result = _sessionPool.ExecuteFunction("CreateGroup", ("grpName", data["Name"].ToString()),("Description", data["Description"].ToString()));
+            try
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+                JObject jsonData = JObject.Parse(result);
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CreateGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("grpName", data["Name"].ToString());
-                parameters.Add("Description", data["Description"].ToString());
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                return Content(final);
+                return Content(JsonConvert.SerializeObject(jsonData));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[CreateGroup] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
         [HttpPost("UnbanUser")]
         public ActionResult UnbanUser([FromBody] JObject data)
         {
+            _logger.LogInformation($"[UnbanUser]: \n{data.ToString()}");
             var user = data.ToObject<UserModel>();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
+            string result = _sessionPool.ExecuteFunction("UnbanUser", ("UserLogin", user.Name));
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/UnbanUser.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("UserLogin", user.Name).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+            return result == "200" ? Ok() : BadRequest(result);
         }
 
         [HttpPost("AddToGroup")]
         public ActionResult AddToGroup([FromBody] JObject data) {
-            Console.WriteLine(JsonConvert.SerializeObject(data));
             UserModel user = data["user"].ToObject<UserModel>();
             string group = data["group"].ToString();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/AddToGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("grpID", group);
-                parameters.Add("userID", user.Name);
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+
+            _logger.LogInformation($"[AddToGroup]: \n{data.ToString()}");
+            string result = _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.Name),("grpID",group));
+
+            return result == "200" ? Ok() : BadRequest(result);
         }
+
         [HttpPost("Authentication")]
         public ActionResult Authentication([FromBody] JObject data)
         {
-
             string user = data["user"].ToString();
             var password = data["password"].ToString();
-            using (var ps = PowerShell.Create())
+
+            _logger.LogInformation($"[Authentication]: \n{user}");
+            string result = _sessionPool.ExecuteFunction("Authentication", ("username", user), ("password", password));
+
+            if (result == "200")
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/Authentication.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
-                parameters.Add("username", user);
-                parameters.Add("password", password);
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "True")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
+                return Ok();
+            } 
+            else if (result == "403"){           
+                _logger.LogError($"[Authentication] {user} not in admin group");
+                return BadRequest(result);
             }
+            else
+            {
+                _logger.LogError($"[Authentication] Authentication error. Wrong input data");
+                return BadRequest(result);
+            }
+            //return result == "200" ? Ok() : BadRequest(result);
         }
 
         [HttpPost("ChangePassword")]
@@ -327,84 +222,29 @@ namespace ADDC.Controllers
         {
             UserModel user = data["user"].ToObject<UserModel>();
             string password = data["password"].ToString();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/ChangePassw.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("userID",user.Name);
-                parameters.Add("newPasswd", password);
+            _logger.LogInformation($"[ChangePassword]: \n{user}");
+            string result = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
 
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+            return result == "200" ? Ok() : BadRequest(result);
+            
         }
 
         [HttpPost("CreateMailBox")]
         public ActionResult CreateMailBox([FromBody] JObject data)
         {
-            Console.WriteLine($"CreateMailBox {data}");
-            var user = data.ToObject<UserModel>();
-   
-            var userName = data["name"].ToString();
-            Console.WriteLine(userName);
-            
-            var startInfo = new ProcessStartInfo
+            _logger.LogInformation($"[CreateMailBox]: \n{data.ToString()}");
+            string result = _sessionPool.ExecuteFunction("CreateMailBox", ("userLogin", data["Name"].ToString()));
+            try
             {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Unrestricted  -File \"./PowershellFunctions/CreateMailBox.ps1\" -userLogin \"{userName}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+                JObject jsonData = JObject.Parse(result);
 
-           
-            using (var process = Process.Start(startInfo))
+                return Content(JsonConvert.SerializeObject(jsonData));
+            }
+            catch (Exception e)
             {
-                var output = process.StandardOutput.ReadToEnd();
-                var errors = process.StandardError.ReadToEnd();
-
-                process.WaitForExit();
-
-                if (!string.IsNullOrEmpty(errors))
-                {
-                    Console.WriteLine("Error: " + errors);
-                    return BadRequest(errors);
-                }
-                Console.WriteLine(output);
-                try
-                {
-                    // Пытаемся распарсить JSON-ответ от PowerShell скрипта
-                    var jsonData = JObject.Parse(output);
-
-
-
-
-                    return Content(jsonData.ToString(), "application/json");
-                }
-                catch (JsonException ex)
-                {
-                    Console.WriteLine("Error parsing JSON: " + ex.Message);
-                    return BadRequest("Error parsing JSON from PowerShell output");
-                }
+                _logger.LogError("[CreateMailBox] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
 
@@ -412,60 +252,22 @@ namespace ADDC.Controllers
         public ActionResult HideMailBox([FromBody] JObject data)
         {
             var user = data.ToObject<UserModel>();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/HideMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+            _logger.LogInformation($"[HideMailBox]: \n{user}");
+            string result = _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
+
+            return result == "200" ? Ok() : BadRequest(result);
         }
 
         [HttpPost("ShowMailBox")]
         public ActionResult ShowMailBox([FromBody] JObject data)
         {
             var user = data.ToObject<UserModel>();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
 
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/ShowMailBox.ps1");
-                var results = ps.AddScript(scriptText).AddParameter("userLogin", user.Name).Invoke();
-                string final = "";
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+            _logger.LogInformation($"[ShowMailBox]: \n{user}");
+            string result = _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
+
+            return result == "200" ? Ok() : BadRequest(result);
         }
 
         [HttpPost("RemoveFromGroup")]
@@ -473,74 +275,37 @@ namespace ADDC.Controllers
         {
             UserModel user = data["user"].ToObject<UserModel>();
             string group = data["group"].ToString();
-            using (var ps = PowerShell.Create())
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/RemoveFromGroup.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
 
-                parameters.Add("grpLogin", group);
-                parameters.Add("userLogin", user.Name);
+            _logger.LogInformation($"[RemoveFromGroup]: \n{data.ToString()}");
+            string result = _sessionPool.ExecuteFunction("RemoveFromGroup", ("userLogin", user.Name), ("grpLogin", group));
 
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                if (final == "200")
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(final);
-                }
-            }
+            return result == "200" ? Ok() : BadRequest(result);
         }
 
         [HttpPost("UserCreation")]
         public ActionResult UserCreation([FromBody] JObject data)
         {
-            Console.WriteLine($"UserCreation: {data}");
+            _logger.LogInformation($"[UserCreation]: \n{data}");
             var user = data.ToObject<UserModel>();
-            //var user = JsonConvert.DeserializeObject<UserModel>(data);
-            using (var ps = PowerShell.Create())
+
+            string result = _sessionPool.ExecuteFunction("UserCreation", 
+                ("name", user.Name), 
+                ("surname", user.SurName), 
+                ("midname", user.Patronymic), 
+                ("city", user.City), 
+                ("company", user.Company), 
+                ("department", user.Department),
+                ("appointment", user.Appointment));
+            try
             {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/UserCreation.ps1");
-                System.Collections.IDictionary parameters = new Dictionary<string, string>();
+                JObject jsonData = JObject.Parse(result);
 
-                parameters.Add("name", user.Name);
-                parameters.Add("surname", user.SurName);
-                parameters.Add("midname", user.Patronymic);
-                parameters.Add("city", user.City);
-                parameters.Add("company", user.Company);
-                parameters.Add("department", user.Department);
-                parameters.Add("appointment", user.Appointment);
-
-                var results = ps.AddScript(scriptText).AddParameters(parameters).Invoke();
-                string final = "";
-
-                foreach (var result in results)
-                {
-                    final += result.ToString();
-                }
-                Console.WriteLine($"Result: {final}");
-                string error;
-                foreach (var errorRecord in ps.Streams.Error)
-                {
-                    Console.WriteLine("Error: " + errorRecord.Exception.Message);
-                }
-                if (final == "400")
-                {
-                    return BadRequest(final);
-                }
-                else
-                {
-                    return Ok(final);
-                }
+                return Content(JsonConvert.SerializeObject(jsonData));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[UserCreation] JSON Parse Error: " + e.Message);
+                return BadRequest("Ошибка обработки данных");
             }
         }
     }
