@@ -12,22 +12,19 @@ namespace ADDC.Services
     {
         private readonly ILogger<ComputerInfoService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly PowershellSessionPoolService _sessionPool;
         private Timer _timer;
         string _coreAddress;
-        PowerShell ps;
-        InitialSessionState iss;
-        public ComputerInfoService(ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
+        //InitialSessionState iss;
+        public ComputerInfoService(PowershellSessionPoolService sessionPool, ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _sessionPool = sessionPool;
             string jsonText = System.IO.File.ReadAllText("config.txt");
 
             JObject config = JObject.Parse(jsonText);
             _coreAddress = config["core"].ToString();
-            ps = PowerShell.Create();
-            iss = InitialSessionState.CreateDefault();
-            string scriptText = System.IO.File.ReadAllText("./PowershellFunctions/CollectInfo.ps1");
-            ps.AddScript(scriptText);
             
         }
 
@@ -48,20 +45,10 @@ namespace ADDC.Services
 
         private async Task<bool> SendPostRequest()
         {
-            string final = "";
 
-            
-            var results = ps.Invoke();
-                
-            foreach (var errorRecord in ps.Streams.Error)
-            {
-                Console.WriteLine("Error: " + errorRecord.Exception.Message);
-            }
-            foreach (var scriptResult in results)
-            {
-                final += scriptResult.ToString();
-            }
-            
+            var func = _sessionPool.ExecuteFunction("CollectInfo");
+            string final = func.Result;
+
             Console.WriteLine($"GetComputerinfo: {final}");
             JObject jsonData = JObject.Parse(final);
 

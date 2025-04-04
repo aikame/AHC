@@ -61,8 +61,8 @@ namespace ADDC.Controllers
             _logger.LogInformation($"[Getinfo]: \n{data}");
             var userName = data["login"].ToString();
 
-            string result = _sessionPool.ExecuteFunction("GetUserInfo", ("UserLogin", userName));
-
+            var func = _sessionPool.ExecuteFunction("GetUserInfo", ("UserLogin", userName));
+            string result = func.Result;
             try
             {
                 JObject jsonData = JObject.Parse(result);
@@ -94,7 +94,8 @@ namespace ADDC.Controllers
         {
             _logger.LogInformation($"GetAppInfo");
             
-            string result = _sessionPool.ExecuteFunction("GetAppInfo");
+            var  func = _sessionPool.ExecuteFunction("GetAppInfo");
+            string result = func.Result;
 
             try
             {
@@ -112,7 +113,8 @@ namespace ADDC.Controllers
         public ActionResult GetGroupMembers([FromQuery] string group)
         {
             _logger.LogInformation($"[GetGroupMembers]: {group}");
-            string result = _sessionPool.ExecuteFunction("GetGroupMembers", ("GroupID", group));
+            var func = _sessionPool.ExecuteFunction("GetGroupMembers", ("GroupID", group));
+            string result = func.Result;
             try
             {
                 JObject jsonData = JObject.Parse(result);
@@ -130,7 +132,8 @@ namespace ADDC.Controllers
         public ActionResult GetComputerInfo([FromQuery] string data)
         {
             _logger.LogInformation($"[GetComputerInfo]: {data}");
-            string result = _sessionPool.ExecuteFunction("CollectInfo");
+            var func = _sessionPool.ExecuteFunction("CollectInfo");
+            string result = func.Result;
             try
             {
                 JObject jsonData = JObject.Parse(result);
@@ -149,8 +152,8 @@ namespace ADDC.Controllers
         {
             _logger.LogInformation($"[BanUser]: \n{data}");
             var user = data.ToObject<UserModel>();
-            string result = _sessionPool.ExecuteFunction("BanUser",("UserLogin", user.Name));
-
+            var func = _sessionPool.ExecuteFunction("BanUser",("UserLogin", user.Name));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
 
@@ -158,7 +161,8 @@ namespace ADDC.Controllers
         public ActionResult CreateGroup([FromBody] JObject data)
         {
             _logger.LogInformation($"[CreateGroup]: \n{data.ToString()}");
-            string result = _sessionPool.ExecuteFunction("CreateGroup", ("grpName", data["Name"].ToString()),("Description", data["Description"].ToString()));
+            var func = _sessionPool.ExecuteFunction("CreateGroup", ("grpName", data["Name"].ToString()),("Description", data["Description"].ToString()));
+            string result = func.Result;
             try
             {
                 JObject jsonData = JObject.Parse(result);
@@ -176,8 +180,8 @@ namespace ADDC.Controllers
         {
             _logger.LogInformation($"[UnbanUser]: \n{data.ToString()}");
             var user = data.ToObject<UserModel>();
-            string result = _sessionPool.ExecuteFunction("UnbanUser", ("UserLogin", user.Name));
-
+            var func = _sessionPool.ExecuteFunction("UnbanUser", ("UserLogin", user.Name));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
 
@@ -187,8 +191,8 @@ namespace ADDC.Controllers
             string group = data["group"].ToString();
 
             _logger.LogInformation($"[AddToGroup]: \n{data.ToString()}");
-            string result = _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.Name),("grpID",group));
-
+            var func = _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.Name),("grpID",group));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
 
@@ -199,8 +203,8 @@ namespace ADDC.Controllers
             var password = data["password"].ToString();
 
             _logger.LogInformation($"[Authentication]: \n{user}");
-            string result = _sessionPool.ExecuteFunction("Authentication", ("username", user), ("password", password));
-
+            var func = _sessionPool.ExecuteFunction("Authentication", ("username", user), ("password", password));
+            string result = func.Result;
             if (result == "200")
             {
                 return Ok();
@@ -224,8 +228,8 @@ namespace ADDC.Controllers
             string password = data["password"].ToString();
 
             _logger.LogInformation($"[ChangePassword]: \n{user}");
-            string result = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
-
+            var func = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
             
         }
@@ -233,18 +237,51 @@ namespace ADDC.Controllers
         [HttpPost("CreateMailBox")]
         public ActionResult CreateMailBox([FromBody] JObject data)
         {
-            _logger.LogInformation($"[CreateMailBox]: \n{data.ToString()}");
-            string result = _sessionPool.ExecuteFunction("CreateMailBox", ("userLogin", data["Name"].ToString()));
-            try
-            {
-                JObject jsonData = JObject.Parse(result);
+            Console.WriteLine($"CreateMailBox {data}");
+            var user = data.ToObject<UserModel>();
 
-                return Content(JsonConvert.SerializeObject(jsonData));
-            }
-            catch (Exception e)
+            var userName = data["name"].ToString();
+            Console.WriteLine(userName);
+
+            var startInfo = new ProcessStartInfo
             {
-                _logger.LogError("[CreateMailBox] JSON Parse Error: " + e.Message);
-                return BadRequest("Ошибка обработки данных");
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Unrestricted  -File \"./PowershellFunctions/CreateMailBox.ps1\" -userLogin \"{userName}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+
+            using (var process = Process.Start(startInfo))
+            {
+                var output = process.StandardOutput.ReadToEnd();
+                var errors = process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(errors))
+                {
+                    Console.WriteLine("Error: " + errors);
+                    return BadRequest(errors);
+                }
+                Console.WriteLine(output);
+                try
+                {
+                    // Пытаемся распарсить JSON-ответ от PowerShell скрипта
+                    var jsonData = JObject.Parse(output);
+
+
+
+
+                    return Content(jsonData.ToString(), "application/json");
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine("Error parsing JSON: " + ex.Message);
+                    return BadRequest("Error parsing JSON from PowerShell output");
+                }
             }
         }
 
@@ -254,8 +291,8 @@ namespace ADDC.Controllers
             var user = data.ToObject<UserModel>();
 
             _logger.LogInformation($"[HideMailBox]: \n{user}");
-            string result = _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
-
+            var func = _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
 
@@ -265,8 +302,8 @@ namespace ADDC.Controllers
             var user = data.ToObject<UserModel>();
 
             _logger.LogInformation($"[ShowMailBox]: \n{user}");
-            string result = _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
-
+            var func = _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
 
@@ -277,8 +314,8 @@ namespace ADDC.Controllers
             string group = data["group"].ToString();
 
             _logger.LogInformation($"[RemoveFromGroup]: \n{data.ToString()}");
-            string result = _sessionPool.ExecuteFunction("RemoveFromGroup", ("userLogin", user.Name), ("grpLogin", group));
-
+            var func = _sessionPool.ExecuteFunction("RemoveFromGroup", ("userLogin", user.Name), ("grpLogin", group));
+            string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
 
@@ -288,7 +325,7 @@ namespace ADDC.Controllers
             _logger.LogInformation($"[UserCreation]: \n{data}");
             var user = data.ToObject<UserModel>();
 
-            string result = _sessionPool.ExecuteFunction("UserCreation", 
+            var func = _sessionPool.ExecuteFunction("UserCreation", 
                 ("name", user.Name), 
                 ("surname", user.SurName), 
                 ("midname", user.Patronymic), 
@@ -296,6 +333,7 @@ namespace ADDC.Controllers
                 ("company", user.Company), 
                 ("department", user.Department),
                 ("appointment", user.Appointment));
+            string result = func.Result;
             try
             {
                 JObject jsonData = JObject.Parse(result);
