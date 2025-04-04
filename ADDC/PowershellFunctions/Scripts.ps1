@@ -1,5 +1,4 @@
 Set-ExecutionPolicy Unrestricted -Scope CurrentUser
-Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
 # Добавление в группу
 function AddToGroup {
     param([string] $grpID, $userID)
@@ -175,8 +174,8 @@ function CollectInfo {
 
     # Get CPU Info
     $cpu = Get-CimInstance -ClassName Win32_Processor
-    $cpuName = $cpu.Name
-    $cpuCores = $cpu.NumberOfCores
+    $cpuName = @($cpu.Name)
+    $cpuCores = @($cpu.NumberOfCores)
 
     # Get Computer Name
     $computerName = $env:COMPUTERNAME
@@ -209,25 +208,6 @@ function CreateGroup {
     return $result
 }
 
-#Создание почты
-function CreateMailBox {
-    param([string] $userLogin)
-
-    $userInfo = Get-ADUser -identity $UserLogin -ErrorAction Ignore
-    if ( $null -ne $userInfo ) {
-        try {
-            Enable-Mailbox $UserLogin | Out-Null
-            $mail = Get-Mailbox -Identity $userLogin | Select-Object -ExpandProperty  PrimarySmtpAddress | Select-object address | Convertto-json
-            return $mail
-        }
-        catch {
-            return $_.Exception
-        }              
-    } 
-    else {
-        return "404"
-    }
-}
 
 # Получение списка приложений
 function GetAppInfo {
