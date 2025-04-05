@@ -78,7 +78,7 @@ namespace ADDC.Services
             }
         }
 
-        public string ExecuteFunction(string functionName, params (string, object)[]? parameters)
+        public async Task<string> ExecuteFunction(string functionName, params (string, object)[]? parameters)
         {
             var ps = GetSession();
             try
@@ -91,7 +91,7 @@ namespace ADDC.Services
                     ps.AddParameter(name, value);
                 }
 
-                var results = ps.Invoke();
+                var results = await ps.InvokeAsync();
 
                 string final = "";
                 foreach (var errorRecord in ps.Streams.Error)

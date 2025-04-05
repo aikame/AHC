@@ -46,10 +46,12 @@ namespace ADDC.Controllers
     public class PowershellController : Controller
     {
         private readonly PowershellSessionPoolService _sessionPool;
+        private readonly ExchangePowershellSessionPoolService _exchangeSessionPool;
         private readonly ILogger<PowershellController> _logger;
 
-        public PowershellController(PowershellSessionPoolService sessionPool, ILogger<PowershellController> logger)
+        public PowershellController(PowershellSessionPoolService sessionPool, ExchangePowershellSessionPoolService exchangeSessionPool, ILogger<PowershellController> logger)
         {
+            _exchangeSessionPool = exchangeSessionPool;
             _sessionPool = sessionPool;
             _logger = logger;
         }
@@ -224,65 +226,46 @@ namespace ADDC.Controllers
         [HttpPost("ChangePassword")]
         public ActionResult ChangePassword([FromBody] JObject data)
         {
-            UserModel user = data["user"].ToObject<UserModel>();
-            string password = data["password"].ToString();
-
-            _logger.LogInformation($"[ChangePassword]: \n{user}");
-            var func = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
-            string result = func.Result;
-            return result == "200" ? Ok() : BadRequest(result);
+            try
+            {
+                UserModel user = data["user"].ToObject<UserModel>();
+                string password = data["password"].ToString();
+                _logger.LogInformation($"[ChangePassword]: \n{user}");
+                var func = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
+                string result = func.Result;
+                return result == "200" ? Ok() : BadRequest(result);
+            }
+            catch (Exception e){
+                _logger.LogError("[ChangePassword] Exception: " + e.Message);
+                return BadRequest(e);
+            }
+            
             
         }
 
         [HttpPost("CreateMailBox")]
         public ActionResult CreateMailBox([FromBody] JObject data)
         {
-            Console.WriteLine($"CreateMailBox {data}");
-            var user = data.ToObject<UserModel>();
-
-            var userName = data["name"].ToString();
-            Console.WriteLine(userName);
-
-            var startInfo = new ProcessStartInfo
+            try
             {
-                FileName = "powershell.exe",
-                Arguments = $"-NoProfile -ExecutionPolicy Unrestricted  -File \"./PowershellFunctions/CreateMailBox.ps1\" -userLogin \"{userName}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-
-            using (var process = Process.Start(startInfo))
-            {
-                var output = process.StandardOutput.ReadToEnd();
-                var errors = process.StandardError.ReadToEnd();
-
-                process.WaitForExit();
-
-                if (!string.IsNullOrEmpty(errors))
+                
+                var userName = data["name"].ToString();
+                _logger.LogInformation("[CreateMailBox] " + userName);
+                var func = _exchangeSessionPool.ExecuteFunction("CreateMailBox", ("userLogin", userName));
+                string result = func.Result;
+                if (result == "404")
                 {
-                    Console.WriteLine("Error: " + errors);
-                    return BadRequest(errors);
+                    _logger.LogError("[CreateMailBox] 404 Error");
+                    return BadRequest();
                 }
-                Console.WriteLine(output);
-                try
-                {
-                    // Пытаемся распарсить JSON-ответ от PowerShell скрипта
-                    var jsonData = JObject.Parse(output);
-
-
-
-
-                    return Content(jsonData.ToString(), "application/json");
-                }
-                catch (JsonException ex)
-                {
-                    Console.WriteLine("Error parsing JSON: " + ex.Message);
-                    return BadRequest("Error parsing JSON from PowerShell output");
-                }
+                var jsonData = JObject.Parse(result);
+                return Content(jsonData.ToString(), "application/json");
             }
+            catch (Exception e) {
+                _logger.LogError("[CreateMailBox] Exception: " + e.Message);
+                return BadRequest(e.Message);
+            }
+
         }
 
         [HttpPost("HideMailBox")]
