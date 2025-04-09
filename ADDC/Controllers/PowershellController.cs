@@ -70,7 +70,7 @@ namespace ADDC.Controllers
             {
                 JObject jsonData = JObject.Parse(result);
                 string StringPasswordLastSet = jsonData["PasswordLastSet"]?.ToString();
-                var PasswordLastSet = DateTime.Parse(StringPasswordLastSet);
+                var PasswordLastSet = StringPasswordLastSet.Length > 1 ? DateTime.Parse(StringPasswordLastSet) : DateTime.MinValue;
 
                 var userModel = new ADUserModel
                 {

@@ -1,4 +1,4 @@
-Set-ExecutionPolicy Unrestricted -Scope CurrentUser
+﻿Set-ExecutionPolicy Unrestricted -Scope CurrentUser
 # Добавление в группу
 function AddToGroup {
     param([string] $grpID, $userID)
@@ -362,7 +362,7 @@ function UserCreation {
         [Parameter()]
         [string]$appointment,
         [Parameter()]
-        [string]$RUappointment),
+        [string]$RUappointment,
         [Parameter()]
         [string]$password)
 
