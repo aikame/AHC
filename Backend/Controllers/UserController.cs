@@ -122,7 +122,7 @@ namespace Backend.Controllers
                 if (!adResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании AD профиля.");
 
                 JObject jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
-
+                
                 //создание почтового ящика
                 var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
                 var emailTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/CreateMailBox",
@@ -545,6 +545,7 @@ namespace Backend.Controllers
                                   Encoding.UTF8, "application/json"));
 
                 string responseADContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine($"{responseADContent}");
                 if (result.IsSuccessStatusCode)
                 {
                     JObject jsonADData = JObject.Parse(responseADContent);
@@ -609,7 +610,7 @@ namespace Backend.Controllers
                     Console.WriteLine(resultUpdProfile);
                     if (resultUpdProfile.IsSuccessStatusCode)
                     {
-                        return Content(user.GetProperty("_id").ToString());
+                        return Content(responseADContent);
                     }
                     else
                     {
