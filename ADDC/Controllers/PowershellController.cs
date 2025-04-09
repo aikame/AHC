@@ -20,6 +20,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using ADDC.Services;
+using System.Text;
 
 namespace ADDC.Controllers
 {
@@ -301,13 +302,58 @@ namespace ADDC.Controllers
             string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
+        bool CheckPassword(string password, int length)
+        {
+            return true;
+        }
+        string GeneratePassword(int length)
+        {
+            
+            var rand = new Random();
+            string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            string lowerCase = "abcdefghijklmnopqrstuvwxyz";
+            string nums = "0123456789";
+            string spec = "!@#$%^&*()-_=+[]{};:.<>?~";
+            string password;
+            do
+            {
+                StringBuilder sb = new StringBuilder();
+                password = "";
+                for (int i = 0; i < length; i++)
+                {
 
+                    int type = rand.Next(0, 4);
+                    char s;
+                    switch (type)
+                    {
+                        case 0:
+                            s = upperCase[rand.Next(upperCase.Length)];
+                            break;
+                        case 1:
+                            s = lowerCase[rand.Next(lowerCase.Length)];
+                            break;
+                        case 2:
+                            s = nums[rand.Next(nums.Length)];
+                            break;
+                        case 3:
+                            s = spec[rand.Next(spec.Length)];
+                            break;
+                        default:
+                            s = upperCase[rand.Next(upperCase.Length)];
+                            break;
+                    }
+                    sb.Append(s);
+                }
+                password = sb.ToString();
+            } while (!CheckPassword(password, length));
+            return password;
+        }
         [HttpPost("UserCreation")]
         public ActionResult UserCreation([FromBody] JObject data)
         {
             _logger.LogInformation($"[UserCreation]: \n{data}");
             var user = data.ToObject<UserModel>();
-
+            string password = GeneratePassword(12);
             var func = _sessionPool.ExecuteFunction("UserCreation", 
                 ("name", user.Name), 
                 ("surname", user.SurName), 
@@ -315,12 +361,13 @@ namespace ADDC.Controllers
                 ("city", user.City), 
                 ("company", user.Company), 
                 ("department", user.Department),
-                ("appointment", user.Appointment));
+                ("appointment", user.Appointment),
+                ("password", password));
             string result = func.Result;
             try
             {
                 JObject jsonData = JObject.Parse(result);
-
+                jsonData["password"] = password;
                 return Content(JsonConvert.SerializeObject(jsonData));
             }
             catch (Exception e)

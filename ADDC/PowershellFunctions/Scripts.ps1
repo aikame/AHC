@@ -362,7 +362,9 @@ function UserCreation {
         [Parameter()]
         [string]$appointment,
         [Parameter()]
-        [string]$RUappointment)
+        [string]$RUappointment),
+        [Parameter()]
+        [string]$password)
 
 
     if (($name -notmatch "[^А-Яа-яеЁ-]+") -and 
@@ -408,8 +410,8 @@ function UserCreation {
         if ( $null -eq $newuser ) {                  
             return $CurDir   
         }                   
-        Set-ADAccountPassword $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText “PASSWORD” -Force -Verbose) | Set-ADuser -ChangePasswordAtLogon $True
-
+        Set-ADAccountPassword $userName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $password -Force -Verbose)
+        Set-ADUser -Identity $userName -ChangePasswordAtLogon:$true 
         Set-ADuser -Identity $userName -Add @{extensionAttribute1 = $extAttr1["Имя"] } 
         Set-ADuser -Identity $userName -Add @{extensionAttribute2 = $extAttr1["Фамилия"] }
         Set-ADuser -Identity $userName -Add @{extensionAttribute3 = $extAttr1["Отчество"] }
