@@ -302,10 +302,6 @@ namespace ADDC.Controllers
             string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
         }
-        bool CheckPassword(string password, int length)
-        {
-            return true;
-        }
         string GeneratePassword(int length)
         {
             
@@ -315,37 +311,43 @@ namespace ADDC.Controllers
             string nums = "0123456789";
             string spec = "!@#$%^&*()-_=+[]{};:.<>?~";
             string password;
+            bool upperCaseHit = false, lowerCaseHit = false, numsHit = false, specHit = false;
             do
             {
                 StringBuilder sb = new StringBuilder();
                 password = "";
                 for (int i = 0; i < length; i++)
                 {
-
+                    upperCaseHit = false; lowerCaseHit = false; numsHit = false; specHit = false;
                     int type = rand.Next(0, 4);
                     char s;
                     switch (type)
                     {
                         case 0:
                             s = upperCase[rand.Next(upperCase.Length)];
+                            upperCaseHit = true;
                             break;
                         case 1:
                             s = lowerCase[rand.Next(lowerCase.Length)];
+                            lowerCaseHit = true;
                             break;
                         case 2:
                             s = nums[rand.Next(nums.Length)];
+                            numsHit = true;
                             break;
                         case 3:
                             s = spec[rand.Next(spec.Length)];
+                            specHit = true;
                             break;
                         default:
                             s = upperCase[rand.Next(upperCase.Length)];
+                            upperCaseHit = true;
                             break;
                     }
                     sb.Append(s);
                 }
                 password = sb.ToString();
-            } while (!CheckPassword(password, length));
+            } while (!(upperCaseHit && lowerCaseHit && numsHit && specHit));
             return password;
         }
         [HttpPost("UserCreation")]
