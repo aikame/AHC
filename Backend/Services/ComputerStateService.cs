@@ -41,7 +41,7 @@ namespace Backend.Services
         private async void CheckComputerState()
         {
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 try
                 {

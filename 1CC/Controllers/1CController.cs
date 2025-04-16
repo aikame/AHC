@@ -13,24 +13,6 @@ namespace _1CC.Controllers
     [Route("/1connector/hs/post/")]
     public class OneCController : Controller
     {
-        public class CustomHttpClientHandler : HttpClientHandler
-        {
-            public CustomHttpClientHandler()
-            {
-                ServerCertificateCustomValidationCallback = ValidateServerCertificate;
-            }
-
-            private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
-            {
-                if (errors == SslPolicyErrors.None)
-                {
-                    return true;
-                }
-
-                // Для разработки, игнорируем ошибки сертификата
-                return true; // !!! Не используйте в Production
-            }
-        }
 
         [HttpPost("read1cjson")]
         public async Task<ActionResult> Rec1CData([FromBody] JObject data)
@@ -50,7 +32,7 @@ namespace _1CC.Controllers
                 Console.WriteLine("Recieved data is ok");
             }
             var sdata = JsonConvert.SerializeObject(RecData);
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("https://localhost:7095/CreateProfile?domain="+domain, jsonContent);
@@ -75,7 +57,7 @@ namespace _1CC.Controllers
         {
             Console.WriteLine($"Fire: {data}");
             var sdata = JsonConvert.SerializeObject(data);
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("https://localhost:7095/FireUser", jsonContent);
@@ -101,7 +83,7 @@ namespace _1CC.Controllers
         {
             Console.WriteLine($"Return: {data}");
             var sdata = JsonConvert.SerializeObject(data);
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
                 var result = await client.PostAsync("https://localhost:7095/ReturnUser", jsonContent);
@@ -124,7 +106,7 @@ namespace _1CC.Controllers
         public async Task<ActionResult> GetDomainList([FromQuery] string? data)
         {
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var result = await client.GetAsync("https://localhost:7095/domainList");
 

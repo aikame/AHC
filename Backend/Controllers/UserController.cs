@@ -21,24 +21,6 @@ using System.DirectoryServices.ActiveDirectory;
 
 namespace Backend.Controllers
 {
-    public class CustomHttpClientHandler : HttpClientHandler
-    {
-        public CustomHttpClientHandler()
-        {
-            ServerCertificateCustomValidationCallback = ValidateServerCertificate;
-        }
-
-        private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
-        {
-            if (errors == SslPolicyErrors.None)
-            {
-                return true;
-            }
-
-            // Для разработки, игнорируем ошибки сертификата
-            return true; // !!! Не используйте в Production (как же похуй)
-        }
-    }
 
     [ApiController]
     [Route("/")]
@@ -83,7 +65,7 @@ namespace Backend.Controllers
         {
             Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
+            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
                 var profileTask = client.PostAsync("http://127.0.0.2:8000/api/put",
                     new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
@@ -166,7 +148,7 @@ namespace Backend.Controllers
             sdata["login"] = id;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["login"].ToString());
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -194,7 +176,7 @@ namespace Backend.Controllers
             sdata["name"] = decodedId;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -221,7 +203,7 @@ namespace Backend.Controllers
             sdata["name"] = decodedId;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -246,7 +228,7 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -272,7 +254,7 @@ namespace Backend.Controllers
             var domainName = data.GetProperty("DomainName");
             Console.WriteLine(domainName);
             ComputerModel computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(data.ToString());
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var result = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
                                  Encoding.UTF8, "application/json"));
@@ -294,7 +276,7 @@ namespace Backend.Controllers
         public async Task<IActionResult> CheckComputer([FromQuery] string _id)
         {
             // http://127.0.0.2:8000/api/GetComputer?ComputerName=DC-1
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
 
                 var result = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?_id={_id}");
@@ -323,7 +305,7 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -350,7 +332,7 @@ namespace Backend.Controllers
             jsonData["name"] = decodedId;
             Console.WriteLine($"Prepared: {jsonData}");
             Console.WriteLine(jsonData["name"].ToString());
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -382,7 +364,7 @@ namespace Backend.Controllers
             /*JObject jsonData = JObject.Parse(id);
             UserModel user = jsonData["user"].ToObject<UserModel>();
             Console.WriteLine(user.Name);*/
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -406,7 +388,7 @@ namespace Backend.Controllers
         {
             Console.WriteLine(computer + " get apps");
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?ComputerName={computer}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -431,7 +413,7 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -458,7 +440,7 @@ namespace Backend.Controllers
         [HttpGet("GetGroupMembers")]
         public async Task<IActionResult> GetGroupMembers([FromQuery] string group, [FromQuery] string domain)
         {
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -484,7 +466,7 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -511,7 +493,7 @@ namespace Backend.Controllers
             jsonData["name"] = decodedId;
             Console.WriteLine($"Prepared: {jsonData}");
             Console.WriteLine(jsonData["name"].ToString());
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -535,7 +517,7 @@ namespace Backend.Controllers
         {
             Console.WriteLine(user);
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
+            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
                 var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -635,7 +617,7 @@ namespace Backend.Controllers
             };
             Console.WriteLine(id.ToJsonString());
             JsonElement fire_date = data.GetProperty("fire_date");
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
+            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
 
                 var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
@@ -692,7 +674,7 @@ namespace Backend.Controllers
         public async Task<IActionResult> ReturnUser([FromBody] JsonElement data)
         {
             Console.WriteLine(data);
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
 
 
@@ -715,7 +697,7 @@ namespace Backend.Controllers
         public async Task<IActionResult> GetDomainList([FromQuery] string? data)
         {
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var responseComputers = await client.GetAsync($"http://127.0.0.2:8000/api/ComputerData");
                 string computers = await responseComputers.Content.ReadAsStringAsync();
@@ -771,7 +753,7 @@ namespace Backend.Controllers
                     ["user"] = username,
                     ["password"] = password
                 };
-                using (HttpClient client = new HttpClient(new CustomHttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
+                using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
                 {
                     var responseSearchComputer = await client.GetAsync($"http://127.0.0.2:8000/api/GetComputer?domain={domain}");
                     string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();

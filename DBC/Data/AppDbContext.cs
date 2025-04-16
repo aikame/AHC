@@ -19,12 +19,10 @@ namespace DBC.Data
                 .HasForeignKey(a => a.ProfileModelId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // JsonElement сериализация (если надо)
             modelBuilder.Entity<ComputerModel>()
                 .Property(e => e.DiskSpace)
                 .HasColumnType("jsonb[]");
 
-            // Массивы строк и чисел
             modelBuilder.Entity<ComputerModel>()
                 .Property(e => e.CPUName)
                 .HasColumnType("text[]");

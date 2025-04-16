@@ -15,5 +15,11 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "9200:9200"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: '0.50'
