@@ -24,24 +24,7 @@ using System.Text;
 
 namespace ADDC.Controllers
 {
-    public class CustomHttpClientHandler : HttpClientHandler
-    {
-        public CustomHttpClientHandler()
-        {
-            ServerCertificateCustomValidationCallback = ValidateServerCertificate;
-        }
-
-        private bool ValidateServerCertificate(HttpRequestMessage message, X509Certificate2 cert, X509Chain chain, SslPolicyErrors errors)
-        {
-            if (errors == SslPolicyErrors.None)
-            {
-                return true;
-            }
-
-            // Для разработки, игнорируем ошибки сертификата
-            return true;
-        }
-    }
+    
     [ApiController]
     [Route("/")]
     public class PowershellController : Controller

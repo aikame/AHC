@@ -368,3 +368,4 @@ FodyWeavers.xsd
 # elasticsearch host
 elasticsearch/
 /Frontend/hello/static/media/employee_avatars
+/DBC/Migrations

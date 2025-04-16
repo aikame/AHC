@@ -55,7 +55,7 @@ namespace ADDC.Services
 
             var serData = JsonConvert.SerializeObject(jsonData);
 
-            using (HttpClient nclient = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient nclient = new HttpClient(new HttpClientHandler()))
             {
                 var jsonContent = new StringContent(serData, Encoding.UTF8, "application/json");
                 var result = await nclient.PostAsync("https://" + _coreAddress + "/CollectComputerInfo", jsonContent);
