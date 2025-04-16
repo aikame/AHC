@@ -4,7 +4,7 @@ namespace DBC.Models.Elastic
 {
     public class ElasticProfileModel
     {
-        public DateTime Created { get; set; };
+        public DateTime Created { get; set; }
         public string Name { get; set; }
 
         public string Surname { get; set; }

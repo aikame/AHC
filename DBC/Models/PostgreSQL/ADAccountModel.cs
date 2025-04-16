@@ -2,11 +2,13 @@
 {
     public class ADAccountModel
     {
-        required public string SID { get; set; }
-        required public string SamAccountName { get; set; }
-        required public string Domain { get; set; }
+        public int Id { get; set; }
+        public string? SID { get; set; }
+        public string? SamAccountName { get; set; }
+        public string? Domain { get; set; }
 
-        required public string ProfileID { get; set; }
+        public Guid ProfileModelId { get; set; }
+        public ProfileModel Profile { get; set; }
 
     }
 }
