@@ -2,20 +2,6 @@
 
 namespace Backend.models
 {
-    public class UserModel
-    {
-        public int? Id { get; set; }
-        public string Name { get; set; }
-        public string SurName { get; set; }
-        public string Patronymic { get; set; }
-        public string Email { get; set; }
-        public string City { get; set; }
-        public string Company { get; set; }
-        public string Apply_date { get; set; }
-        public string Appointment { get; set; }
-        public string Department { get; set;}
-    }
-
     public class ProfileModel
     {
 
@@ -36,8 +22,6 @@ namespace Backend.models
         public string city { get; set; }
 
         public bool ADreq { get; set; }
-
-        //public string department { get; set; }
 
         public List<string> profiles { get; set; } = new List<string>();
         public string img_src { get; set; } = ".";
