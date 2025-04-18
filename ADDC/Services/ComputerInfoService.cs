@@ -33,7 +33,7 @@ namespace ADDC.Services
             _logger.LogInformation("PostRequestService is starting.");
 
             //SendPostRequest();
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
 
             return Task.CompletedTask;
         }
@@ -58,7 +58,7 @@ namespace ADDC.Services
             using (HttpClient nclient = new HttpClient(new HttpClientHandler()))
             {
                 var jsonContent = new StringContent(serData, Encoding.UTF8, "application/json");
-                var result = await nclient.PostAsync("https://" + _coreAddress + "/CollectComputerInfo", jsonContent);
+                var result =  await nclient.PostAsync("https://" + _coreAddress + "/CollectComputerInfo", jsonContent);
                 Console.WriteLine(result);
                 if (result.IsSuccessStatusCode)
                 {
