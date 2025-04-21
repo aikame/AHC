@@ -6,6 +6,7 @@ namespace DBC.Models.Shared
     public class ComputerModel
     {
         public int Id { get; set; }
+        public DateTime Updated { get; set; }
         public string WindowsEdition { get; set; }
         public string IPAddress { get; set; }
         public string DomainName { get; set; }

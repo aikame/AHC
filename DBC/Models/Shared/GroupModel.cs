@@ -1,0 +1,18 @@
+﻿namespace DBC.Models.Shared
+{
+    public class GroupModel
+    {
+        public int Id { get; set; }
+        public string? PSComputerName { get; set; }
+        public string? Description { get; set; }
+        public string? RunspaceId { get; set; }
+        public string? DistinguishedName { get; set; }
+        public string? GroupCategory { get; set; }
+        public string? GroupScope { get; set; }
+        public string? Name { get; set; }
+        public string? ObjectClass { get; set; }
+        public string? ObjectGUID { get; set; }
+        public string? SamAccountName { get; set; }
+        public string? SID { get; set; }
+    }
+}
