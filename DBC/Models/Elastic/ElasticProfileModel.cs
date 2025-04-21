@@ -4,6 +4,7 @@ namespace DBC.Models.Elastic
 {
     public class ElasticProfileModel
     {
+        public Guid Id { get; set; }
         public DateTime Created { get; set; }
         public string Name { get; set; }
 
@@ -15,8 +16,8 @@ namespace DBC.Models.Elastic
 
         public string Company { get; set; }
 
-        public string ApplyDate { get; set; }
-        public string FireDate { get; set; } = "";
+        public DateTime ApplyDate { get; set; }
+        public DateTime? FireDate { get; set; } = null;
         public string Appointment { get; set; }
 
         public string City { get; set; }
