@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
@@ -62,8 +63,8 @@ def auth(request):
     password = request.POST.get('password')
     print("Creds: " + user + ' ' + password)
     aBack = AHCAuthBackend()
-    user = aBack.authenticate(username=user,password=password)
-    if (user != 200):
+    user,status = aBack.authenticate(username=user,password=password)
+    if (status):
         login(request, user)    
         return render(
             request,
@@ -71,9 +72,11 @@ def auth(request):
         )
     else:
         return render(
-            request,
-            'login/index.html',
-        )
+        request,
+        'login/index.html',
+        {'errortxt':"Неправильное имя пользователя или пароль"}
+    )
+
 
 @login_required
 def home(request):
@@ -111,7 +114,7 @@ def img_upload(request, id):
 
 @login_required
 def employee(request,id):
-    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    user_data = requests.get('https://localhost:7080/search/profile?query='+id,verify=False)
     domains_data = requests.get('https://localhost:7095/domainList/',verify=False)
     domains = json.loads(domains_data.content)
     domainsList = list(domains)
@@ -131,13 +134,13 @@ def employee(request,id):
     )
 @login_required
 def computer_detail(request, id):
-    computer_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?_id={id}')
+    computer_data = requests.get(f'https://localhost:7080/search/onecomputer?query={id}',verify=False) 
     data = json.loads(computer_data.content)
 
     apps = None  # Если не достучались до пк
     try:
         installed_apps = requests.get(
-            f'https://localhost:7095/GetAppInfo?Computer={data["ComputerName"]}&domain={data["DomainName"]}', 
+            f'https://localhost:7095/GetAppInfo?Computer={data["computerName"]}&domain={data["domainName"]}', 
             verify=False,
             timeout=30 
         )
@@ -182,19 +185,17 @@ def update_computer_status(request,id):
     return HttpResponseRedirect(reverse('computer', args=[id]))
 @login_required
 def computer(request):
-    json_data = requests.get('http://127.0.0.2:8000/api/ComputerData')
+    json_data = requests.get('https://localhost:7080/search/computer', verify=False)
     data = json.loads(json_data.content)
+    for i in data:
+        role_number = i.get('computerRole', -1)
+        i["computerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+        i['updated'] = parse_datetime(i['updated'])
 
-    for i in data["hits"]["hits"]:
-        role_number = i['_source'].get('ComputerRole', -1)
-        i['_source']["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
-        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
     return render(
         request,
         'computer/index.html',
-        {'computers_json':data["hits"]["hits"]}
+        {'computers_json':data}
     )
 
 @login_required
@@ -254,16 +255,13 @@ def group_detail(request, id):
 
 @login_required
 def searchall(request):
-    json_data = requests.get('http://127.0.0.2:8000/api/getall')
+    json_data = requests.get('https://localhost:7080/search/profile',verify=False)
     data = json.loads(json_data.content)
-    for i in data["hits"]["hits"]:
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
         
     return render(
         request,
         'profileslist/index.html',
-        {'profiles_json':data["hits"]["hits"]}
+        {'profiles_json':data}
     )
 
 @login_required

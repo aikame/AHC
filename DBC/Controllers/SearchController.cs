@@ -3,6 +3,7 @@ using DBC.Models.Elastic;
 using DBC.Models.Shared;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -21,30 +22,47 @@ namespace DBC.Controllers
             _logger = logger;
         }
 
-        private async Task<SearchResponse<T>> SearchAsync<T>(string index, string? query) where T : class 
+        private async Task<SearchResponse<T>> SearchAsync<T>(string index, string sortField, string? query, int? size) where T : class 
         {
-            var response = string.IsNullOrWhiteSpace(query)
-            ? await _elasticsearchClient.SearchAsync<T>(s => s
-                .Index(index)
-                .Sort(ss => ss
-                    .Field(new Field("created"), sort => sort.Order(SortOrder.Desc))
-                )
-                .Size(10)
-            )
-            : await _elasticsearchClient.SearchAsync<T>(s => s
-                .Index("profiles")
+            if (!string.IsNullOrEmpty(index))
+            {
+                if (size != null)
+                {
+                    var response = await _elasticsearchClient.SearchAsync<T>(s => s
+                    .Index(index)
+                    .Sort(ss => ss
+                        .Field(new Field(sortField), sort => sort.Order(SortOrder.Desc))
+                    )
+                    .Size(size));
+                    return response;
+                }
+                else
+                {
+                    var response = await _elasticsearchClient.SearchAsync<T>(s => s
+                    .Index(index)
+                    .Sort(ss => ss
+                        .Field(new Field(sortField), sort => sort.Order(SortOrder.Desc))
+                    ));
+                    return response;
+
+                }
+                
+            } else
+            {
+                var response = await _elasticsearchClient.SearchAsync<T>(s => s
                 .Query(q => q
                     .MultiMatch(mm => mm
                         .Query(query)
                     )
-                )
-            );
-            return response;
+                ));
+                return response;
+
+            }
         }
         [HttpGet("profile")]
-        public async Task<IActionResult> SearchProfile([FromQuery] string? query)
+        public async Task<IActionResult> SearchProfile([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
-            var response = await SearchAsync<ElasticProfileModel>("profiles",query);
+            var response = await SearchAsync<ElasticProfileModel>("profiles","created",query,size);
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");
@@ -52,19 +70,61 @@ namespace DBC.Controllers
             return Ok(response.Documents);
         }
         [HttpGet("computer")]
-        public async Task<IActionResult> SearchComputer([FromQuery] string? query)
+        public async Task<IActionResult> SearchComputer([FromQuery] string? query, [FromQuery] int? size)
         {
-            var response = await SearchAsync<ComputerModel>("computers", query);
+            var response = await SearchAsync<ComputerModel>("computers","updated", query, size);
+
+            if (!response.IsValidResponse)
+            {
+                _logger.LogError(response.ElasticsearchServerError.ToString());
+                return StatusCode(500, "Search Error");
+            }
+                
+
+            return Ok(response.Documents);
+
+        }
+        [HttpGet("onecomputer")]
+        public async Task<IActionResult> SearchOneComputer([FromQuery] string query)
+        {
+            var response = await SearchAsync<ComputerModel>("computers", "updated", query, 1);
+            if (!response.IsValidResponse)
+                return StatusCode(500, "Search Error");
+            return Ok(response.Documents.FirstOrDefault());
+        }
+
+        [HttpGet("domain-controller")]
+        public async Task<IActionResult> SearchDomainController([FromQuery] string domain)
+        {
+            var response = await _elasticsearchClient.SearchAsync<ComputerModel>(s => s
+                .Index("computers")
+                .Query(q => q
+                    .Bool(b => b
+                        .Must(m =>
+                                m.Term(t => t.Field(f => f.DomainName.Suffix("keyword")).Value(domain))
+                        )
+                        .Filter(f => f
+                            .Term(t => t.Field(ff => ff.ComputerRole).Value(5))
+                        )
+                    )
+                )
+                .Size(1)
+            );
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");
+            var controller = response.Documents.FirstOrDefault();
+            if (controller == null)
+                return NotFound();
 
-            return Ok(response.Documents);
+            return Ok(controller);
         }
+
+
         [HttpGet("group")]
-        public async Task<IActionResult> SearchGroup([FromQuery] string? query)
+        public async Task<IActionResult> SearchGroup([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
-            var response = await SearchAsync<GroupModel>("groups", query);
+            var response = await SearchAsync<GroupModel>("groups", "Name", query,size);
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");
@@ -73,9 +133,9 @@ namespace DBC.Controllers
         }
 
         [HttpGet("all")]
-        public async Task<IActionResult> SearchAll([FromQuery] string? query)
+        public async Task<IActionResult> SearchAll([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
-            var response = await SearchAsync<JsonObject>("*", query);
+            var response = await SearchAsync<JsonObject>("*","Id", query, size);
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");

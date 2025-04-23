@@ -10,7 +10,7 @@ using System.Text.Json.Nodes;
 using System.Net.NetworkInformation;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.Extensions.Logging;
-
+using JsonSerializer = System.Text.Json.JsonSerializer;
 namespace Backend.Services
 {
     public class ComputerStateService : IHostedService, IDisposable
@@ -45,40 +45,45 @@ namespace Backend.Services
             {
                 try
                 {
-                    var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
+                    var result = await client.GetAsync("https://localhost:7080/search/computer");
                     string responseContent = await result.Content.ReadAsStringAsync();
-                    Console.WriteLine(responseContent);
+
                     JsonDocument document = JsonDocument.Parse(responseContent);
                     JsonElement root = document.RootElement;
-                    JsonElement hitstemp, hits;
-                    if (!root.TryGetProperty("hits", out hitstemp))
+
+                    if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() == 0)
                     {
-                        _logger.LogError($"No computers at database");
+                        _logger.LogError("No computers at database");
                         return;
                     }
-                    if (!hitstemp.TryGetProperty("hits", out hits))
-                    {
-                        _logger.LogError($"No computers at database");
-                        return;
-                    }
-                    //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
 
-                    foreach (JsonElement hit in hits.EnumerateArray())
+                    foreach (JsonElement item in root.EnumerateArray())
                     {
-                        JsonElement source = hit.GetProperty("_source");
-                        string address = source.GetProperty("IPAddress").ToString();
-                        var computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(source);
-                        computer.Status = CheckPing(address);
+                        if (!item.TryGetProperty("ipAddress", out JsonElement ipElement))
+                            continue;
 
-                        var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
-                            Encoding.UTF8, "application/json"));
-                        if (result.IsSuccessStatusCode)
+                        string address = ipElement.GetString();
+                        bool status = CheckPing(address);
+
+                        using var jsonObj = JsonDocument.Parse(item.GetRawText());
+                        var jsonDict = JsonSerializer.Deserialize<Dictionary<string, object>>(item.GetRawText());
+
+                        if (jsonDict == null)
+                            continue;
+
+                        jsonDict["status"] = status;
+                        var updatedJson = JsonSerializer.Serialize(jsonDict);
+                        var content = new StringContent(updatedJson, Encoding.UTF8, "application/json");
+    
+                        var updResult = await client.PostAsync("https://localhost:7080/computer/update", content);
+
+                        if (updResult.IsSuccessStatusCode)
                         {
-                            _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");
+                            _logger.LogInformation($"{jsonDict["computerName"]} ({address}) changed state to: {status}");
                         }
                         else
                         {
-                            _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
+                            _logger.LogError($"Error changing state {jsonDict["computerName"]} ({address}) to: {status}");
                         }
                     }
                 }

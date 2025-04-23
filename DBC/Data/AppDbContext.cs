@@ -8,14 +8,14 @@ namespace DBC.Data
         public DbSet<ProfileModel> Profiles { get; set; }
         public DbSet<ADAccountModel> ADAccounts { get; set; }
         public DbSet<ComputerModel> Computers { get; set; }
-
+        public DbSet<GroupModel> Groups { get; set; }
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ADAccountModel>()
                 .HasOne(a => a.Profile)
-                .WithMany()
+                .WithMany(p => p.ADAccounts)
                 .HasForeignKey(a => a.ProfileModelId)
                 .OnDelete(DeleteBehavior.Cascade);
 

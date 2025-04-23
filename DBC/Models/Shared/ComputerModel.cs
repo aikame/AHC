@@ -5,8 +5,8 @@ namespace DBC.Models.Shared
 {
     public class ComputerModel
     {
-        public int Id { get; set; }
-        public DateTime Updated { get; set; }
+        public Guid Id { get; set; }
+        public DateTime Updated { get; set; } =DateTime.UtcNow;
         public string WindowsEdition { get; set; }
         public string IPAddress { get; set; }
         public string DomainName { get; set; }
@@ -23,5 +23,7 @@ namespace DBC.Models.Shared
         public string ComputerName { get; set; }
         public int ComputerRole { get; set; }
         public bool Status { get; set; } = true;
+
+        public bool isIndexed { get; set; } = false;
     }
 }

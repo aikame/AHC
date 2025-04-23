@@ -2,7 +2,7 @@
 {
     public class ADAccountModel
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string? SID { get; set; }
         public string? SamAccountName { get; set; }
         public string? Domain { get; set; }

@@ -1,4 +1,9 @@
-﻿namespace DBC.Models.PostgreSQL
+﻿using DBC.Models.Elastic;
+using Elastic.Clients.Elasticsearch.Core.Search;
+using Newtonsoft.Json.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace DBC.Models.PostgreSQL
 {
     public class ProfileModel
     {
@@ -20,5 +25,39 @@
 
         public string? City { get; set; }
         public string ImgSrc { get; set; } = ".";
+
+        public List<ADAccountModel> ADAccounts { get; set; } = new();
+
+        public bool isIndexed { get; set; } = false;
+        public ElasticProfileModel ToElasticProfileModel()
+        {
+            var profiles = new List<JObject>();
+            if (ADAccounts.Count > 0)
+            {
+                
+
+                foreach (var acc in ADAccounts)
+                {
+                    profiles.Add(JObject.FromObject(acc));
+                }
+            }
+            var elasticProfile = new ElasticProfileModel
+            {
+                Id = Id,
+                Created = Created,
+                Name = Name ?? "",
+                Surname = Surname ?? "",
+                Patronymic = Patronymic ?? "",
+                Email = Email,
+                Company = Company ?? "",
+                ApplyDate = ApplyDate,
+                FireDate = FireDate,
+                Appointment = Appointment ?? "",
+                City = City ?? "",
+                ImgSrc =    ImgSrc,
+                Profiles = profiles
+            };
+            return elasticProfile;
+        }
     }
 }

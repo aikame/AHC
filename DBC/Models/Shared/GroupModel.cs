@@ -2,7 +2,7 @@
 {
     public class GroupModel
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string? PSComputerName { get; set; }
         public string? Description { get; set; }
         public string? RunspaceId { get; set; }
@@ -14,5 +14,7 @@
         public string? ObjectGUID { get; set; }
         public string? SamAccountName { get; set; }
         public string? SID { get; set; }
+
+        public bool isIndexed { get; set; } = false;
     }
 }

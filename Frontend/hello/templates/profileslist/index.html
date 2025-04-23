@@ -74,16 +74,16 @@
                     <tbody>
                     {% for row in profiles_json%}
                     <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/employee/{{row.id}}";'>
-                      <td class="fullName">{{row.source.name}} {{row.source.surname}}</td>
-                      {% if not '.jpg' in row.source.img_src %}
+                      <td class="fullName">{{row.name}} {{row.surname}}</td>
+                      {% if not '.jpg' in row.img_src %}
                         <td class="image"><img width="100" height="100" src="/static/default.jpg" alt=""></td> 
                       {% else %} 
-                        <td class="image"><img width="100" height="100" src="/static/media/employee_avatars/{{row.source.img_src}}"></td> 
+                        <td class="image"><img width="100" height="100" src="/static/media/employee_avatars/{{row.img_src}}"></td> 
                       {% endif %}
-                      <td class="Job title">{{row.source.appointment}}</td>
-                      <td class="city">{{row.source.city}}</td>
-                      <td class="Email">{{row.source.email}}</td>
-                      <td class="fired text-danger">{% if 'None' not in row.source.fire_date %}{{row.source.fire_date}}{% endif %}</td>
+                      <td class="Job title">{{row.appointment}}</td>
+                      <td class="city">{{row.city}}</td>
+                      <td class="Email">{{row.email}}</td>
+                      <td class="fired text-danger">{% if 'None' not in row.fire_date %}{{row.fire_date}}{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

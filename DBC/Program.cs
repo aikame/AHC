@@ -1,4 +1,5 @@
 using DBC.Data;
+using DBC.Services;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.EntityFrameworkCore;
 public class Program
@@ -26,5 +27,7 @@ public class Program
                 var configuration = hostContext.Configuration;
                 services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(configuration.GetConnectionString("Postgres")));
+
+                services.AddHostedService<ElasticIndexStateService>();
             });
 }
