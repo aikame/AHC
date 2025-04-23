@@ -25,6 +25,8 @@ from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 import re
 import urllib.parse
+from django.utils.timezone import make_aware,get_current_timezone, utc
+import pytz
 register = template.Library()
 
 ROLE_CHOICES = {
@@ -44,7 +46,7 @@ USER_ROLE = {
     "ADM": "Administrator",
     "1CADM": "1C-Administrator",
 }
-
+timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
 @register.filter
 def get_role_display(role_number):
     return ROLE_CHOICES.get(role_number, "Unknown Role")
@@ -103,10 +105,17 @@ def img_upload(request, id):
             with open(avatar_path, 'wb+') as destination:
                 for chunk in avatar.chunks():
                     destination.write(chunk)
-            data = '{"doc": {"img_src" : "' + id +'.jpg"} }'
-            content = JSONRenderer().render(data)
-            requests.post('http://127.0.0.2:8000/api/img_upload/' + id, data=content, verify=False,headers={"Content-Type": "application/json"})
-            return redirect('search')
+            #data = '{"doc": {"img_src" : "' + id +'.jpg"} }'
+            #content = JSONRenderer().render(data)
+
+            profile = requests.get('https://localhost:7080/search/oneprofile?query='+id,verify=False)
+            profileJSON = json.loads(profile.content)
+            profileJSON["imgSrc"]=id+'.jpg'
+            print(profileJSON)
+            content = JSONRenderer().render(profileJSON)
+            req = requests.post('https://localhost:7080/profile/update', data=content, verify=False,headers={"Content-Type": "application/json"})
+            print(req)
+            return redirect(f'/employee/{id}')
     else:
         form = UploadFileForm()
     return render(request, 
@@ -114,13 +123,14 @@ def img_upload(request, id):
 
 @login_required
 def employee(request,id):
-    user_data = requests.get('https://localhost:7080/search/profile?query='+id,verify=False)
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    user_data = requests.get('https://localhost:7080/search/oneprofile?query='+id,verify=False)
     domains_data = requests.get('https://localhost:7095/domainList/',verify=False)
     domains = json.loads(domains_data.content)
     domainsList = list(domains)
     data = json.loads(user_data.content)
-    user = data["hits"]["hits"][0]["_source"]
-    user_id = data["hits"]["hits"][0]["_id"]
+    user = data
+    user["applyDate"] = parse_datetime(user['applyDate'])
     for profile in user["profiles"]:
         if "AD" in profile:
             for domain in domains:
@@ -136,7 +146,7 @@ def employee(request,id):
 def computer_detail(request, id):
     computer_data = requests.get(f'https://localhost:7080/search/onecomputer?query={id}',verify=False) 
     data = json.loads(computer_data.content)
-
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     apps = None  # Если не достучались до пк
     try:
         installed_apps = requests.get(
@@ -159,13 +169,12 @@ def computer_detail(request, id):
     except (requests.RequestException, json.JSONDecodeError) as e:
         print(f"Ошибка: {e}") 
 
-    role_number = data.get('ComputerRole', -1)
+    role_number = data.get('computerRole', -1)
     now = timezone.now()
     updated_time = timezone.datetime.fromisoformat(data["updated"].replace('Z', '+00:00'))
     last_upd = int((now - updated_time).total_seconds() // 60)
-
     data['updated'] = parse_datetime(data['updated'])
-    data["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+    data["computerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
 
     return render(
         request,
@@ -185,9 +194,10 @@ def update_computer_status(request,id):
     return HttpResponseRedirect(reverse('computer', args=[id]))
 @login_required
 def computer(request):
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     json_data = requests.get('https://localhost:7080/search/computer', verify=False)
     data = json.loads(json_data.content)
-    for i in data:
+    for i in data:        
         role_number = i.get('computerRole', -1)
         i["computerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
         i['updated'] = parse_datetime(i['updated'])
@@ -201,6 +211,7 @@ def computer(request):
 @login_required
 def groups(request):
     json_data = requests.get('http://127.0.0.2:8000/api/group')
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     data = json.loads(json_data.content)
     for i in data["hits"]["hits"]:
         i['_source']['updated'] = parse_datetime(i['_source']['updated'])
@@ -266,10 +277,11 @@ def searchall(request):
 
 @login_required
 def createAD(request,id,domain):
-    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    print(domain)
+    user_data = requests.get(f'https://localhost:7080/search/oneprofile?query={id}',verify=False)
     mail = request.GET.get('mail')
     print(mail)
-    user = user_data.json()["hits"]["hits"][0]
+    user = user_data.json()
     content = JSONRenderer().render(user)
     result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
     print(result.status_code)
@@ -308,6 +320,7 @@ def search(request,location,text):
 @login_required
 def active_directory(request,domain,id):
     print(id)
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
     domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
     clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
@@ -327,7 +340,7 @@ def active_directory(request,domain,id):
     data = json.loads(user_data.content)
     groups = json.loads(groups_req.content)
     for i in groups["hits"]["hits"]:
-        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
+        i['_source']['updated'] = i['updated'] = parse_datetime(i['updated'])
         i['source'] = i.pop('_source')
         i['id'] = i.pop('_id')
     return render(
@@ -403,3 +416,4 @@ def create_profile(request):
         return JsonResponse({'success': 'Profile updated successfully'}, status=200)
     else:
         return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
+timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))

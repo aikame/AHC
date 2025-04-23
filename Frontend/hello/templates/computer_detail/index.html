@@ -62,12 +62,12 @@
     <div class="row">
       {% include "../Base/sidebar.html" %}
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
-        <H1 class="w-100 mb-3">{% if computer_json.Status %}
+        <H1 class="w-100 mb-3">{% if computer_json.status %}
           <i class="fas fa-circle status-icon status-true"></i>
           {% else %}
           <i class="fas fa-circle status-icon status-false"></i>
           {% endif %}
-          {{computer_json.ComputerName}}.{{computer_json.DomainName}} <a href="/updateComputerStatus/{{ id }}"><svg
+          {{computer_json.computerName}}.{{computer_json.domainName}} <a href="/updateComputerStatus/{{ id }}"><svg
               xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-repeat"
               viewBox="0 0 16 16">
               <path
@@ -92,40 +92,40 @@
             <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
               <div class="col row">
                 <div class="col-4">Обновлено: </div>
-                <div class="col-1 " style="width: 50%;"> {{computer_json.updated}} ( {{difMinutes}} минут назад)</div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.updated|date:"d.m.Y H:i:s"}} ( {{difMinutes}} минут назад)</div>
               </div>
               <div class="col row">
                 <div class="col-4">Операционная система</div>
-                <div class="col-1 " style="width: 50%;"> {{computer_json.WindowsEdition}} </div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.windowsEdition}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4"> IP</div>
-                <div class="col-1 "> {{computer_json.IPAddress}}</div>
+                <div class="col-1 "> {{computer_json.ipAddress}}</div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Имя</div>
-                <div class="col-1 " style="width: 50%;"> {{computer_json.ComputerName}} </div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.computerName}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Домен</div>
-                <div class="col-1 " style="width: 50%;"> {{computer_json.DomainName}} </div>
+                <div class="col-1 " style="width: 50%;"> {{computer_json.domainName}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Роль</div>
-                <div class="col-1 " style="width: 50%;">{{computer_json.ComputerRole}} </div>
+                <div class="col-1 " style="width: 50%;">{{computer_json.computerRole}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">ОЗУ(гб)</div>
-                <div class="col-1 ">{{computer_json.TotalRAMGB}} </div>
+                <div class="col-1 ">{{computer_json.totalRAMGB}} </div>
               </div>
               <div class="w-100 border-top"></div>
 
-              {% for disk in computer_json.DiskSpace %}
+              {% for disk in computer_json.diskSpace %}
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Диск {{disk.DeviceID}}</div>
@@ -133,7 +133,7 @@
               </div>
               {% endfor %}
 
-              {% for cpu in computer_json.CPUName %}
+              {% for cpu in computer_json.cpuName %}
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">ЦП</div>

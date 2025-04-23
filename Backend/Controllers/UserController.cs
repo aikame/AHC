@@ -97,7 +97,7 @@ namespace Backend.Controllers
                 JObject computer = JObject.Parse(await searchComputerResponse.Content.ReadAsStringAsync());
 
                 // создание AD-учетки
-                var adTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/UserCreation",
+                var adTask = client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/UserCreation",
                     new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
 
                 var adResponse = await adTask;
@@ -107,7 +107,7 @@ namespace Backend.Controllers
                 jsonADData["ProfileModelId"] = jsonProfile["_id"];
                 //создание почтового ящика
                 var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
-                var emailTask = client.PostAsync($"https://{computer["IPAddress"]}:{_connectorPort}/CreateMailBox",
+                var emailTask = client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/CreateMailBox",
                     new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json"));
 
 
@@ -143,7 +143,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
@@ -171,7 +171,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -198,7 +198,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/UnbanUser", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UnbanUser", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -223,7 +223,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/AddToGroup", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/AddToGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -300,7 +300,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/ChangePassword", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ChangePassword", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -327,7 +327,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", jsonContent);
 
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
@@ -359,7 +359,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/HideMailBox", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/HideMailBox", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -383,7 +383,7 @@ namespace Backend.Controllers
         
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computerObj = JObject.Parse(searchComputer);
-                var result = await client.GetAsync("https://" + computerObj["IPAddress"].ToString() + ":" + _connectorPort + "/GetAppInfo");
+                var result = await client.GetAsync("https://" + computerObj["ipAddress"].ToString() + ":" + _connectorPort + "/GetAppInfo");
                 Console.WriteLine(result.ToString());
                 string responseContent = await result.Content.ReadAsStringAsync();
                 if (result.IsSuccessStatusCode)
@@ -409,7 +409,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
 
                 string responseContent = await result.Content.ReadAsStringAsync();
                 var databaseReq = client.PostAsync("https://loacalhost:7080/group/add",
@@ -435,7 +435,7 @@ namespace Backend.Controllers
                 var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
-                var result = await client.GetAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group=" + group);
+                var result = await client.GetAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group=" + group);
                 string responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 Console.WriteLine(result);
@@ -462,7 +462,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/RemoveFromGroup", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/RemoveFromGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -489,7 +489,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/ShowMailBox", jsonContent);
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ShowMailBox", jsonContent);
 
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
@@ -513,7 +513,7 @@ namespace Backend.Controllers
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 Console.WriteLine($"CreateUser: {JsonConvert.SerializeObject(user)}");
-                var result = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(System.Text.Json.JsonSerializer.Serialize(user.GetProperty("_source")),
+                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(System.Text.Json.JsonSerializer.Serialize(user),
                                   Encoding.UTF8, "application/json"));
 
                 string responseADContent = await result.Content.ReadAsStringAsync();
@@ -527,7 +527,7 @@ namespace Backend.Controllers
 
                         JObject mailProfile = new JObject();
                         mailProfile["name"] = jsonADData["SamAccountName"];
-                        var resultEmail = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
+                        var resultEmail = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
                             Encoding.UTF8, "application/json"));
                         if (resultEmail.IsSuccessStatusCode)
                         {
@@ -625,7 +625,7 @@ namespace Backend.Controllers
 
 
                             var jsonUserBanContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                            var banResult = await client.PostAsync("https://" + computer["IPAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonUserBanContent);
+                            var banResult = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonUserBanContent);
                             // Пример действия: вывод на консоль
                             Console.WriteLine($"Domain: {domain}, User: {user}");
                         }
@@ -679,13 +679,11 @@ namespace Backend.Controllers
                 string computers = await responseComputers.Content.ReadAsStringAsync();
                 JsonDocument document = JsonDocument.Parse(computers);
                 JsonElement root = document.RootElement;
-
-                JsonElement hits = root.GetProperty("hits").GetProperty("hits");
                 List<string> domains = new List<string>();
-                foreach (JsonElement hit in hits.EnumerateArray())
+
+                foreach (JsonElement hit in root.EnumerateArray())
                 {
-                    JsonElement source = hit.GetProperty("_source");
-                    string domain = source.GetProperty("DomainName").ToString();
+                    string domain = hit.GetProperty("domainName").ToString();
                     if (!domains.Contains(domain))
                     {
                         domains.Add(domain);

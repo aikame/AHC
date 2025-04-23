@@ -75,10 +75,10 @@
                     {% for row in profiles_json%}
                     <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/employee/{{row.id}}";'>
                       <td class="fullName">{{row.name}} {{row.surname}}</td>
-                      {% if not '.jpg' in row.img_src %}
+                      {% if not '.jpg' in row.imgSrc %}
                         <td class="image"><img width="100" height="100" src="/static/default.jpg" alt=""></td> 
                       {% else %} 
-                        <td class="image"><img width="100" height="100" src="/static/media/employee_avatars/{{row.img_src}}"></td> 
+                        <td class="image"><img width="100" height="100" src="/static/media/employee_avatars/{{row.imgSrc}}"></td> 
                       {% endif %}
                       <td class="Job title">{{row.appointment}}</td>
                       <td class="city">{{row.city}}</td>

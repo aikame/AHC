@@ -54,10 +54,10 @@
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
         <H1 class="w-100 mb-3">СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
         <div class="col-2 text-center">
-          {% if not '.jpg' in profile_json.img_src %}
+          {% if not '.jpg' in profile_json.imgSrc %}
           <img width="200" height="200" src="/static/default.jpg">
           {% else %}
-          <img width="200" height="200" src="{% static 'media/employee_avatars/'%}{{profile_json.img_src}}">{% endif %}
+          <img width="200" height="200" src="{% static 'media/employee_avatars/'%}{{profile_json.imgSrc}}">{% endif %}
           <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
           <div>
             <button type="button" data-toggle="modal" data-target="#changeProfilePicModal" class="btn btn-outline-primary w-100 m-1"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-bounding-box" viewBox="0 0 16 16">
@@ -89,7 +89,7 @@
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4"> Дата приёма на работу</div>
-                <div class="col-3 "style="width: 50%;"> {{profile_json.apply_date}}</div>
+                <div class="col-3 "style="width: 50%;"> {{profile_json.applyDate |date:"d.m.Y H:i:s"}}</div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
@@ -110,7 +110,7 @@
               {% if 'None' not in profile_json.fire_date %}
               <div class="col row">
                 <div class="col-4">Дата увольнения</div>
-                <div class="col-1 text-danger" style="width: 50%;">{{profile_json.fire_date}} </div>
+                <div class="col-1 text-danger" style="width: 50%;">{{profile_json.fireDate |date:"d.m.Y H:i:s"}} </div>
               </div>
               {% endif %}
 

@@ -69,6 +69,16 @@ namespace DBC.Controllers
 
             return Ok(response.Documents);
         }
+        [HttpGet("oneprofile")]
+        public async Task<IActionResult> SearchOneProfile([FromQuery] string query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
+        {
+            var response = await SearchAsync<ElasticProfileModel>("profiles", "created", query, size);
+
+            if (!response.IsValidResponse)
+                return StatusCode(500, "Search Error");
+
+            return Ok(response.Documents.FirstOrDefault());
+        }
         [HttpGet("computer")]
         public async Task<IActionResult> SearchComputer([FromQuery] string? query, [FromQuery] int? size)
         {
