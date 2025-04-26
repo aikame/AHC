@@ -1,6 +1,8 @@
 ﻿using DBC.Models.Elastic;
 using Elastic.Clients.Elasticsearch.Core.Search;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Security.Principal;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DBC.Models.PostgreSQL
@@ -31,14 +33,18 @@ namespace DBC.Models.PostgreSQL
         public bool isIndexed { get; set; } = false;
         public ElasticProfileModel ToElasticProfileModel()
         {
-            var profiles = new List<JObject>();
+            var profiles = new List<Dictionary<string, object>>();
+
             if (ADAccounts.Count > 0)
             {
-                
+
 
                 foreach (var acc in ADAccounts)
                 {
-                    profiles.Add(JObject.FromObject(acc));
+                    profiles.Add(new Dictionary<string, object>
+                    {
+                        ["AD"] = acc.ToElastic()
+                    });
                 }
             }
             var elasticProfile = new ElasticProfileModel

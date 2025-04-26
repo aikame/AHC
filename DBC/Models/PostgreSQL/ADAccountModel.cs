@@ -1,14 +1,27 @@
-﻿namespace DBC.Models.PostgreSQL
+﻿using DBC.Models.Elastic;
+
+namespace DBC.Models.PostgreSQL
 {
     public class ADAccountModel
     {
         public Guid Id { get; set; }
-        public string? SID { get; set; }
+        public string? ObjectGUID { get; set; }
         public string? SamAccountName { get; set; }
+        public string? DistinguishedName { get; set; }
         public string? Domain { get; set; }
 
         public Guid ProfileModelId { get; set; }
-        public ProfileModel Profile { get; set; }
-
+        public ProfileModel? Profile { get; set; }
+        public ElasticADAccountModel ToElastic()
+        {
+            return new ElasticADAccountModel
+            {
+                Id = this.Id,
+                ObjectGUID = this.ObjectGUID,
+                SamAccountName = this.SamAccountName,
+                DistinguishedName = this.DistinguishedName,
+                Domain = this.Domain
+            };
+        }
     }
 }

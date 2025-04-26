@@ -9,6 +9,11 @@ services:
       POSTGRES_DB: ahc
     ports:
       - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: '0.50'
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4

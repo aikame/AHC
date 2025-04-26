@@ -74,6 +74,7 @@ namespace DBC.Controllers
         {
             if (account == null)
                 return BadRequest();
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -92,21 +93,16 @@ namespace DBC.Controllers
                 return StatusCode(500);
             }
 
-            var response = await _elasticsearchClient.GetAsync<ElasticProfileModel>(account.ProfileModelId, g => g
-                .Index("profiles")
-            );
+            var profile = await _context.Profiles
+                .Include(p => p.ADAccounts)
+                .FirstOrDefaultAsync(p => p.Id == account.ProfileModelId);
 
-            if (!response.IsValidResponse || response.Source == null)
+            if (profile == null)
                 return StatusCode(500, "Elastic profile error");
 
-            var profile = response.Source;
-            var jsonAd = new JObject
-            {
-                ["AD"] = JObject.FromObject(account)
-            };
-            profile.Profiles.Add(JObject.FromObject(jsonAd));
-
-            var updateResponse = await _elasticsearchClient.IndexAsync(profile, i => i
+            var elasticProfile = profile.ToElasticProfileModel();
+            _logger.LogInformation("[AddAD] Elastic model: " + JObject.FromObject(elasticProfile));
+            var updateResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
                 .Index("profiles")
                 .Id(account.ProfileModelId)
             );
@@ -116,6 +112,7 @@ namespace DBC.Controllers
 
             return Ok(updateResponse);
         }
+
 
         [HttpPost("update")]
         public async Task<IActionResult> UpdateProfile([FromBody] ProfileModel profile)
@@ -151,13 +148,8 @@ namespace DBC.Controllers
             if (profileFromDb == null)
                 return StatusCode(500, "db error");
 
-            var profiles = new List<JObject>();
 
-            foreach (var acc in profile.ADAccounts)
-            {
-                profiles.Add(JObject.FromObject(acc));
-            }
-            var elasticProfile = profile.ToElasticProfileModel();
+            var elasticProfile = profileFromDb.ToElasticProfileModel();
 
 
             var indexResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i

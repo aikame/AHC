@@ -104,7 +104,7 @@ namespace Backend.Controllers
                 if (!adResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании AD профиля.");
 
                 JObject jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
-                jsonADData["ProfileModelId"] = jsonProfile["_id"];
+                jsonADData["ProfileModelId"] = jsonProfile["id"];
                 //создание почтового ящика
                 var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
                 var emailTask = client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/CreateMailBox",
@@ -118,8 +118,9 @@ namespace Backend.Controllers
                     jsonProfile["email"] = jsonMail["Address"];
                 }
                 // обновляем профиль
-                
 
+                jsonADData["Domain"] = domain;
+                jsonADData["ProfileModelId"] = jsonProfile["id"];
                 var resultaddad = await client.PostAsync("https://localhost:7080/profile/add-adaccount",
                     new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
                 var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update",
@@ -507,12 +508,12 @@ namespace Backend.Controllers
         {
             Console.WriteLine(user);
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
+            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(5.0) })
             {
                 var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
-                Console.WriteLine($"CreateUser: {JsonConvert.SerializeObject(user)}");
+                Console.WriteLine($"CreateUser: {user}");
                 var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(System.Text.Json.JsonSerializer.Serialize(user),
                                   Encoding.UTF8, "application/json"));
 
@@ -542,11 +543,11 @@ namespace Backend.Controllers
                     string distinguishedName = jsonADData["DistinguishedName"].ToString();
                     string[] parts = distinguishedName.Split(',');
 
-                    var responseSearchUser = await client.GetAsync($"https://localhost:7080/search/profile?query={user.GetProperty("_id").ToString()}");
-                    string SearchUser = await responseSearchComputer.Content.ReadAsStringAsync();
+                    var responseSearchUser = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={user.GetProperty("id").ToString()}");
+                    string SearchUser = await responseSearchUser.Content.ReadAsStringAsync();
                     JObject SearchUserJson = JObject.Parse(SearchUser);
-
-                    jsonADData["ProfileModelId"] = SearchUserJson["Id"];
+                    jsonADData["Domain"] = domain;
+                    jsonADData["ProfileModelId"] = SearchUserJson["id"];
                     var resultaddad = await client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
 

@@ -210,33 +210,31 @@ def computer(request):
 
 @login_required
 def groups(request):
-    json_data = requests.get('http://127.0.0.2:8000/api/group')
+    json_data = requests.get('https://localhost:7080/search/group',verify=False)
     timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     data = json.loads(json_data.content)
     for i in data["hits"]["hits"]:
-        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
+        i['updated'] = parse_datetime(i['updated'])
     return render(
         request,
         'groups/index.html',
-        {'groups_json':data["hits"]["hits"]}
+        {'groups_json':data}
     )
 
 
 @login_required
 def group_detail(request, id):
-    group_data = requests.get(f'http://127.0.0.2:8000/api/group?_id={id}')
+    group_data = requests.get(f'https://localhost:7080/search/onegroup?query={id}')
     data = json.loads(group_data.content)
-    group = data["hits"]["hits"][0]["_source"]
+    group = data
     members = None
     try:
-        dn = group.get("DistinguishedName", "")
+        dn = group.get("distinguishedName", "")
 
         dc_parts = re.findall(r"DC=([^,]+)", dn)
 
         domain = ".".join(dc_parts)
-        group_name_encoded = urllib.parse.quote(group["Name"]).replace("%20", "+")
+        group_name_encoded = urllib.parse.quote(group["name"]).replace("%20", "+")
         print(domain) 
         getMembersReq = requests.get(f'https://127.0.0.1:7095/GetGroupMembers?group={group_name_encoded}&domain={domain}',verify = False, timeout=30)
         getMembersReq.raise_for_status()
@@ -295,15 +293,14 @@ def search(request,location,text):
     print('"'+location+"/"+text+'"')
     if (text == ""):
         text = "*"
-    search_text = '{"text":"'+text+'", "location":"'+location+'"}'
-    json_data = requests.get('http://127.0.0.2:8000/api/get',data=search_text.encode('utf-8'),headers={"Content-Type":"application/json"})
+    json_data = requests.get(f'https://localhost:7080/search/{location}?query={text}',headers={"Content-Type":"application/json"}, verify=False)
     data = json.loads(json_data.content)
     for i in data["hits"]["hits"]:
         i['source'] = i.pop('_source')
         i['id'] = i.pop('_id')
     renderurl = ""
     rendername = ""
-    if (location == "users"):
+    if (location == "profiles"):
         renderurl = 'profileslist/index.html'
         rendername = 'profiles_json'
     elif (location == "computers"):
@@ -322,27 +319,17 @@ def active_directory(request,domain,id):
     print(id)
     timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
-    domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
+   
     clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
-    search_groups = '{"text":"'+clean_domain+'", "location":"groups"}'
-    groups_req = requests.get(f'http://127.0.0.2:8000/api/get',data=search_groups.encode('utf-8'),headers={"Content-Type":"application/json"})
-    search_text = '{"text":"'+id+'", "location":"users"}'
-    profile_data = requests.get('http://127.0.0.2:8000/api/get',data=search_text.encode('utf-8'),headers={"Content-Type":"application/json"})
+    groups_req = requests.get(f'https://localhost:7080/search/group?query={clean_domain}',headers={"Content-Type":"application/json"},verify=False)
+    profile_data = requests.get('https://localhost:7080/search/oneprofile?query={id}',headers={"Content-Type":"application/json"},verify=False)
     profile = json.loads(profile_data.content)
-    profile_result = None
-    if profile["hits"]["total"]["value"] > 0:
-        for i in profile["hits"]["hits"]:
-            i['source'] = i.pop('_source')
-            i['id'] = i.pop('_id')
-        profile_result = profile["hits"]["hits"][0]
+
     
-    json_domain = json.loads(domain_data.content)
     data = json.loads(user_data.content)
     groups = json.loads(groups_req.content)
-    for i in groups["hits"]["hits"]:
-        i['_source']['updated'] = i['updated'] = parse_datetime(i['updated'])
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
+    for i in groups:
+        i['updated'] = parse_datetime(i['updated'])
     return render(
         request,
         "active_directory/index.html",
@@ -350,8 +337,8 @@ def active_directory(request,domain,id):
             'id':id,
             'ad_json':data,
             'domain':domain,
-            'groups':groups["hits"]["hits"],
-            'profile': profile_result
+            'groups':groups,
+            'profile': profile
         }
 
     )
@@ -386,13 +373,13 @@ def create_profile(request):
     #mail = request.GET.get('mail')
     if request.method == 'POST':
         data = {
-            'name': request.POST.get('name'),
-            'surname': request.POST.get('surname'),
-            'patronymic': request.POST.get('patronymic'),
-            'company': request.POST.get('company'),
-            'apply_date': request.POST.get('apply_date'),
-            'appointment': request.POST.get('appointment'),
-            'city': request.POST.get('city'),
+            'Name': request.POST.get('name'),
+            'Surname': request.POST.get('surname'),
+            'Patronymic': request.POST.get('patronymic'),
+            'Company': request.POST.get('company'),
+            'ApplyDate': request.POST.get('apply_date'),
+            'Appointment': request.POST.get('appointment'),
+            'City': request.POST.get('city'),
             'ADreq': False
         }
         print(data)

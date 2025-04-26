@@ -143,7 +143,7 @@
                   <div class="col row">
                     <div class="col-6">{{value.domain}}</div>
                     <div class="col-1 " style="width: 50%;">  
-                      <a href="/{{ key }}/{{value.domain}}/{{value.user}}">
+                      <a href="/{{ key }}/{{value.domain}}/{{value.samAccountName	}}">
                           <div class="col">
                               {% if 'AD' in key %}
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-windows" viewBox="0 0 16 16">
@@ -156,7 +156,7 @@
                                       <path d="M7.001 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0z" />
                                   </svg>
                               {% endif %}
-                              {{value.user}}
+                              {{value.samAccountName}}
                           </div>
                       </a>
                     </div>

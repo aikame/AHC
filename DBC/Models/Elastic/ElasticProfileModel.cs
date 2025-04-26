@@ -21,8 +21,7 @@ namespace DBC.Models.Elastic
         public string Appointment { get; set; }
 
         public string City { get; set; }
-
-        public List<JObject> Profiles { get; set; } = new List<JObject>();
+        public List<Dictionary<string, object>> Profiles { get; set; } = new();
         public string ImgSrc { get; set; } = ".";
     }
 }
