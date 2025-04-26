@@ -131,6 +131,9 @@ def employee(request,id):
     data = json.loads(user_data.content)
     user = data
     user["applyDate"] = parse_datetime(user['applyDate'])
+    print(user["fireDate"])
+    if (user["fireDate"] != None):
+        user["fireDate"] = parse_datetime(user['fireDate'])
     for profile in user["profiles"]:
         if "AD" in profile:
             for domain in domains:
@@ -264,9 +267,13 @@ def group_detail(request, id):
 
 @login_required
 def searchall(request):
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     json_data = requests.get('https://localhost:7080/search/profile',verify=False)
     data = json.loads(json_data.content)
-        
+    for i in data:
+        if (i["fireDate"] != None):
+            i["fireDate"] = parse_datetime(i['fireDate'])    
+            print(i["fireDate"])
     return render(
         request,
         'profileslist/index.html',

@@ -126,7 +126,10 @@ namespace DBC.Controllers
             {
                 profile.Created = DateTime.UtcNow;
                 profile.ApplyDate = DateTime.SpecifyKind(profile.ApplyDate, DateTimeKind.Utc);
-                profile.FireDate = null;
+                if (profile.FireDate != null)
+                {
+                    profile.FireDate = DateTime.SpecifyKind(profile.FireDate.Value, DateTimeKind.Utc);
+                }
                 _context.Profiles.Update(profile);
                 var status = await _context.SaveChangesAsync();
                 if (status == 0)

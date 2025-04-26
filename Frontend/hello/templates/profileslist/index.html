@@ -83,7 +83,7 @@
                       <td class="Job title">{{row.appointment}}</td>
                       <td class="city">{{row.city}}</td>
                       <td class="Email">{{row.email}}</td>
-                      <td class="fired text-danger">{% if 'None' not in row.fire_date %}{{row.fire_date}}{% endif %}</td>
+                      <td class="fired text-danger">{% if row.fireDate %}{{row.fireDate |date:"d.m.Y H:i:s"}}{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

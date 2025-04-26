@@ -593,12 +593,12 @@ namespace Backend.Controllers
                 ["id"] = data.GetProperty("id").GetString()
             };
             Console.WriteLine(id.ToJsonString());
-            JsonElement fire_date = data.GetProperty("fire_date");
+            //JsonElement fire_date = data.GetProperty("fire_date");
             using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
 
                 //var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
-                var result = await client.GetAsync($"https://localhost/search/oneprofile?query={id}");
+                var result = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={id}");
                 string responseContent = await result.Content.ReadAsStringAsync();
                 JsonDocument document = JsonDocument.Parse(responseContent);
                 JsonElement root = document.RootElement;
@@ -612,11 +612,11 @@ namespace Backend.Controllers
                 {
                     if (profile.TryGetProperty("AD", out JsonElement ad))
                     {
-                        var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+                        var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={ad.GetProperty("domain")}");
                         string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                         JObject computer = JObject.Parse(searchComputer);
                         string domain = ad.GetProperty("domain").GetString();
-                        string user = ad.GetProperty("SamAccountName").GetString();
+                        string user = ad.GetProperty("samAccountName").GetString();
                         var sdata = new JsonObject
                         {
                             ["name"] = user
@@ -629,13 +629,12 @@ namespace Backend.Controllers
                     }
                 }
                 
-                Console.WriteLine($"fire date: {fire_date}");
                 var fireDate = DateTime.UtcNow;
-                userJSON["fireDate"] = fireDate.ToString();
+                userJSON["fireDate"] = fireDate;
                 var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
                          Encoding.UTF8, "application/json"));
 
-                if (result.IsSuccessStatusCode)
+                if (result.IsSuccessStatusCode && resultUpdProfile.IsSuccessStatusCode)
                 {
                     return Ok();
                 }
@@ -652,10 +651,11 @@ namespace Backend.Controllers
             Console.WriteLine(data);
             using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
-
-                var userJSON = JsonConvert.DeserializeObject<JsonObject>(data.ToString());
-                Console.WriteLine($"fire date: {data}");
-                userJSON["fireDate"] = "";
+                var result = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={data.GetProperty("id")}");
+                string responseContent = await result.Content.ReadAsStringAsync();
+                var userJSON = JObject.Parse(responseContent);
+                Console.WriteLine($"ReturnUser date: {userJSON}");
+                userJSON["fireDate"] = null;
                 var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
                          Encoding.UTF8, "application/json"));
 
