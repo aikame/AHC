@@ -17,10 +17,10 @@
 
     async function addToGroup() {
             try {
-                let groupName = encodeURIComponent("{{group_json.Name}}");//document.getElementById("group-name-add").value;
+                let groupName = encodeURIComponent("{{group_json.name}}");//document.getElementById("group-name-add").value;
                 let id = document.getElementById("user-name").value;
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(`https://localhost:7095/AddToGroup`, {
+                var result = await fetch(`https://192.168.31.69:7095/AddToGroup`, {
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json'
@@ -31,7 +31,8 @@
                         },
                         "group": groupName,
                         "domain": domain
-                    })
+                    }),
+                    verify: false
                 })
                 let body = document.getElementById("addGroupStatus");
                 if (result.ok) {
@@ -103,7 +104,7 @@
       {% include "../Base/sidebar.html" %}
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
         <H1>
-          {{group_json.Name}}
+          {{group_json.name}}
         </H1>
 
 
@@ -123,42 +124,42 @@
             <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
               <div class="col row">
                 <div class="col-4">SamAccountName</div>
-                <div class="col-4 ">{{group_json.SamAccountName}} </div>
+                <div class="col-4 ">{{group_json.samAccountName}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">DistinguishedName</div>
-                <div class="col-4 " style="width: 50%;"> {{group_json.DistinguishedName}} </div>
+                <div class="col-4 " style="width: 50%;"> {{group_json.distinguishedName}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Описание</div>
-                <div class="col-4 ">{{group_json.Description}} </div>
+                <div class="col-4 ">{{group_json.description}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Категория</div>
-                <div class="col-4 " style="width: 50%;"> {{group_json.GroupCategory}} </div>
+                <div class="col-4 " style="width: 50%;"> {{group_json.groupCategory}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Область действия</div>
-                <div class="col-4 " style="width: 50%;">{{group_json.GroupScope}} </div>
+                <div class="col-4 " style="width: 50%;">{{group_json.groupScope}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Объект</div>
-                <div class="col-4 ">{{group_json.ObjectClass}} </div>
+                <div class="col-4 ">{{group_json.objectClass}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">GUID</div>
-                <div class="col-4 ">{{group_json.ObjectGUID}} </div>
+                <div class="col-4 ">{{group_json.objectGUID}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">SID</div>
-                <div class="col-4 ">{{group_json.SID}} </div>
+                <div class="col-4 ">{{group_json.sid}} </div>
               </div>
 
               <div class="w-100 border-top"></div>

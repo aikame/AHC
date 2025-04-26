@@ -413,11 +413,11 @@ namespace Backend.Controllers
                 var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
 
                 string responseContent = await result.Content.ReadAsStringAsync();
-                var databaseReq = client.PostAsync("https://loacalhost:7080/group/add",
+                var databaseReq = await client.PostAsync("https://localhost:7080/group/add",
                     new StringContent(responseContent, Encoding.UTF8, "application/json"));
-
                 Console.WriteLine(result.ToString());
-                if (result.IsSuccessStatusCode)
+                Console.WriteLine(databaseReq.ToString());
+                if (result.IsSuccessStatusCode && databaseReq.IsSuccessStatusCode)
                 {
                     return Ok();
                 }
@@ -597,43 +597,42 @@ namespace Backend.Controllers
             using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
             {
 
-                var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
-                var result = await client.GetAsync($"https://localhost/profile/search?query={jsonContent}");
+                //var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
+                var result = await client.GetAsync($"https://localhost/search/oneprofile?query={id}");
                 string responseContent = await result.Content.ReadAsStringAsync();
                 JsonDocument document = JsonDocument.Parse(responseContent);
                 JsonElement root = document.RootElement;
 
-                JsonElement hits = root.GetProperty("hits").GetProperty("hits");
+                //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
 
-                foreach (JsonElement hit in hits.EnumerateArray())
+                JObject userJSON = JObject.Parse(responseContent);
+                JsonElement profiles = root.GetProperty("profiles");
+
+                foreach (JsonElement profile in profiles.EnumerateArray())
                 {
-                    JsonElement source = hit.GetProperty("_source");
-                    JsonElement profiles = source.GetProperty("profiles");
-
-                    foreach (JsonElement profile in profiles.EnumerateArray())
+                    if (profile.TryGetProperty("AD", out JsonElement ad))
                     {
-                        if (profile.TryGetProperty("AD", out JsonElement ad))
+                        var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+                        string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+                        JObject computer = JObject.Parse(searchComputer);
+                        string domain = ad.GetProperty("domain").GetString();
+                        string user = ad.GetProperty("SamAccountName").GetString();
+                        var sdata = new JsonObject
                         {
-                            var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
-                            string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                            JObject computer = JObject.Parse(searchComputer);
-                            string domain = ad.GetProperty("domain").GetString();
-                            string user = ad.GetProperty("user").GetString();
-                            var sdata = new JsonObject
-                            {
-                                ["name"] = user
-                            };
+                            ["name"] = user
+                        };
 
 
-                            var jsonUserBanContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                            var banResult = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonUserBanContent);
-                            // Пример действия: вывод на консоль
-                            Console.WriteLine($"Domain: {domain}, User: {user}");
-                        }
+                        var jsonUserBanContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+                        var banResult = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonUserBanContent);
+                        Console.WriteLine($"Domain: {domain}, User: {user}");
                     }
                 }
+                
                 Console.WriteLine($"fire date: {fire_date}");
-                var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/fire_user", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
+                var fireDate = DateTime.UtcNow;
+                userJSON["fireDate"] = fireDate.ToString();
+                var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
                          Encoding.UTF8, "application/json"));
 
                 if (result.IsSuccessStatusCode)
@@ -654,9 +653,10 @@ namespace Backend.Controllers
             using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
 
-
+                var userJSON = JsonConvert.DeserializeObject<JsonObject>(data.ToString());
                 Console.WriteLine($"fire date: {data}");
-                var resultUpdProfile = await client.PostAsync("http://127.0.0.2:8000/api/return_user", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
+                userJSON["fireDate"] = "";
+                var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
                          Encoding.UTF8, "application/json"));
 
                 if (resultUpdProfile.IsSuccessStatusCode)

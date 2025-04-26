@@ -12,6 +12,8 @@ namespace DBC.Models.PostgreSQL
 
         public Guid ProfileModelId { get; set; }
         public ProfileModel? Profile { get; set; }
+
+        public bool? Enabled { get; set; }
         public ElasticADAccountModel ToElastic()
         {
             return new ElasticADAccountModel
@@ -20,7 +22,8 @@ namespace DBC.Models.PostgreSQL
                 ObjectGUID = this.ObjectGUID,
                 SamAccountName = this.SamAccountName,
                 DistinguishedName = this.DistinguishedName,
-                Domain = this.Domain
+                Domain = this.Domain,
+                Enabled = this.Enabled
             };
         }
     }

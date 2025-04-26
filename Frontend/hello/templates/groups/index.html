@@ -87,10 +87,10 @@
                 <tbody>
                     {% for row in groups_json%}
                     <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/group/{{row.id}}";'>
-                      <td class="Name">{{row.source.Name}}</td>
-                      <td class="GroupCategory">{{row.source.GroupCategory}}</td>
-                      <td class="GroupScope">{{ row.source.GroupScope }}</td>
-                      <td class="DistinguishedName">{{ row.source.DistinguishedName }}</td>
+                      <td class="Name">{{row.name}}</td>
+                      <td class="GroupCategory">{{row.groupCategory}}</td>
+                      <td class="GroupScope">{{ row.groupScope }}</td>
+                      <td class="DistinguishedName">{{ row.distinguishedName }}</td>
 
                     </tr>
                     {% endfor %}

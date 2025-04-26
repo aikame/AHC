@@ -213,8 +213,7 @@ def groups(request):
     json_data = requests.get('https://localhost:7080/search/group',verify=False)
     timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     data = json.loads(json_data.content)
-    for i in data["hits"]["hits"]:
-        i['updated'] = parse_datetime(i['updated'])
+
     return render(
         request,
         'groups/index.html',
@@ -224,8 +223,9 @@ def groups(request):
 
 @login_required
 def group_detail(request, id):
-    group_data = requests.get(f'https://localhost:7080/search/onegroup?query={id}')
+    group_data = requests.get(f'https://localhost:7080/search/onegroup?query={id}',verify=False)
     data = json.loads(group_data.content)
+    print(data)
     group = data
     members = None
     try:
@@ -255,7 +255,7 @@ def group_detail(request, id):
         request,
         'group/index.html',
         {
-            'group_json': data["hits"]["hits"][0]["_source"],
+            'group_json': data,
             'id': id,
             'members':members, # =null
             'domain':domain
@@ -328,8 +328,7 @@ def active_directory(request,domain,id):
     
     data = json.loads(user_data.content)
     groups = json.loads(groups_req.content)
-    for i in groups:
-        i['updated'] = parse_datetime(i['updated'])
+
     return render(
         request,
         "active_directory/index.html",

@@ -134,14 +134,21 @@ namespace DBC.Controllers
         [HttpGet("group")]
         public async Task<IActionResult> SearchGroup([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
-            var response = await SearchAsync<GroupModel>("groups", "Name", query,size);
+            var response = await SearchAsync<GroupModel>("groups", "name.keyword", query,size);
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");
 
             return Ok(response.Documents);
         }
-
+        [HttpGet("onegroup")]
+        public async Task<IActionResult> SearchOneGroup([FromQuery] string query)
+        {
+            var response = await SearchAsync<GroupModel>("groups", "name.keyword", query, 1);
+            if (!response.IsValidResponse)
+                return StatusCode(500, "Search Error");
+            return Ok(response.Documents.FirstOrDefault());
+        }
         [HttpGet("all")]
         public async Task<IActionResult> SearchAll([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
