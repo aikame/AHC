@@ -299,9 +299,10 @@ namespace ADDC.Controllers
             {
                 StringBuilder sb = new StringBuilder();
                 password = "";
+                upperCaseHit = false; lowerCaseHit = false; numsHit = false; specHit = false;
                 for (int i = 0; i < length; i++)
                 {
-                    upperCaseHit = false; lowerCaseHit = false; numsHit = false; specHit = false;
+                    
                     int type = rand.Next(0, 4);
                     char s;
                     switch (type)
@@ -353,6 +354,7 @@ namespace ADDC.Controllers
             {
                 JObject jsonData = JObject.Parse(result);
                 jsonData["password"] = password;
+                _logger.LogInformation($"[UserCreation] Created: {jsonData}");
                 return Content(JsonConvert.SerializeObject(jsonData));
             }
             catch (Exception e)

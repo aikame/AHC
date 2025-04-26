@@ -33,7 +33,7 @@ namespace ADDC.Services
             _logger.LogInformation("PostRequestService is starting.");
 
             //SendPostRequest();
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
             return Task.CompletedTask;
         }

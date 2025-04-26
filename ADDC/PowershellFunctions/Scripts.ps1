@@ -387,18 +387,25 @@ function UserCreation {
 
         $index = 0  
         $baseUserName = "$firstName.$lastName" 
-        while ($true) {    
+        while ($index -le 100) {    
             $userName = $baseUserName     
             if ($index -ne 0) {         
                 $userName += $index     
             }     
-            $user = Get-ADUser -identity $userName -ErrorAction SilentlyContinue     
+            $user = $null
+	    try {
+		$user = Get-ADUser -identity $userName -ErrorAction SilentlyContinue     
+	    } catch {
+		$user = $null
+	    }   
             if ( $null -eq $user ) {                  
                 break     
             }     
             $index++ 
         }
-
+	if ( $index -ge 99) {
+	    return "500"
+	}
         $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().Name
 
         $UserPName = "$userName@$domain"
