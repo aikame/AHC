@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Backend.models
 {
@@ -31,7 +32,7 @@ namespace Backend.models
         public int? Id { get; set; }
         public string WindowsEdition { get; set; }
         public string IPAddress { get; set; }
-        public string DomainName { get; set; }
+        public JsonElement Domain { get; set; }
         public float TotalRAMGB { get; set; }
         public List<JsonElement> DiskSpace  { get; set; }
         public List<string> CPUName { get; set; }

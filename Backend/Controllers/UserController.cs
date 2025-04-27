@@ -250,7 +250,7 @@ namespace Backend.Controllers
             ComputerModel computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(data.ToString());
             using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
-                var result = await client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
+                var result = await client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
                                  Encoding.UTF8, "application/json"));
 
                 var jsonContent = new StringContent(data.ToString(), Encoding.UTF8, "application/json");

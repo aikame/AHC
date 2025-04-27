@@ -1,7 +1,6 @@
 ﻿using DBC.Data;
 using DBC.Models.Elastic;
 using DBC.Models.PostgreSQL;
-using DBC.Models.Shared;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,77 +24,7 @@ namespace DBC.Controllers
             _context = context;
             _logger = logger;
         }
-        //[HttpPost("add")]
-        //public async Task<IActionResult> AddComputer([FromBody] ComputerModel computer)
-        //{
-        //    _logger.LogInformation("[AddComputer]: " + JsonConvert.SerializeObject(computer));
-        //    if (computer == null)
-        //    {
-        //        return BadRequest();
-        //    }
 
-        //    var computerDB = await _context.Computers.FirstOrDefaultAsync(p => p.ComputerName == computer.ComputerName);
-        //    using var transaction = await _context.Database.BeginTransactionAsync();
-        //    try
-        //    {
-        //        if (computerDB != null)
-        //        {
-        //            computerDB.Updated = DateTime.UtcNow;
-        //            computerDB.WindowsEdition = computer.WindowsEdition;
-        //            computerDB.IPAddress = computer.IPAddress;
-        //            computerDB.DomainName = computer.DomainName;
-        //            computerDB.TotalRAMGB = computer.TotalRAMGB;
-        //            computerDB.DiskSpace = computer.DiskSpace;
-        //            computerDB.CPUName = computer.CPUName;
-        //            computerDB.CPUCores = computer.CPUCores;
-        //            computerDB.ComputerRole = computer.ComputerRole;
-        //            computerDB.Status = computer.Status;
-        //            computerDB.isIndexed = false;
-        //        }
-        //        else
-        //        {
-        //            _context.Computers.Add(computer);
-        //        }
-
-
-        //        var status = await _context.SaveChangesAsync();
-        //        if (status == 0)
-        //        {
-        //            throw new Exception("SQL AddComputer Error");
-        //        }
-        //        await transaction.CommitAsync();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        await transaction.RollbackAsync();
-        //        _logger.LogError("[AddComputer]: " + e.ToString());
-        //        return StatusCode(500);
-        //    }
-        //    IndexResponse indexResponse;
-        //    if (computerDB != null)
-        //    {
-        //        indexResponse = await _elasticsearchClient.IndexAsync(computerDB, i => i
-        //        .Index("computers")
-        //        .Id(computerDB.Id)
-        //        );
-        //    }
-        //    else
-        //    {
-        //        indexResponse = await _elasticsearchClient.IndexAsync(computer, i => i
-        //        .Index("computers")
-        //        .Id(computer.Id)
-        //        );
-        //    }
-
-        //    if (!indexResponse.IsValidResponse)
-        //        return StatusCode(500, "ElasticSearch error");
-
-        //    indexComp.isIndexed = true;
-        //    //_context.Computers.Update(computer);
-        //    await _context.SaveChangesAsync();
-
-        //    return Ok(indexResponse);
-        //}
         [HttpPost("add")]
         public async Task<IActionResult> AddComputer([FromBody] ComputerModel computer)
         {
@@ -107,6 +36,18 @@ namespace DBC.Controllers
 
             try
             {
+                var existingDomain = await _context.Domains
+            .FirstOrDefaultAsync(d => d.Forest == computer.Domain.Forest);
+
+                if (existingDomain == null)
+                {
+                    existingDomain = computer.Domain;
+                    existingDomain.Id = Guid.NewGuid();
+                    _context.Domains.Add(existingDomain);
+                    await _context.SaveChangesAsync();
+                }
+                computer.DomainId = existingDomain.Id;
+                computer.Domain = null;
                 var existing = await _context.Computers
                     .AsTracking()
                     .FirstOrDefaultAsync(p => p.ComputerName == computer.ComputerName);
@@ -117,7 +58,7 @@ namespace DBC.Controllers
                     existing.Updated = DateTime.UtcNow;
                     existing.WindowsEdition = computer.WindowsEdition;
                     existing.IPAddress = computer.IPAddress;
-                    existing.DomainName = computer.DomainName;
+                    existing.DomainId = computer.DomainId;
                     existing.TotalRAMGB = computer.TotalRAMGB;
                     existing.DiskSpace = computer.DiskSpace;
                     existing.CPUName = computer.CPUName;

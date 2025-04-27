@@ -9,6 +9,8 @@ namespace DBC.Data
         public DbSet<ADAccountModel> ADAccounts { get; set; }
         public DbSet<ComputerModel> Computers { get; set; }
         public DbSet<GroupModel> Groups { get; set; }
+        public DbSet<DomainModel> Domains { get; set; }
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -18,6 +20,18 @@ namespace DBC.Data
                 .WithMany(p => p.ADAccounts)
                 .HasForeignKey(a => a.ProfileModelId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ADAccountModel>()
+                .HasOne(a => a.Domain)
+                .WithMany()
+                .HasForeignKey(a => a.DomainId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ComputerModel>()
+                .HasOne(a => a.Domain)
+                .WithMany()
+                .HasForeignKey(a => a.DomainId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ComputerModel>()
                 .Property(e => e.DiskSpace)
@@ -30,6 +44,12 @@ namespace DBC.Data
             modelBuilder.Entity<ComputerModel>()
                 .Property(e => e.CPUCores)
                 .HasColumnType("integer[]");
+
+            modelBuilder.Entity<GroupModel>()
+                .HasOne(a => a.Domain)
+                .WithMany()
+                .HasForeignKey(a => a.DomainId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }

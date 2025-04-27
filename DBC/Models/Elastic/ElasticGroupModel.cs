@@ -1,6 +1,6 @@
-﻿namespace DBC.Models.Shared
+﻿namespace DBC.Models.Elastic
 {
-    public class GroupModel
+    public class ElasticGroupModel
     {
         public Guid Id { get; set; }
         public string? PSComputerName { get; set; }
@@ -14,7 +14,7 @@
         public string? ObjectGUID { get; set; }
         public string? SamAccountName { get; set; }
         public string? SID { get; set; }
+        public string? DomainName { get; set; }
 
-        public bool isIndexed { get; set; } = false;
     }
 }

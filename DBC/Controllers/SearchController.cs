@@ -1,6 +1,6 @@
 ﻿using DBC.Data;
 using DBC.Models.Elastic;
-using DBC.Models.Shared;
+using DBC.Models.PostgreSQL;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
@@ -99,7 +99,7 @@ namespace DBC.Controllers
         [HttpGet("domain-controller")]
         public async Task<IActionResult> SearchDomainController([FromQuery] string domain)
         {
-            var response = await _elasticsearchClient.SearchAsync<ComputerModel>(s => s
+            var response = await _elasticsearchClient.SearchAsync<ElasticComputerModel>(s => s
                 .Index("computers")
                 .Query(q => q
                     .Bool(b => b

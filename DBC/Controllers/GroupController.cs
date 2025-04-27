@@ -1,5 +1,5 @@
 ﻿using DBC.Data;
-using DBC.Models.Shared;
+using DBC.Models.PostgreSQL;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
