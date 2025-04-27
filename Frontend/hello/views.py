@@ -271,7 +271,7 @@ def searchall(request):
     json_data = requests.get('https://localhost:7080/search/profile',verify=False)
     data = json.loads(json_data.content)
     for i in data:
-        if (i["fireDate"] != None):
+        if ("fireDate" in i and i["fireDate"] != None):
             i["fireDate"] = parse_datetime(i['fireDate'])    
             print(i["fireDate"])
     return render(
@@ -297,20 +297,22 @@ def createAD(request,id,domain):
 
 @login_required
 def search(request,location,text):
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     print('"'+location+"/"+text+'"')
     if (text == ""):
         text = "*"
     json_data = requests.get(f'https://localhost:7080/search/{location}?query={text}',headers={"Content-Type":"application/json"}, verify=False)
     data = json.loads(json_data.content)
-    for i in data["hits"]["hits"]:
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
+    for i in data:
+        if ("fireDate" in i and i["fireDate"] != None):
+            i["fireDate"] = parse_datetime(i['fireDate'])    
+            print(i["fireDate"])
     renderurl = ""
     rendername = ""
-    if (location == "profiles"):
+    if (location == "profile"):
         renderurl = 'profileslist/index.html'
         rendername = 'profiles_json'
-    elif (location == "computers"):
+    elif (location == "computer"):
         renderurl = 'computer/index.html'
         rendername = 'computers_json'
     else:
@@ -319,7 +321,7 @@ def search(request,location,text):
     return render(
         request,
         renderurl,
-        {rendername:data["hits"]["hits"]}
+        {rendername:data}
     )
 @login_required
 def active_directory(request,domain,id):
