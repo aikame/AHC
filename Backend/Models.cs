@@ -16,7 +16,7 @@ namespace Backend.models
         public string Company { get; set; }
 
         public string ApplyDate { get; set; }
-        public string FireDate { get; set; } = "";
+        public string? FireDate { get; set; } = null;
         public string Appointment { get; set; }
 
         public string City { get; set; }

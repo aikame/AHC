@@ -65,8 +65,7 @@ namespace DBC.Controllers
             profile.isIndexed = true;
             _context.Profiles.Update(profile);
             await _context.SaveChangesAsync();
-
-            return Ok(indexResponse);
+            return Ok(profile);
         }
 
         [HttpPost("add-adaccount")]

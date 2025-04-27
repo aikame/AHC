@@ -78,16 +78,20 @@ namespace Backend.Controllers
                 }
 
                 var profileResponse = await profileTask;
-                if (!profileResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании профиля.");
 
+                if (!profileResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Error: " + profileResponse);
+                    return BadRequest("Ошибка при создании профиля.");
+                }
                 string responseContent = await profileResponse.Content.ReadAsStringAsync();
-                var jsonProfile = JsonConvert.DeserializeObject<JObject>(JsonConvert.DeserializeObject<string>(responseContent));
+                var jsonProfile = JObject.Parse(responseContent);// JsonConvert.DeserializeObject<JObject>(JsonConvert.DeserializeObject<string>(responseContent));
                 Console.WriteLine($"Parsed JSON Response: {jsonProfile}");
 
                 // Если AD не нужен, сразу возвращаем ID
                 if (!user.ADreq)
                 {
-                    return Content(jsonProfile["_id"].ToString());
+                    return Content(jsonProfile["id"].ToString());
                 }
 
                 if (searchComputerTask == null) return BadRequest("Ошибка при поиске компьютера.");
@@ -126,7 +130,7 @@ namespace Backend.Controllers
                 var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update",
                     new StringContent(JsonConvert.SerializeObject(jsonProfile), Encoding.UTF8, "application/json"));
 
-                return resultUpdProfile.IsSuccessStatusCode ? Content(jsonProfile["_id"].ToString()) : BadRequest("Ошибка обновления профиля.");
+                return resultUpdProfile.IsSuccessStatusCode ? Content(jsonProfile["id"].ToString()) : BadRequest("Ошибка обновления профиля.");
             }
         }
         [HttpGet("GetInfo")]

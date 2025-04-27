@@ -22,43 +22,36 @@ namespace DBC.Controllers
             _logger = logger;
         }
 
-        private async Task<SearchResponse<T>> SearchAsync<T>(string index, string sortField, string? query, int? size) where T : class 
+        private async Task<SearchResponse<T>> SearchAsync<T>(string? index, string sortField, string? query, int? size) where T : class
         {
-            if (!string.IsNullOrEmpty(index))
+            if (string.IsNullOrEmpty(sortField))
             {
-                if (size != null)
-                {
-                    var response = await _elasticsearchClient.SearchAsync<T>(s => s
-                    .Index(index)
-                    .Sort(ss => ss
-                        .Field(new Field(sortField), sort => sort.Order(SortOrder.Desc))
-                    )
-                    .Size(size));
-                    return response;
-                }
-                else
-                {
-                    var response = await _elasticsearchClient.SearchAsync<T>(s => s
-                    .Index(index)
-                    .Sort(ss => ss
-                        .Field(new Field(sortField), sort => sort.Order(SortOrder.Desc))
-                    ));
-                    return response;
-
-                }
-                
-            } else
-            {
-                var response = await _elasticsearchClient.SearchAsync<T>(s => s
-                .Query(q => q
-                    .MultiMatch(mm => mm
-                        .Query(query)
-                    )
-                ));
-                return response;
-
+                throw new ArgumentNullException(nameof(sortField), "Поле для сортировки должно быть указано.");
             }
+            var response = await _elasticsearchClient.SearchAsync<T>(s =>
+            {
+                s.Index(!string.IsNullOrEmpty(index) ? Indices.Index(index) : Indices.All);
+
+                if (!string.IsNullOrEmpty(query))
+                {
+                    s.Query(q => q
+                        .MultiMatch(mm => mm.Query(query))
+                    );
+                }
+
+                s.Sort(ss => ss
+                    .Field(sortField, f => f.Order(SortOrder.Desc))
+                );
+
+                s.Size(size);
+            });
+
+            return response;
         }
+
+
+
+
         [HttpGet("profile")]
         public async Task<IActionResult> SearchProfile([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
