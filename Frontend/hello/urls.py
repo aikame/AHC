@@ -25,5 +25,12 @@ urlpatterns = [
     path("createAD/<str:domain>/<str:id>",views.createAD,name="createAD"),
     path("createProfile",views.create_profile,name="createProfile"),
     path("createGroup",views.create_group,name="createGroup"),
+    path("AD/<str:domain>/<str:id>/showMail",views.showMail,name="showMail"),
+    path("AD/<str:domain>/<str:id>/hideMail",views.hideMail,name="hideMail"),
+    path("AD/<str:domain>/<str:id>/ban",views.ban,name="ban"),
+    path("AD/<str:domain>/<str:id>/unban",views.unban,name="unban"),
+    path("AD/<str:domain>/<str:id>/addToGroup",views.addToGroup,name="addToGroup"),
+    path("AD/<str:domain>/<str:id>/removeFromGroup",views.removeFromGroup,name="removeFromGroup"),
+    path("AD/<str:domain>/<str:id>/changePassword",views.changePassword,name="changePassword"),
     #static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]

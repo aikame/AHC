@@ -195,7 +195,7 @@ namespace Backend.Controllers
             Console.WriteLine(id + " -> " + decodedId);
             JObject sdata = new JObject();
             sdata["name"] = decodedId;
-            Console.WriteLine($"Prepared: {sdata}");
+            Console.WriteLine($"UnbanUser: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
             using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {

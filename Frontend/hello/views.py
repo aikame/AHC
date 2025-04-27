@@ -329,7 +329,7 @@ def active_directory(request,domain,id):
    
     clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
     groups_req = requests.get(f'https://localhost:7080/search/group?query={clean_domain}',headers={"Content-Type":"application/json"},verify=False)
-    profile_data = requests.get('https://localhost:7080/search/oneprofile?query={id}',headers={"Content-Type":"application/json"},verify=False)
+    profile_data = requests.get(f'https://localhost:7080/search/oneprofile?query={id}',headers={"Content-Type":"application/json"},verify=False)
     profile = json.loads(profile_data.content)
 
     
@@ -401,12 +401,69 @@ def create_profile(request):
     else:
         return JsonResponse({'success': 'Invalid request'}, status=400)
 
-    user = user_data.json()["hits"]["hits"][0]
-    content = JSONRenderer().render(user)
-    result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
-    print(result.status_code)
+    path("showMail",view=showMail,name="showMail"),
+    path("hideMail",view=hideMail,name="hideMail"),
+    path("ban",view=ban,name="ban"),
+    path("unban",view=unban,name="unban"),
+    path("addToGroup",view=addToGroup,name="addToGroup"),
+    path("removeFromGroup",view=removeFromGroup,name="removeFromGroup"),
+    path("ChangePassword",view=ChangePassword,name="ChangePassword"),
+
+@login_required
+def showMail(request,domain,id):
+    result = requests.get(f'https://localhost:7095/ShowMailBox?domain={domain}&id={id}',verify=False)
     if result.status_code ==200:
-        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+        return JsonResponse({'success': 'showMail successfull'}, status=200)
     else:
-        return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
+        return JsonResponse({'error': 'showMail unsuccessfull'}, status=500)
+
+
+@login_required
+def hideMail(request,domain,id):
+    result = requests.get(f'https://localhost:7095/HideMailBox?domain={domain}&id={id}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'hideMail successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'hideMail unsuccessfull'}, status=500)
+
+
+@login_required
+def ban(request,domain,id):
+    result = requests.get(f'https://localhost:7095/BanUser?id={id}&domain={domain}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'ban successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'ban unsuccessfull'}, status=500)
+
+@login_required
+def unban(request,domain,id):
+    print(id)
+    print(domain)
+    result = requests.get(f'https://localhost:7095/UnbanUser?id={id}&domain={domain}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'unban successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'unban unsuccessfull'}, status=500)
+
+@login_required
+def addToGroup(request,domain,id):
+    result = requests.post(f'https://localhost:7095/AddToGroup',data=request.body,verify=False,headers={"Content-Type": "application/json"})
+    if result.status_code ==200:
+        return JsonResponse({'success': 'addToGroup successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'addToGroup unsuccessfull'}, status=500)
+
+@login_required
+def removeFromGroup(request):
+    result = requests.post(f'https://localhost:7095/RemoveFromGroup',data=request.body,verify=False,headers={"Content-Type": "application/json"})
+    print(result.text)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'addToGroup successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'addToGroup unsuccessfull'}, status=500)
+
+@login_required
+def changePassword(request):
+    return JsonResponse({'error': 'changePassword unsuccessfull'}, status=500)
+
 timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))

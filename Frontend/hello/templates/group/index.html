@@ -2,6 +2,7 @@
 <html>
 
 <head>
+  <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
   <script>
     async function send_info() {
       let UserLogin = document.getElementById("UserLoginforUserInfo").value;
@@ -20,10 +21,12 @@
                 let groupName = encodeURIComponent("{{group_json.name}}");//document.getElementById("group-name-add").value;
                 let id = document.getElementById("user-name").value;
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(`https://192.168.31.69:7095/AddToGroup`, {
+                let csrfToken = document.getElementById("csrf-token").value;
+                var result = await fetch(id+`/addToGroup`, {
                     method: "POST",
                     headers: new Headers({
-                        'content-Type': 'application/json'
+                        'content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
                     }),
                     body: JSON.stringify({
                         "user": {
