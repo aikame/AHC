@@ -144,7 +144,7 @@ namespace Backend.Controllers
             sdata["login"] = id;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["login"].ToString());
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
+            using (HttpClient client = new HttpClient())
             {
                 var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
@@ -155,6 +155,12 @@ namespace Backend.Controllers
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
                 {
+                    var jsonADData = JObject.Parse(responseContent);
+                    jsonADData["Domain"] = new JObject
+                    {
+                        ["Forest"] = domain
+                    };
+                    var responseUpdateAd = client.PostAsync($"https://localhost:7080/profile/update-adaccount", new StringContent(jsonADData.ToString(), Encoding.UTF8, "application/json"));
                     return Content(responseContent);
                 }
                 else

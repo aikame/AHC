@@ -116,6 +116,54 @@ namespace DBC.Controllers
             return Ok(updateResponse);
         }
 
+        [HttpPost("update-adaccount")]
+        public async Task<IActionResult> UpdateADAccount([FromBody] ADAccountModel account)
+        {
+            if (account == null)
+                return BadRequest();
+            var existingAcc = await _context.ADAccounts
+            .Include(a => a.Domain)
+            .FirstOrDefaultAsync(a => a.DistinguishedName == account.DistinguishedName);
+            if (existingAcc == null)
+                return NotFound("acc not exists");
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                existingAcc.Enabled = account.Enabled;
+                
+                var status = await _context.SaveChangesAsync();
+                if (status == 0)
+                {
+                    throw new Exception("SQL AddAD Error");
+                }
+                await transaction.CommitAsync();
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError("[AddAD]: " + e.ToString());
+                return StatusCode(500);
+            }
+
+            var profile = await _context.Profiles
+                .Include(p => p.ADAccounts)
+                .FirstOrDefaultAsync(p => p.Id == existingAcc.ProfileModelId);
+
+            if (profile == null)
+                return StatusCode(500, "Elastic profile error");
+
+            var elasticProfile = profile.ToElasticProfileModel();
+            _logger.LogInformation("[AddAD] Elastic model: " + JObject.FromObject(elasticProfile));
+            var updateResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
+                .Index("profiles")
+                .Id(profile.Id)
+            );
+
+            if (!updateResponse.IsValidResponse)
+                return StatusCode(500, "ElasticSearch not updated");
+
+            return Ok(updateResponse);
+        }
 
         [HttpPost("update")]
         public async Task<IActionResult> UpdateProfile([FromBody] ProfileModel profile)

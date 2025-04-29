@@ -23,6 +23,8 @@ from django.urls import reverse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
+import asyncio
+import aiohttp
 import re
 import urllib.parse
 from django.utils.timezone import make_aware,get_current_timezone, utc
@@ -323,38 +325,48 @@ def search(request,location,text):
         renderurl,
         {rendername:data}
     )
+def sync_render_ad(request, domain, id):
+    return asyncio.run(active_directory_async(request, domain, id))
+
 @login_required
-def active_directory(request,domain,id):
+def active_directory(request, domain, id):
+    return sync_render_ad(request, domain, id)
+
+async def active_directory_async(request, domain, id):
     print(id)
     timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
-    user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
-   
+
     clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
-    groups_req = requests.get(f'https://localhost:7080/search/group?query={clean_domain}',headers={"Content-Type":"application/json"},verify=False)
-    profile_data = requests.get(f'https://localhost:7080/search/oneprofile?query={id}',headers={"Content-Type":"application/json"},verify=False)
-    profile = None
-    if profile_data and profile_data.content:
-        try:
-            profile = json.loads(profile_data.content)
-        except (json.JSONDecodeError, TypeError):
-            profile = None
-    
-    data = json.loads(user_data.content)
-    groups = json.loads(groups_req.content)
+
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
+        urls = {
+            'user_data': f'https://localhost:7095/GetInfo?id={id}&domain={domain}',
+            'groups_req': f'https://localhost:7080/search/group?query={clean_domain}',
+            'profile_data': f'https://localhost:7080/search/oneprofile?query={id}',
+        }
+
+        async def fetch_json(name, url):
+            async with session.get(url, headers={"Content-Type": "application/json"}) as resp:
+                content = await resp.read()
+                try:
+                    return name, json.loads(content)
+                except (json.JSONDecodeError, TypeError):
+                    return name, None
+
+        results = await asyncio.gather(*(fetch_json(k, v) for k, v in urls.items()))
+        result_dict = dict(results)
 
     return render(
         request,
         "active_directory/index.html",
         {
-            'id':id,
-            'ad_json':data,
-            'domain':domain,
-            'groups':groups,
-            'profile': profile
+            'id': id,
+            'ad_json': result_dict['user_data'],
+            'domain': domain,
+            'groups': result_dict['groups_req'],
+            'profile': result_dict['profile_data']
         }
-
     )
-
 
 @login_required
 def create_group(request):

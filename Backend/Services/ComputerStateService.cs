@@ -29,7 +29,7 @@ namespace Backend.Services
         {
             _logger.LogInformation("ComputerStateService is starting.");
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(30));
 
             return Task.CompletedTask;
         }
