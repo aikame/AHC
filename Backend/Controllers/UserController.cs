@@ -760,34 +760,6 @@ namespace Backend.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-        [HttpPost("CreateUser")]
-        public async Task<IActionResult> UserCreation([FromBody] string data)
-        {
-            JObject jsonData = JObject.Parse(data);
-            UserModel user = jsonData["user"].ToObject<UserModel>();
-            string domain = jsonData["domain"].ToString();
-
-            Console.WriteLine(user.Name);
-            Console.WriteLine(domain);
-
-            using (HttpClient client = new HttpClient())
-            {
-                Console.WriteLine($"Getinfo: {JsonConvert.SerializeObject(user)}");
-                var result = await client.PostAsync(domain + "/UserCreation", new StringContent(JsonConvert.SerializeObject(user),
-                                  Encoding.UTF8, "application/json"));
-                //var result = await client.PostAsJsonAsync(domain+ "/UserCreation", JsonConvert.SerializeObject(user));
-                Console.WriteLine(result.ToString());
-                if (result.IsSuccessStatusCode)
-                {
-                    return Ok("Запрос выполнен успешно.");
-                }
-                else
-                {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
-                }
-            }
-        }
-
 
     }
 }
