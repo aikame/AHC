@@ -392,3 +392,5 @@ Elastic/DBC/.venv/pyvenv.cfg
 Elastic/DBC/.venv/pyvenv.cfg
 Frontend/.venv/pyvenv.cfg
 Frontend/db.sqlite3
+/DBC/Migrations
+*.sqlite3
