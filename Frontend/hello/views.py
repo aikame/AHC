@@ -332,8 +332,12 @@ def active_directory(request,domain,id):
     clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
     groups_req = requests.get(f'https://localhost:7080/search/group?query={clean_domain}',headers={"Content-Type":"application/json"},verify=False)
     profile_data = requests.get(f'https://localhost:7080/search/oneprofile?query={id}',headers={"Content-Type":"application/json"},verify=False)
-    profile = json.loads(profile_data.content)
-
+    profile = None
+    if profile_data and profile_data.content:
+        try:
+            profile = json.loads(profile_data.content)
+        except (json.JSONDecodeError, TypeError):
+            profile = None
     
     data = json.loads(user_data.content)
     groups = json.loads(groups_req.content)

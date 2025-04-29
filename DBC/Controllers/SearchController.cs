@@ -1,6 +1,7 @@
 ﻿using DBC.Data;
 using DBC.Models.Elastic;
 using DBC.Models.PostgreSQL;
+using DBC.Models.Shared;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
@@ -75,7 +76,7 @@ namespace DBC.Controllers
         [HttpGet("computer")]
         public async Task<IActionResult> SearchComputer([FromQuery] string? query, [FromQuery] int? size)
         {
-            var response = await SearchAsync<ComputerModel>("computers","updated", query, size);
+            var response = await SearchAsync<ElasticComputerModel>("computers","updated", query, size);
 
             if (!response.IsValidResponse)
             {
@@ -90,7 +91,7 @@ namespace DBC.Controllers
         [HttpGet("onecomputer")]
         public async Task<IActionResult> SearchOneComputer([FromQuery] string query)
         {
-            var response = await SearchAsync<ComputerModel>("computers", "updated", query, 1);
+            var response = await SearchAsync<ElasticComputerModel>("computers", "updated", query, 1);
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");
             return Ok(response.Documents.FirstOrDefault());
@@ -123,11 +124,20 @@ namespace DBC.Controllers
             return Ok(controller);
         }
 
+        [HttpGet("domain")]
+        public async Task<IActionResult> Searchdomain([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
+        {
+            var response = await SearchAsync<DomainModel>("domains", "forest.keyword", query, size);
 
+            if (!response.IsValidResponse)
+                return StatusCode(500, "Search Error");
+
+            return Ok(response.Documents);
+        }
         [HttpGet("group")]
         public async Task<IActionResult> SearchGroup([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
-            var response = await SearchAsync<GroupModel>("groups", "name.keyword", query,size);
+            var response = await SearchAsync<ElasticGroupModel>("groups", "name.keyword", query,size);
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");
@@ -145,7 +155,7 @@ namespace DBC.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> SearchAll([FromQuery] string? query, [FromQuery] int? size, [FromQuery] bool? fullcomp)
         {
-            var response = await SearchAsync<JsonObject>("*","Id", query, size);
+            var response = await SearchAsync<JsonObject>("*","id.keyword", query, size);
 
             if (!response.IsValidResponse)
                 return StatusCode(500, "Search Error");

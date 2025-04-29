@@ -33,7 +33,7 @@ namespace DBC.Controllers
                 return BadRequest();
 
             using var transaction = await _context.Database.BeginTransactionAsync();
-
+            bool isNewDomain = false;
             try
             {
                 var existingDomain = await _context.Domains
@@ -45,6 +45,7 @@ namespace DBC.Controllers
                     existingDomain.Id = Guid.NewGuid();
                     _context.Domains.Add(existingDomain);
                     await _context.SaveChangesAsync();
+                    isNewDomain = true;
                 }
                 computer.DomainId = existingDomain.Id;
                 computer.Domain = null;
@@ -82,18 +83,29 @@ namespace DBC.Controllers
             catch (Exception e)
             {
                 await transaction.RollbackAsync();
+                isNewDomain = false;
                 _logger.LogError("[AddComputer]: " + e);
                 return StatusCode(500);
             }
-
+            
             var compToIndex = await _context.Computers.FirstOrDefaultAsync(p => p.ComputerName == computer.ComputerName);
-
-            var indexResponse = await _elasticsearchClient.IndexAsync(compToIndex, i => i
+            IndexResponse domainIndexResponse;
+            var isValid = true;
+            if (isNewDomain)
+            {
+                domainIndexResponse = await _elasticsearchClient.IndexAsync(compToIndex.Domain, i => i
+                .Index("domains")
+                .Id(compToIndex.Domain.Id)
+                );
+                isValid = domainIndexResponse.IsValidResponse;
+            }
+            var elasticComp = compToIndex.ToElastic();
+            var indexResponse = await _elasticsearchClient.IndexAsync(elasticComp, i => i
                 .Index("computers")
-                .Id(compToIndex.Id)
+                .Id(elasticComp.Id)
             );
 
-            if (!indexResponse.IsValidResponse)
+            if (!indexResponse.IsValidResponse || isNewDomain ? !isValid : false)
                 return StatusCode(500, "ElasticSearch AddComputer error");
 
             // Обновляем флаг
@@ -112,6 +124,14 @@ namespace DBC.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var existingDomain = await _context.Domains
+.FirstOrDefaultAsync(d => d.Forest == computer.Domain.Forest);
+
+                if (existingDomain == null)
+                {
+                    return BadRequest("invalid domain");
+                }
+                computer.Domain = existingDomain;
                 computer.Updated = DateTime.UtcNow;
                 _context.Computers.Update(computer);
                 var status = await _context.SaveChangesAsync();
@@ -129,7 +149,7 @@ namespace DBC.Controllers
             }
 
 
-            var indexResponse = await _elasticsearchClient.IndexAsync(computer, i => i
+            var indexResponse = await _elasticsearchClient.IndexAsync(computer.ToElastic(), i => i
                 .Index("computers")
                 .Id(computer.Id)
             );
@@ -144,7 +164,7 @@ namespace DBC.Controllers
 
             return Ok(indexResponse);
         }
-
+        
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteComputer([FromQuery] string id)
         {
@@ -169,10 +189,10 @@ namespace DBC.Controllers
         [HttpPost("reindexate")]
         public async Task<IActionResult> Reindexate()
         {
-            var computers = await _context.Computers.ToListAsync();
+            var computers = await _context.Computers.Include(c => c.Domain).ToListAsync();
             foreach (var computer in computers)
             {
-                var response = await _elasticsearchClient.IndexAsync(computer, i => i
+                var response = await _elasticsearchClient.IndexAsync(computer.ToElastic(), i => i
                     .Index("computers")
                     .Id(computer.Id));
 

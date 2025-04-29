@@ -73,10 +73,14 @@ namespace DBC.Controllers
         {
             if (account == null)
                 return BadRequest();
-
+            var existingDomain = await _context.Domains
+            .FirstOrDefaultAsync(d => d.Forest == account.Domain.Forest);
+            if (existingDomain == null)
+                return NotFound("Domain not exists");
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                account.Domain = existingDomain;
                 _context.ADAccounts.Add(account);
                 var status = await _context.SaveChangesAsync();
                 if (status == 0)
@@ -146,7 +150,9 @@ namespace DBC.Controllers
 
             var profileFromDb = await _context.Profiles
                 .Include(p => p.ADAccounts)
+                .ThenInclude(a => a.Domain)
                 .FirstOrDefaultAsync(p => p.Id == profile.Id);
+                
             if (profileFromDb == null)
                 return StatusCode(500, "db error");
 
@@ -194,7 +200,7 @@ namespace DBC.Controllers
         [HttpPost("reindexate")]
         public async Task<IActionResult> Reindexate()
         {
-            var profiles = await _context.Profiles.ToListAsync();
+            var profiles = await _context.Profiles.Include(p => p.ADAccounts).ThenInclude(p => p.Domain).ToListAsync();
             foreach (var profile in profiles)
             {
                 var elasticProfile = profile.ToElasticProfileModel();

@@ -4,6 +4,7 @@ using Elastic.Clients.Elasticsearch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Security.Principal;
 
 namespace DBC.Controllers
 {
@@ -28,9 +29,14 @@ namespace DBC.Controllers
             {
                 return BadRequest();
             }
+            var existingDomain = await _context.Domains
+            .FirstOrDefaultAsync(d => d.Forest == group.Domain.Forest);
+            if (existingDomain == null)
+                return NotFound("Domain not exists");
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                group.Domain = existingDomain;
                 _context.Groups.Add(group);
                 var status = await _context.SaveChangesAsync();
                 if (status == 0)
@@ -47,7 +53,7 @@ namespace DBC.Controllers
             }
 
 
-            var indexResponse = await _elasticsearchClient.IndexAsync(group, i => i
+            var indexResponse = await _elasticsearchClient.IndexAsync(group.ToElastic(), i => i
                 .Index("groups")
                 .Id(group.Id)
             );
@@ -89,7 +95,7 @@ namespace DBC.Controllers
             }
 
 
-            var indexResponse = await _elasticsearchClient.IndexAsync(group, i => i
+            var indexResponse = await _elasticsearchClient.IndexAsync(group.ToElastic(), i => i
                 .Index("groups")
                 .Id(group.Id)
             );
@@ -129,7 +135,7 @@ namespace DBC.Controllers
         [HttpPost("reindexate")]
         public async Task<IActionResult> Reindexate()
         {
-            var groups = await _context.Groups.ToListAsync();
+            var groups = await _context.Groups.Include(g => g.Domain).ToListAsync();
             foreach (var group in groups)
             {
                 var response = await _elasticsearchClient.IndexAsync(group, i => i

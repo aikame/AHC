@@ -38,6 +38,8 @@ namespace DBC.Models.PostgreSQL
                 WindowsEdition = this.WindowsEdition,
                 IPAddress = this.IPAddress,
                 DomainName = this.Domain.Forest, 
+                DiskSpace = this.DiskSpace,
+                TotalRAMGB = this.TotalRAMGB,
                 CPUName = this.CPUName,
                 CPUCores = this.CPUCores,
                 ComputerName = this.ComputerName,

@@ -48,6 +48,8 @@ namespace DBC.Services
 
                     var unsyncedProfiles = await db.Profiles
                         .Where(p => !p.isIndexed)
+                        .Include(p => p.ADAccounts)
+                        .ThenInclude(p => p.Domain)
                         .ToListAsync();
 
                     foreach (var profile in unsyncedProfiles)
@@ -96,13 +98,14 @@ namespace DBC.Services
 
                 var unsyncedComputers = await db.Computers
                     .Where(p => !p.isIndexed)
+                    .Include(p => p.Domain)
                     .ToListAsync();
 
                 foreach (var computer in unsyncedComputers)
                 {
                     try
                     {
-                        var response = await _elasticsearchClient.IndexAsync(computer, i => i
+                        var response = await _elasticsearchClient.IndexAsync(computer.ToElastic(), i => i
                             .Index("computers")
                             .Id(computer.Id));
 
@@ -144,13 +147,14 @@ namespace DBC.Services
 
                 var unsyncedGroups = await db.Groups
                     .Where(p => !p.isIndexed)
+                    .Include(p => p.Domain)
                     .ToListAsync();
 
                 foreach (var group in unsyncedGroups)
                 {
                     try
                     {
-                        var response = await _elasticsearchClient.IndexAsync(group, i => i
+                        var response = await _elasticsearchClient.IndexAsync(group.ToElastic(), i => i
                             .Index("groups")
                             .Id(group.Id));
 

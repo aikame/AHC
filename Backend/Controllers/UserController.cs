@@ -123,7 +123,9 @@ namespace Backend.Controllers
                 }
                 // обновляем профиль
 
-                jsonADData["Domain"] = domain;
+                jsonADData["Domain"] = new JObject {
+                    ["Forest"] = domain
+                };
                 jsonADData["ProfileModelId"] = jsonProfile["id"];
                 var resultaddad = await client.PostAsync("https://localhost:7080/profile/add-adaccount",
                     new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
@@ -417,8 +419,13 @@ namespace Backend.Controllers
                 var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
 
                 string responseContent = await result.Content.ReadAsStringAsync();
+                var groupAD = JObject.Parse(responseContent);
+                groupAD["Domain"] = new JObject
+                {
+                    ["Forest"] = jsonData["domain"]
+                };
                 var databaseReq = await client.PostAsync("https://localhost:7080/group/add",
-                    new StringContent(responseContent, Encoding.UTF8, "application/json"));
+                    new StringContent(groupAD.ToString(), Encoding.UTF8, "application/json"));
                 Console.WriteLine(result.ToString());
                 Console.WriteLine(databaseReq.ToString());
                 if (result.IsSuccessStatusCode && databaseReq.IsSuccessStatusCode)
@@ -550,7 +557,10 @@ namespace Backend.Controllers
                     var responseSearchUser = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={user.GetProperty("id").ToString()}");
                     string SearchUser = await responseSearchUser.Content.ReadAsStringAsync();
                     JObject SearchUserJson = JObject.Parse(SearchUser);
-                    jsonADData["Domain"] = domain;
+                    jsonADData["Domain"] = new JObject
+                    {
+                        ["Forest"] = domain
+                    };
                     jsonADData["ProfileModelId"] = SearchUserJson["id"];
                     var resultaddad = await client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
@@ -678,23 +688,17 @@ namespace Backend.Controllers
         public async Task<IActionResult> GetDomainList([FromQuery] string? data)
         {
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
+            using (HttpClient client = new HttpClient())
             {
-                var responseComputers = await client.GetAsync($"https://localhost:7080/search/computer");
-                string computers = await responseComputers.Content.ReadAsStringAsync();
-                JsonDocument document = JsonDocument.Parse(computers);
-                JsonElement root = document.RootElement;
+                var responseComputers = await client.GetAsync($"https://localhost:7080/search/domain");
+                string domainsRes = await responseComputers.Content.ReadAsStringAsync();
+                List<JObject> JSONdomains = Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(domainsRes);
                 List<string> domains = new List<string>();
-
-                foreach (JsonElement hit in root.EnumerateArray())
+                foreach (JObject domainJSON in JSONdomains)
                 {
-                    string domain = hit.GetProperty("domainName").ToString();
-                    if (!domains.Contains(domain))
-                    {
-                        domains.Add(domain);
-                    }
+                    string domain = domainJSON["forest"].ToString();
+                    domains.Add(domain);
                 }
-
 
                 if (domains.Count > 0)
                 {

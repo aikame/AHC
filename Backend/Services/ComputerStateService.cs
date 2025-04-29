@@ -11,6 +11,7 @@ using System.Net.NetworkInformation;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.Extensions.Logging;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.DirectoryServices.ActiveDirectory;
 namespace Backend.Services
 {
     public class ComputerStateService : IHostedService, IDisposable
@@ -28,7 +29,7 @@ namespace Backend.Services
         {
             _logger.LogInformation("ComputerStateService is starting.");
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
 
             return Task.CompletedTask;
         }
@@ -47,43 +48,37 @@ namespace Backend.Services
                 {
                     var result = await client.GetAsync("https://localhost:7080/search/computer");
                     string responseContent = await result.Content.ReadAsStringAsync();
+                    List<JObject> root = Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(responseContent);
+                    //JsonDocument document = JsonDocument.Parse(responseContent);
+                    //JsonElement root = document.RootElement;
 
-                    JsonDocument document = JsonDocument.Parse(responseContent);
-                    JsonElement root = document.RootElement;
-
-                    if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() == 0)
+                    if (root.Count == 0)
                     {
                         _logger.LogError("No computers at database");
                         return;
                     }
 
-                    foreach (JsonElement item in root.EnumerateArray())
+                    foreach (JObject item in root)
                     {
-                        if (!item.TryGetProperty("ipAddress", out JsonElement ipElement))
-                            continue;
-
-                        string address = ipElement.GetString();
+                        string address = item["ipAddress"].ToString();
                         bool status = CheckPing(address);
 
-                        using var jsonObj = JsonDocument.Parse(item.GetRawText());
-                        var jsonDict = JsonSerializer.Deserialize<Dictionary<string, object>>(item.GetRawText());
-
-                        if (jsonDict == null)
-                            continue;
-
-                        jsonDict["status"] = status;
-                        var updatedJson = JsonSerializer.Serialize(jsonDict);
-                        var content = new StringContent(updatedJson, Encoding.UTF8, "application/json");
+                        item["status"] = status;
+                        item["Domain"] = new JObject
+                        {
+                            ["Forest"] = item["domainName"]
+                        };
+                        var content = new StringContent(item.ToString(), Encoding.UTF8, "application/json");
     
                         var updResult = await client.PostAsync("https://localhost:7080/computer/update", content);
 
                         if (updResult.IsSuccessStatusCode)
                         {
-                            _logger.LogInformation($"{jsonDict["computerName"]} ({address}) changed state to: {status}");
+                            _logger.LogInformation($"{item["computerName"]} ({address}) changed state to: {status}");
                         }
                         else
                         {
-                            _logger.LogError($"Error changing state {jsonDict["computerName"]} ({address}) to: {status}");
+                            _logger.LogError($"Error changing state {item["computerName"]} ({address}) to: {status}");
                         }
                     }
                 }
