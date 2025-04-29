@@ -15,7 +15,7 @@ namespace _1CC
 
         public string company = "";
 
-        public string apply_date = "";
+        public string applydate = "";
 
         public string appointment = "";
 
@@ -26,7 +26,7 @@ namespace _1CC
         public bool CheckForTroubles()
         {
             if (name.Length < MinLenght || surname.Length < MinLenght || 
-                company.Length < MinLenght || apply_date.Length < MinLenght || appointment.Length < MinLenght || city.Length < MinLenght)
+                company.Length < MinLenght || applydate.Length < MinLenght || appointment.Length < MinLenght || city.Length < MinLenght)
                 return false;
 
             Regex regex = new Regex(@"^[à-ÿÀ-ß]+$");
@@ -40,7 +40,7 @@ namespace _1CC
 
             try
             {
-                DateOnly donly = DateOnly.Parse(apply_date);
+                DateOnly donly = DateOnly.Parse(applydate);
                 Console.WriteLine(donly.ToString());
             }
             catch 

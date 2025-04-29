@@ -34,7 +34,7 @@ class ComputerSerializer(serializers.Serializer):
     WindowsEdition = serializers.CharField(max_length=80)
     IPAddress = serializers.CharField(max_length=20)
     DomainName = serializers.CharField(max_length=30)
-    TotalRAMGB = serializers.IntegerField()
+    TotalRAMGB = serializers.FloatField()
     DiskSpace = serializers.JSONField()
     CPUName = serializers.JSONField()
     CPUCores = serializers.JSONField()

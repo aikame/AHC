@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             $('#addGroupModal').on('hidden.bs.modal', function () {
@@ -20,8 +21,8 @@
             let id = encodeURIComponent("{{ id }}");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-
-                var result = await fetch(`https://localhost:7095/HideMailBox?id=${id}&domain=${domain}`);
+                var result = await fetch(id+`/hideMail`);
+                //var result = await fetch(`https://192.168.31.69:7095/HideMailBox?id=${id}&domain=${domain}`);
 
                 body.innerText = "Почтовый ящик был успешно скрыт";
             } catch {
@@ -40,8 +41,8 @@
             let body = document.getElementById("showMailModalBody");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-
-                var result = await fetch(`https://localhost:7095/ShowMailBox?id=${id}&domain=${domain}`);
+                var result = await fetch(id+`/showMail`);
+                //var result = await fetch(`https://192.168.31.69:7095/ShowMailBox?id=${id}&domain=${domain}`);
 
                 body.innerText = "Почтовый ящик снова показан";
             } catch {
@@ -62,7 +63,7 @@
             let body = document.getElementById("banModalBody");
             try {
 
-                var result = await fetch(`https://localhost:7095/BanUser?id=${id}&domain=${domain}`).then(response => response.json());
+                var result = await fetch(id+`/ban`).then(response => response.json());
 
             } catch (error) {
                 console.warn(error)
@@ -84,7 +85,7 @@
             let domain = encodeURIComponent("{{ domain }}");
             try {
 
-                var result = await fetch(`https://localhost:7095/UnbanUser?id=${id}&domain=${domain}`).then(response => response.json());
+                var result = await fetch(id+`/unban`).then(response => response.json());
 
                 body.innerText = "Пользователя удалось разблокировать";
             } catch (error) {
@@ -105,10 +106,12 @@
                 let groupName = document.getElementById("group-name-add").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(`https://localhost:7095/AddToGroup`, {
+                let csrfToken = document.getElementById("csrf-token").value;
+                var result = await fetch(id+`/addToGroup`, {
                     method: "POST",
                     headers: new Headers({
-                        'content-Type': 'application/json'
+                        'content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
                     }),
                     body: JSON.stringify({
                         "user": {
@@ -137,10 +140,12 @@
                 let groupName = document.getElementById("group-name-rem").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(`https://localhost:7095/RemoveFromGroup`, {
+                let csrfToken = document.getElementById("csrf-token").value;
+                var result = await fetch(id+`/removeFromGroup`, {
                     method: "POST",
                     headers: new Headers({
-                        'content-Type': 'application/json'
+                        'content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
                     }),
                     body: JSON.stringify({
                         "user": {
@@ -169,7 +174,7 @@
                 let Passw = document.getElementById("password-field").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(`https://localhost:7095/ChangePassword`, {
+                var result = await fetch(id+`/changePassword`, {
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json'
@@ -241,7 +246,7 @@
                 {% if profile is None %}
                     <H2 class="w-100 mb-3">Нет профиля</H2>
                 {% else %}
-                    <H2 class="w-100 mb-3 text-primary"  ><a href="/employee/{{profile.id}}">{{ profile.source.surname }} {{ profile.source.name }} {{ profile.source.patronymic}}</a></H2>
+                    <H2 class="w-100 mb-3 text-primary"  ><a href="/employee/{{profile.id}}">{{ profile.surname }} {{ profile.name }} {{ profile.patronymic}}</a></H2>
                 {% endif %}
                 <H2 class="w-100 mb-3">Учётная запись Active Directory: {{domain}}\{{id}}</H2>
 
@@ -452,7 +457,7 @@
                             <select class="form-select" id="group-name-add" aria-label="Default select example">
                                 <option selected>Выберите группу</option>
                                 {% for group in groups %}
-                                <option value="{{ group.source.Name }}">{{ group.source.Name }}</option>
+                                <option value="{{ group.name }}">{{ group.name }}</option>
                                 {% endfor %}
                               </select>
                             <span id="addGroupStatus"></span>

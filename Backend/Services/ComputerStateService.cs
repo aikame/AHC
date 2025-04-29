@@ -10,7 +10,8 @@ using System.Text.Json.Nodes;
 using System.Net.NetworkInformation;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.Extensions.Logging;
-
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.DirectoryServices.ActiveDirectory;
 namespace Backend.Services
 {
     public class ComputerStateService : IHostedService, IDisposable
@@ -28,7 +29,7 @@ namespace Backend.Services
         {
             _logger.LogInformation("ComputerStateService is starting.");
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
 
             return Task.CompletedTask;
         }
@@ -41,44 +42,43 @@ namespace Backend.Services
         private async void CheckComputerState()
         {
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 try
                 {
-                    var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
+                    var result = await client.GetAsync("https://localhost:7080/search/computer");
                     string responseContent = await result.Content.ReadAsStringAsync();
-                    Console.WriteLine(responseContent);
-                    JsonDocument document = JsonDocument.Parse(responseContent);
-                    JsonElement root = document.RootElement;
-                    JsonElement hitstemp, hits;
-                    if (!root.TryGetProperty("hits", out hitstemp))
+                    List<JObject> root = Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(responseContent);
+                    //JsonDocument document = JsonDocument.Parse(responseContent);
+                    //JsonElement root = document.RootElement;
+
+                    if (root.Count == 0)
                     {
-                        _logger.LogError($"No computers at database");
+                        _logger.LogError("No computers at database");
                         return;
                     }
-                    if (!hitstemp.TryGetProperty("hits", out hits))
-                    {
-                        _logger.LogError($"No computers at database");
-                        return;
-                    }
-                    //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
 
-                    foreach (JsonElement hit in hits.EnumerateArray())
+                    foreach (JObject item in root)
                     {
-                        JsonElement source = hit.GetProperty("_source");
-                        string address = source.GetProperty("IPAddress").ToString();
-                        var computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(source);
-                        computer.Status = CheckPing(address);
+                        string address = item["ipAddress"].ToString();
+                        bool status = CheckPing(address);
 
-                        var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
-                            Encoding.UTF8, "application/json"));
-                        if (result.IsSuccessStatusCode)
+                        item["status"] = status;
+                        item["Domain"] = new JObject
                         {
-                            _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");
+                            ["Forest"] = item["domainName"]
+                        };
+                        var content = new StringContent(item.ToString(), Encoding.UTF8, "application/json");
+    
+                        var updResult = await client.PostAsync("https://localhost:7080/computer/update", content);
+
+                        if (updResult.IsSuccessStatusCode)
+                        {
+                            _logger.LogInformation($"{item["computerName"]} ({address}) changed state to: {status}");
                         }
                         else
                         {
-                            _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
+                            _logger.LogError($"Error changing state {item["computerName"]} ({address}) to: {status}");
                         }
                     }
                 }

@@ -104,6 +104,11 @@
           <main class="text-center ml-sm-auto px-md-4">
           <h1 class="m-3"> Добро пожаловать</h1>
             <form method="post" action="/auth">
+              {% if errortxt is not None %}
+              <div class="alert alert-danger mb-4">
+               {{ errortxt }}
+              </div>
+              {% endif %}
               {% csrf_token %}
             <div class="form-outline text-center mb-4">
               <input type="text" id="loginId" name="user" class="form-control w-50 " placeholder="Domain\Login" />

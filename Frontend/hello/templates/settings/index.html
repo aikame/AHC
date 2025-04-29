@@ -102,9 +102,9 @@
                     </button>
                   </div>
                   <div class="modal-body">
-                    <form  method="POST">
+                    <form  method="POST" action="/createProfile" id="profileForm">
                       {% csrf_token %}
-                      <div class="form-group" >
+                      <div class="form-group">
                         <label for="name" class="col-form-label">Имя:</label>
                         <input type="text" class="form-control" id="name" name="name"  required>
             
@@ -125,7 +125,7 @@
             
                         <label for="city" class="col-form-label">Город:</label>
                         <input type="text" class="form-control" id="city" name="city" required>
-
+          
                       </div>
                       <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>

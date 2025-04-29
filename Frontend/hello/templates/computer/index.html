@@ -88,16 +88,16 @@
                     {% for row in computers_json%}
                     <tr class="border-bottom py-2 align-items-center ms-0" onclick='window.location="/computer/{{row.id}}";'>
                       <td class="Status">
-                        {% if row.source.Status %}
+                        {% if row.status %}
                         <i class="fas fa-circle status-icon status-true"></i>
                         {% else %}
                         <i class="fas fa-circle status-icon status-false"></i>
                         {% endif %}
                       </td>
-                      <td class="DomainName">{{row.source.ComputerName}}.{{row.source.DomainName}}</td>
-                      <td class="IPAddress">{{row.source.IPAddress}}</td>
-                      <td class="ComputerRole">{{ row.source.ComputerRole }}</td>
-                      <td class="updated">{{ row.source.updated|date:"d.m.Y H:i:s" }}</td>
+                      <td class="DomainName">{{row.computerName}}.{{row.domainName}}</td>
+                      <td class="IPAddress">{{row.ipAddress}}</td>
+                      <td class="ComputerRole">{{ row.computerRole }}</td>
+                      <td class="updated">{{ row.updated|date:"d.m.Y H:i:s" }}</td>
 
                     </tr>
                     {% endfor %}

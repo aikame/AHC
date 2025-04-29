@@ -21,7 +21,7 @@ class Computer(models.Model):
     WindowsEdition = models.CharField(max_length=80)
     IPAddress = models.CharField(max_length=20)
     DomainName = models.CharField(max_length=30)
-    TotalRAMGB = models.IntegerField()
+    TotalRAMGB = models.FloatField()
     DiskSpace = models.JSONField(max_length=500)
     CPUName = models.JSONField(max_length=500)
     CPUCores = models.JSONField(max_length=50)
