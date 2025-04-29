@@ -316,21 +316,61 @@ namespace Backend.Controllers
             Console.WriteLine($"Prepared: {jsonData}");
             Console.WriteLine(jsonData["name"].ToString());
 
-                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
-                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                JObject computer = JObject.Parse(searchComputer);
-                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", jsonContent);
+            var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+            string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+            JObject computer = JObject.Parse(searchComputer);
+            var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+            var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", jsonContent);
 
-                Console.WriteLine(result.ToString());
-                if (result.IsSuccessStatusCode)
+            var stringResult = await result.Content.ReadAsStringAsync();
+            
+            JObject jsonMail = new JObject();
+            if (result.IsSuccessStatusCode)
+            {
+                jsonMail = JObject.Parse(stringResult);
+            }
+            _ = Task.Run(async () =>
+            {
+                try
                 {
-                    return Ok("Запрос выполнен успешно.");
+                    JObject jsonMail = new JObject();
+
+                    if (result.IsSuccessStatusCode)
+                    {
+                        var responseMail = await result.Content.ReadAsStringAsync();
+                        Console.WriteLine(responseMail);
+                        jsonMail = JObject.Parse(responseMail);
+                    }
+                    
+
+                    var responseSearchUser = await _client.GetAsync($"https://localhost:7080/search/oneprofile?query={id}");
+                    if (!responseSearchUser.IsSuccessStatusCode) return;
+
+                    var searchUserJson = JObject.Parse(await responseSearchUser.Content.ReadAsStringAsync());
+
+
+                    searchUserJson["email"] = jsonMail["Address"];
+
+                    Console.WriteLine($"profile update: {searchUserJson}");
+
+                    await _client.PostAsync("https://localhost:7080/profile/update",
+                        new StringContent(JsonConvert.SerializeObject(searchUserJson), Encoding.UTF8, "application/json"));
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
+                    _logger.LogError($"[UserCreation background] {ex.Message}");
                 }
+            });
+
+            Console.WriteLine(result.ToString());
+            if (result.IsSuccessStatusCode)
+            {
+                return Ok("Запрос выполнен успешно.");
+            }
+            else
+            {
+                return BadRequest("Произошла ошибка при выполнении запроса.");
+            }
             
         }
         [HttpGet("HideMailBox")]

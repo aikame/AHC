@@ -32,5 +32,6 @@ urlpatterns = [
     path("AD/<str:domain>/<str:id>/addToGroup",views.addToGroup,name="addToGroup"),
     path("AD/<str:domain>/<str:id>/removeFromGroup",views.removeFromGroup,name="removeFromGroup"),
     path("AD/<str:domain>/<str:id>/changePassword",views.changePassword,name="changePassword"),
+    path("AD/<str:domain>/<str:id>/createMail",views.createMail,name="createMail"),
     #static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]

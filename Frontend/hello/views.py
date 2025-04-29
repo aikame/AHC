@@ -443,7 +443,13 @@ def hideMail(request,domain,id):
         return JsonResponse({'success': 'hideMail successfull'}, status=200)
     else:
         return JsonResponse({'error': 'hideMail unsuccessfull'}, status=500)
-
+@login_required
+def createMail(request,domain,id):
+    result = requests.get(f'https://localhost:7095/CreateMailBox?domain={domain}&id={id}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'CreateMailBox successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'CreateMailBox unsuccessfull'}, status=500)
 
 @login_required
 def ban(request,domain,id):

@@ -21,7 +21,7 @@
             let id = encodeURIComponent("{{ id }}");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-                var result = await fetch(id+`/hideMail`);
+                var result = await fetch(id + `/hideMail`);
                 //var result = await fetch(`https://192.168.31.69:7095/HideMailBox?id=${id}&domain=${domain}`);
 
                 body.innerText = "Почтовый ящик был успешно скрыт";
@@ -41,7 +41,7 @@
             let body = document.getElementById("showMailModalBody");
             let domain = encodeURIComponent("{{ domain }}");
             try {
-                var result = await fetch(id+`/showMail`);
+                var result = await fetch(id + `/showMail`);
                 //var result = await fetch(`https://192.168.31.69:7095/ShowMailBox?id=${id}&domain=${domain}`);
 
                 body.innerText = "Почтовый ящик снова показан";
@@ -56,6 +56,29 @@
             }
             $('#showMailModal').modal('show');
         }
+        async function createMailbox() {
+            let id = encodeURIComponent("{{ id }}");
+            let body = document.getElementById("createMailModalBody");
+            let domain = encodeURIComponent("{{ domain }}");
+            try {
+                var result = await fetch(id + `/createMail`);
+                //var result = await fetch(`https://192.168.31.69:7095/ShowMailBox?id=${id}&domain=${domain}`);
+
+                body.innerText = "Неизвестная ошибка";
+            } catch {
+                body.innerText = "Почтовый ящик не удалось создать";
+            }
+            if (result.ok) {
+                body.innerText = "Почтовый ящик создан";
+
+            } else {
+                body.innerText = "Почтовый ящик не удалось создать";
+            }
+            $('#createMailModal').modal('show');
+            $('#createMailModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+        }
         async function ban() {
             let id = encodeURIComponent("{{ id }}");
             console.warn(id)
@@ -63,7 +86,7 @@
             let body = document.getElementById("banModalBody");
             try {
 
-                var result = await fetch(id+`/ban`).then(response => response.json());
+                var result = await fetch(id + `/ban`).then(response => response.json());
 
             } catch (error) {
                 console.warn(error)
@@ -85,7 +108,7 @@
             let domain = encodeURIComponent("{{ domain }}");
             try {
 
-                var result = await fetch(id+`/unban`).then(response => response.json());
+                var result = await fetch(id + `/unban`).then(response => response.json());
 
                 body.innerText = "Пользователя удалось разблокировать";
             } catch (error) {
@@ -107,7 +130,7 @@
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
                 let csrfToken = document.getElementById("csrf-token").value;
-                var result = await fetch(id+`/addToGroup`, {
+                var result = await fetch(id + `/addToGroup`, {
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json',
@@ -141,7 +164,7 @@
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
                 let csrfToken = document.getElementById("csrf-token").value;
-                var result = await fetch(id+`/removeFromGroup`, {
+                var result = await fetch(id + `/removeFromGroup`, {
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json',
@@ -174,7 +197,7 @@
                 let Passw = document.getElementById("password-field").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(id+`/changePassword`, {
+                var result = await fetch(id + `/changePassword`, {
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json'
@@ -244,9 +267,10 @@
             {% include "../Base/sidebar.html" %}
             <main height="100%" class="col-md-9 col row ml-sm-auto col-lg-10 px-md-4">
                 {% if profile is None %}
-                    <H2 class="w-100 mb-3">Нет профиля</H2>
+                <H2 class="w-100 mb-3">Нет профиля</H2>
                 {% else %}
-                    <H2 class="w-100 mb-3 text-primary"  ><a href="/employee/{{profile.id}}">{{ profile.surname }} {{ profile.name }} {{ profile.patronymic}}</a></H2>
+                <H2 class="w-100 mb-3 text-primary"><a href="/employee/{{profile.id}}">{{ profile.surname }} 
+                    {{ profile.name }} {{ profile.patronymic}}</a></H2>
                 {% endif %}
                 <H2 class="w-100 mb-3">Учётная запись Active Directory: {{domain}}\{{id}}</H2>
 
@@ -354,22 +378,35 @@
                                     <path
                                         d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5v-1a2 2 0 0 1 .01-.2 4.49 4.49 0 0 1 1.534-3.693Q8.844 9.002 8 9c-5 0-6 3-6 4m7 0a1 1 0 0 1 1-1v-1a2 2 0 1 1 4 0v1a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zm3-3a1 1 0 0 0-1 1v1h2v-1a1 1 0 0 0-1-1" />
                                 </svg> Сменить пароль</button></li>
+                                {% if ad_json.EmailAddress == None or ad_json.EmailAddress == "None" or ad_json.EmailAddress|default_if_none:""|length == 0 or ad_json.EmailAddress == " " %}
+                        <li>
+                            <button type="button" onclick="createMailbox()" class="dropdown-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-envelope-at-fill" viewBox="0 0 16 16">
+                                    <path d="M2 2A2 2 0 0 0 .05 3.555L8 8.414l7.95-4.859A2 2 0 0 0 14 2zm-2 9.8V4.698l5.803 3.546zm6.761-2.97-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 9.671V4.697l-5.803 3.546.338.208A4.5 4.5 0 0 1 12.5 8c1.414 0 2.675.652 3.5 1.671"/>
+                                    <path d="M15.834 12.244c0 1.168-.577 2.025-1.587 2.025-.503 0-1.002-.228-1.12-.648h-.043c-.118.416-.543.643-1.015.643-.77 0-1.259-.542-1.259-1.434v-.529c0-.844.481-1.4 1.26-1.4.585 0 .87.333.953.63h.03v-.568h.905v2.19c0 .272.18.42.411.42.315 0 .639-.415.639-1.39v-.118c0-1.277-.95-2.326-2.484-2.326h-.04c-1.582 0-2.64 1.067-2.64 2.724v.157c0 1.867 1.237 2.654 2.57 2.654h.045c.507 0 .935-.07 1.18-.18v.731c-.219.1-.643.175-1.237.175h-.044C10.438 16 9 14.82 9 12.646v-.214C9 10.36 10.421 9 12.485 9h.035c2.12 0 3.314 1.43 3.314 3.034zm-4.04.21v.227c0 .586.227.8.581.8.31 0 .564-.17.564-.743v-.367c0-.516-.275-.708-.572-.708-.346 0-.573.245-.573.791"/>
+                                  </svg> Создать почту
+                            </button>
+                        </li>                        
+                        {% else %}
                         <li><button type="button" onclick="hideMail()" class="dropdown-item"><svg
-                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                                    class="bi bi-envelope-x-fill" viewBox="0 0 16 16">
-                                    <path
-                                        d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z" />
-                                    <path
-                                        d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-4.854-1.354a.5.5 0 0 0 0 .708l.647.646-.647.646a.5.5 0 0 0 .708.708l.646-.647.646.647a.5.5 0 0 0 .708-.708l-.647-.646.647-.646a.5.5 0 0 0-.708-.708l-.646.647-.646-.647a.5.5 0 0 0-.708 0" />
-                                </svg> Скрыть ящик из адресной книги</button></li>
-                        <li><button type="button" onclick="showMail()" class="dropdown-item"><svg
-                                    xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                                    class="bi bi-envelope-check-fill" viewBox="0 0 16 16">
-                                    <path
-                                        d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z" />
-                                    <path
-                                        d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-1.993-1.679a.5.5 0 0 0-.686.172l-1.17 1.95-.547-.547a.5.5 0 0 0-.708.708l.774.773a.75.75 0 0 0 1.174-.144l1.335-2.226a.5.5 0 0 0-.172-.686" />
-                                </svg> Показать ящик в адресной книге</button></li>
+                            xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                            class="bi bi-envelope-x-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z" />
+                            <path
+                                d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-4.854-1.354a.5.5 0 0 0 0 .708l.647.646-.647.646a.5.5 0 0 0 .708.708l.646-.647.646.647a.5.5 0 0 0 .708-.708l-.647-.646.647-.646a.5.5 0 0 0-.708-.708l-.646.647-.646-.647a.5.5 0 0 0-.708 0" />
+                        </svg> Скрыть ящик из адресной книги</button></li>
+                <li><button type="button" onclick="showMail()" class="dropdown-item"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                            class="bi bi-envelope-check-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414zM0 4.697v7.104l5.803-3.558zM6.761 8.83l-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 4.697v4.974A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1.965.45l-.338-.207z" />
+                            <path
+                                d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-1.993-1.679a.5.5 0 0 0-.686.172l-1.17 1.95-.547-.547a.5.5 0 0 0-.708.708l.774.773a.75.75 0 0 0 1.174-.144l1.335-2.226a.5.5 0 0 0-.172-.686" />
+                        </svg> Показать ящик в адресной книге</button></li>                        
+                        {% endif %}
+
+
                 </div>
         </div>
         </ul>
@@ -405,6 +442,21 @@
                 </div>
                 <div class="modal-body">
                     <span id="banModalBody"> Пользователя удалось заблокировать. </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Создать ящик пользователя-->
+    <div class="modal fade" id="createMailModal" tabindex="-1" role="dialog" aria-labelledby="createMailModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createMailModalLabel">Создать почтовый ящик</h5>
+                </div>
+                <div class="modal-body">
+                    <!--Поле для ответа Показать почтовый ящик-->
+                    <span id="createMailModalBody"></span>
                 </div>
             </div>
         </div>
@@ -459,7 +511,7 @@
                                 {% for group in groups %}
                                 <option value="{{ group.name }}">{{ group.name }}</option>
                                 {% endfor %}
-                              </select>
+                            </select>
                             <span id="addGroupStatus"></span>
                         </div>
                     </form>
@@ -491,7 +543,7 @@
                                 {% for group in ad_json.MemberOf %}
                                 <option value="{{ group }}">{{ group }}</option>
                                 {% endfor %}
-                              </select>
+                            </select>
                             <span id="addGroupStatus"></span>
                             <span id="remGroupStatus"></span>
                         </div>
