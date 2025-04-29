@@ -14,10 +14,10 @@
             services.AddControllers();
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowLocalhost8000",
+                options.AddPolicy("AllowAll",
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:8000")
+                        builder.AllowAnyOrigin()
                                .AllowAnyHeader()
                                .AllowAnyMethod();
                     });
@@ -35,12 +35,11 @@
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-            app.UseCors("AllowLocalhost8000");
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

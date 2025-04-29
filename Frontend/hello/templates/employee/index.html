@@ -54,11 +54,12 @@
       <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
         <H1 class="w-100 mb-3">СТРАНИЦА ПОЛЬЗОВАТЕЛЯ</H1>
         <div class="col-2 text-center">
-          {% if not '.jpg' in profile_json.img_src %}
+          {% if not '.jpg' in profile_json.imgSrc %}
           <img width="200" height="200" src="/static/default.jpg">
           {% else %}
-          <img width="200" height="200" src="{% static 'media/employee_avatars/'%}{{profile_json.img_src}}">{% endif %}
+          <img width="200" height="200" src="{% static 'media/employee_avatars/'%}{{profile_json.imgSrc}}">{% endif %}
           <div class="col"> {{profile_json.surname}} {{profile_json.name}} {{profile_json.patronymic}}</div>
+          <div> {{profile_json.id}}</div>
           <div>
             <button type="button" data-toggle="modal" data-target="#changeProfilePicModal" class="btn btn-outline-primary w-100 m-1"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-bounding-box" viewBox="0 0 16 16">
               <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5M.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5"/>
@@ -84,33 +85,33 @@
 
               <div class="col row">
                 <div class="col-4">Электронная почта</div>
-                <div class="col-1 " style="width: 50%;"> {{profile_json.email}} </div>
+                <div class="col-3 " style="width: 50%;"> {{profile_json.email}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4"> Дата приёма на работу</div>
-                <div class="col-1 "style="width: 50%;"> {{profile_json.apply_date}}</div>
+                <div class="col-3 "style="width: 50%;"> {{profile_json.applyDate |date:"d.m.Y H:i:s"}}</div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Компания</div>
-                <div class="col-1 "> {{profile_json.company}} </div>
+                <div class="col-3 "> {{profile_json.company}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Должность</div>
-                <div class="col-1 "> {{profile_json.appointment}} </div>
+                <div class="col-3 "> {{profile_json.appointment}} </div>
               </div>
               <div class="w-100 border-top"></div>
               <div class="col row">
                 <div class="col-4">Город</div>
-                <div class="col-1 ">{{profile_json.city}} </div>
+                <div class="col-3 ">{{profile_json.city}} </div>
               </div>
               <div class="w-100 border-top"></div>
-              {% if 'None' not in profile_json.fire_date %}
+              {% if profile_json.fireDate %}
               <div class="col row">
                 <div class="col-4">Дата увольнения</div>
-                <div class="col-1 text-danger" style="width: 50%;">{{profile_json.fire_date}} </div>
+                <div class="col-1 text-danger" style="width: 50%;">{{profile_json.fireDate |date:"d.m.Y H:i:s"}} </div>
               </div>
               {% endif %}
 
@@ -143,8 +144,8 @@
                   <div class="col row">
                     <div class="col-6">{{value.domain}}</div>
                     <div class="col-1 " style="width: 50%;">  
-                      <a href="/{{ key }}/{{value.domain}}/{{value.user}}">
-                          <div class="col">
+                      <a href="/{{ key }}/{{value.domain}}/{{value.samAccountName	}}">
+                          <div class="col {% if not value.enabled %}text-danger{% endif %}">
                               {% if 'AD' in key %}
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-windows" viewBox="0 0 16 16">
                                       <path d="M6.555 1.375 0 2.237v5.45h6.555V1.375zM0 13.795l6.555.933V8.313H0v5.482zm7.278-5.4.026 6.378L16 16V8.395H7.278zM16 0 7.33 1.244v6.414H16V0z" />
@@ -156,7 +157,7 @@
                                       <path d="M7.001 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0z" />
                                   </svg>
                               {% endif %}
-                              {{value.user}}
+                              {{value.samAccountName}}
                           </div>
                       </a>
                     </div>

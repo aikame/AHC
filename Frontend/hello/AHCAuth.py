@@ -16,11 +16,9 @@ class AHCAuthBackend(BaseBackend):
         rawdata = '{"user":"' +username+ '","password":"'+password+'"}'
         response = requests.post('https://localhost:7095/Authentication',data=rawdata,headers={"Content-Type":"application/json"},verify=False)
         if response.status_code == 200:
-            user = User.objects.get(username=username)
-            if user is None:
-                user = User()
-                user.username = username
-                user.password = password
+            user, created = User.objects.get_or_create(username=username)
+            if created:
+                user.set_password(password)
                 user.save()
-            return user
-        return None
+            return user,True
+        return None,False

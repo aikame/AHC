@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 83XkkHeD1fe18qPuqLvy
+      POSTGRES_DB: ahc
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: '0.50'
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+          cpus: '0.50'

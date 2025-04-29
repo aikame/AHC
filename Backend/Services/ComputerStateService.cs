@@ -10,7 +10,8 @@ using System.Text.Json.Nodes;
 using System.Net.NetworkInformation;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.Extensions.Logging;
-
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.DirectoryServices.ActiveDirectory;
 namespace Backend.Services
 {
     public class ComputerStateService : IHostedService, IDisposable
@@ -28,7 +29,7 @@ namespace Backend.Services
         {
             _logger.LogInformation("ComputerStateService is starting.");
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
 
             return Task.CompletedTask;
         }
@@ -41,43 +42,51 @@ namespace Backend.Services
         private async void CheckComputerState()
         {
 
-            using (HttpClient client = new HttpClient(new CustomHttpClientHandler()))
+            using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
-                var result = await client.GetAsync("http://127.0.0.2:8000/api/ComputerData");
-                string responseContent = await result.Content.ReadAsStringAsync();
-                JsonDocument document = JsonDocument.Parse(responseContent);
-                JsonElement root = document.RootElement;
-                JsonElement hitstemp, hits;
-                if(!root.TryGetProperty("hits",out hitstemp))
+                try
                 {
-                    _logger.LogError($"No computers at database");
-                    return;
-                }
-                if (!hitstemp.TryGetProperty("hits", out hits))
-                {
-                    _logger.LogError($"No computers at database");
-                    return;
-                }
-                //JsonElement hits = root.GetProperty("hits").GetProperty("hits");
+                    var result = await client.GetAsync("https://localhost:7080/search/computer");
+                    string responseContent = await result.Content.ReadAsStringAsync();
+                    List<JObject> root = Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(responseContent);
+                    //JsonDocument document = JsonDocument.Parse(responseContent);
+                    //JsonElement root = document.RootElement;
 
-                foreach (JsonElement hit in hits.EnumerateArray())
-                {
-                    JsonElement source = hit.GetProperty("_source");
-                    string address = source.GetProperty("IPAddress").ToString();
-                    var computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(source);
-                    computer.Status = CheckPing(address);
-
-                    var updResult = await client.PostAsync("http://127.0.0.2:8000/api/ComputerData", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
-                        Encoding.UTF8, "application/json"));
-                    if (result.IsSuccessStatusCode)
+                    if (root.Count == 0)
                     {
-                        _logger.LogInformation($"{computer.ComputerName} ({computer.IPAddress}) changed state to: {computer.Status}");
+                        _logger.LogError("No computers at database");
+                        return;
                     }
-                    else
+
+                    foreach (JObject item in root)
                     {
-                        _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
+                        string address = item["ipAddress"].ToString();
+                        bool status = CheckPing(address);
+
+                        item["status"] = status;
+                        item["Domain"] = new JObject
+                        {
+                            ["Forest"] = item["domainName"]
+                        };
+                        var content = new StringContent(item.ToString(), Encoding.UTF8, "application/json");
+    
+                        var updResult = await client.PostAsync("https://localhost:7080/computer/update", content);
+
+                        if (updResult.IsSuccessStatusCode)
+                        {
+                            _logger.LogInformation($"{item["computerName"]} ({address}) changed state to: {status}");
+                        }
+                        else
+                        {
+                            _logger.LogError($"Error changing state {item["computerName"]} ({address}) to: {status}");
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError("failed to check ComputerState or database in unavailable");
+                }
+                
             }
 
         }

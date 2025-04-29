@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import render, redirect
@@ -22,6 +23,10 @@ from django.urls import reverse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
+import re
+import urllib.parse
+from django.utils.timezone import make_aware,get_current_timezone, utc
+import pytz
 register = template.Library()
 
 ROLE_CHOICES = {
@@ -41,7 +46,7 @@ USER_ROLE = {
     "ADM": "Administrator",
     "1CADM": "1C-Administrator",
 }
-
+timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
 @register.filter
 def get_role_display(role_number):
     return ROLE_CHOICES.get(role_number, "Unknown Role")
@@ -60,8 +65,8 @@ def auth(request):
     password = request.POST.get('password')
     print("Creds: " + user + ' ' + password)
     aBack = AHCAuthBackend()
-    user = aBack.authenticate(username=user,password=password)
-    if (user != 200):
+    user,status = aBack.authenticate(username=user,password=password)
+    if (status):
         login(request, user)    
         return render(
             request,
@@ -69,9 +74,11 @@ def auth(request):
         )
     else:
         return render(
-            request,
-            'login/index.html',
-        )
+        request,
+        'login/index.html',
+        {'errortxt':"Неправильное имя пользователя или пароль"}
+    )
+
 
 @login_required
 def home(request):
@@ -98,10 +105,17 @@ def img_upload(request, id):
             with open(avatar_path, 'wb+') as destination:
                 for chunk in avatar.chunks():
                     destination.write(chunk)
-            data = '{"doc": {"img_src" : "' + id +'.jpg"} }'
-            content = JSONRenderer().render(data)
-            requests.post('http://127.0.0.2:8000/api/img_upload/' + id, data=content, verify=False,headers={"Content-Type": "application/json"})
-            return redirect('search')
+            #data = '{"doc": {"img_src" : "' + id +'.jpg"} }'
+            #content = JSONRenderer().render(data)
+
+            profile = requests.get('https://localhost:7080/search/oneprofile?query='+id,verify=False)
+            profileJSON = json.loads(profile.content)
+            profileJSON["imgSrc"]=id+'.jpg'
+            print(profileJSON)
+            content = JSONRenderer().render(profileJSON)
+            req = requests.post('https://localhost:7080/profile/update', data=content, verify=False,headers={"Content-Type": "application/json"})
+            print(req)
+            return redirect(f'/employee/{id}')
     else:
         form = UploadFileForm()
     return render(request, 
@@ -109,13 +123,17 @@ def img_upload(request, id):
 
 @login_required
 def employee(request,id):
-    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    user_data = requests.get('https://localhost:7080/search/oneprofile?query='+id,verify=False)
     domains_data = requests.get('https://localhost:7095/domainList/',verify=False)
     domains = json.loads(domains_data.content)
     domainsList = list(domains)
     data = json.loads(user_data.content)
-    user = data["hits"]["hits"][0]["_source"]
-    user_id = data["hits"]["hits"][0]["_id"]
+    user = data
+    user["applyDate"] = parse_datetime(user['applyDate'])
+    print(user["fireDate"])
+    if (user["fireDate"] != None):
+        user["fireDate"] = parse_datetime(user['fireDate'])
     for profile in user["profiles"]:
         if "AD" in profile:
             for domain in domains:
@@ -128,24 +146,48 @@ def employee(request,id):
         {'profile_json':user, 'domains':domainsList,"id":id}
     )
 @login_required
-def computer_detail(request,id):
-    computer_data = requests.get('http://127.0.0.2:8000/api/GetComputer?_id='+id)
+def computer_detail(request, id):
+    computer_data = requests.get(f'https://localhost:7080/search/onecomputer?query={id}',verify=False) 
     data = json.loads(computer_data.content)
-    role_number = data.get('ComputerRole', -1)
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    apps = None  # Если не достучались до пк
+    try:
+        installed_apps = requests.get(
+            f'https://localhost:7095/GetAppInfo?Computer={data["computerName"]}&domain={data["domainName"]}', 
+            verify=False,
+            timeout=30 
+        )
+        installed_apps.raise_for_status() 
+        apps = json.loads(installed_apps.content).get("AppList", [])
+
+        for app in apps:
+            app["DisplayVersion"] = app.get("DisplayVersion") or ""
+            app["Publisher"] = app.get("Publisher") or ""
+            install_date = app.get("InstallDate")
+            if install_date and len(install_date) == 8:
+                app["InstallDate"] = f"{install_date[6:8]}.{install_date[4:6]}.{install_date[:4]}"
+            else:
+                app["InstallDate"] = ""
+
+    except (requests.RequestException, json.JSONDecodeError) as e:
+        print(f"Ошибка: {e}") 
+
+    role_number = data.get('computerRole', -1)
     now = timezone.now()
-    time = parse_datetime(data['updated'])
     updated_time = timezone.datetime.fromisoformat(data["updated"].replace('Z', '+00:00'))
-    difTime =  now - updated_time
-    last_upd = int(difTime.total_seconds() // 60)
-    data['updated'] = time  #parse_datetime(data['updated'])
-    data["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+    last_upd = int((now - updated_time).total_seconds() // 60)
+    data['updated'] = parse_datetime(data['updated'])
+    data["computerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+
     return render(
         request,
         'computer_detail/index.html',
-        {'computer_json':data,
-         'difMinutes':last_upd,
-         'id':id
-         }
+        {
+            'computer_json': data,
+            'difMinutes': last_upd,
+            'id': id,
+            "apps": apps  # None если не достучались до пк
+        }
     )
 
 @login_required
@@ -155,40 +197,96 @@ def update_computer_status(request,id):
     return HttpResponseRedirect(reverse('computer', args=[id]))
 @login_required
 def computer(request):
-    json_data = requests.get('http://127.0.0.2:8000/api/ComputerData')
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    json_data = requests.get('https://localhost:7080/search/computer', verify=False)
     data = json.loads(json_data.content)
+    for i in data:        
+        role_number = i.get('computerRole', -1)
+        i["computerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
+        i['updated'] = parse_datetime(i['updated'])
 
-    for i in data["hits"]["hits"]:
-        role_number = i['_source'].get('ComputerRole', -1)
-        i['_source']["ComputerRole"] = ROLE_CHOICES.get(role_number, "Unknown Role")
-        i['_source']['updated'] = parse_datetime(i['_source']['updated'])
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
     return render(
         request,
         'computer/index.html',
-        {'computers_json':data["hits"]["hits"]}
+        {'computers_json':data}
     )
+
+@login_required
+def groups(request):
+    json_data = requests.get('https://localhost:7080/search/group',verify=False)
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    data = json.loads(json_data.content)
+
+    return render(
+        request,
+        'groups/index.html',
+        {'groups_json':data}
+    )
+
+
+@login_required
+def group_detail(request, id):
+    group_data = requests.get(f'https://localhost:7080/search/onegroup?query={id}',verify=False)
+    data = json.loads(group_data.content)
+    print(data)
+    group = data
+    members = None
+    try:
+        dn = group.get("distinguishedName", "")
+
+        dc_parts = re.findall(r"DC=([^,]+)", dn)
+
+        domain = ".".join(dc_parts)
+        group_name_encoded = urllib.parse.quote(group["name"]).replace("%20", "+")
+        print(domain) 
+        getMembersReq = requests.get(f'https://127.0.0.1:7095/GetGroupMembers?group={group_name_encoded}&domain={domain}',verify = False, timeout=30)
+        getMembersReq.raise_for_status()
+        members_data= json.loads(getMembersReq.content).get("Members")
+        if isinstance(members_data, dict):
+            members = [members_data]
+        else:
+            members = members_data
+        for mem in members:
+            mem["extensionAttribute1"] = mem.get('extensionAttribute1') or "" #################################!!!!!!!!!!!!!!!!
+            mem["extensionAttribute2"] = mem.get('extensionAttribute2') or ""
+            mem["extensionAttribute3"] = mem.get('extensionAttribute3') or ""
+            mem["Title"] = mem.get('Title') or ""
+        print(members)
+    except (requests.RequestException, json.JSONDecodeError) as e:
+        print(f"Ошибка: {e}")  
+    return render(
+        request,
+        'group/index.html',
+        {
+            'group_json': data,
+            'id': id,
+            'members':members, # =null
+            'domain':domain
+        }
+    )
+
 @login_required
 def searchall(request):
-    json_data = requests.get('http://127.0.0.2:8000/api/getall')
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    json_data = requests.get('https://localhost:7080/search/profile',verify=False)
     data = json.loads(json_data.content)
-    for i in data["hits"]["hits"]:
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
-        
+    for i in data:
+        if ("fireDate" in i and i["fireDate"] != None):
+            i["fireDate"] = parse_datetime(i['fireDate'])    
+            print(i["fireDate"])
     return render(
         request,
         'profileslist/index.html',
-        {'profiles_json':data["hits"]["hits"]}
+        {'profiles_json':data}
     )
 
 @login_required
 def createAD(request,id,domain):
-    user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    print(domain)
+    user_data = requests.get(f'https://localhost:7080/search/oneprofile?query={id}',verify=False)
     mail = request.GET.get('mail')
     print(mail)
-    user = user_data.json()["hits"]["hits"][0]
+    user = user_data.json()
     content = JSONRenderer().render(user)
     result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
     print(result.status_code)
@@ -198,28 +296,52 @@ def createAD(request,id,domain):
         return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
 
 @login_required
-def search(request,text):
-    print('"'+text+'"')
+def search(request,location,text):
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
+    print('"'+location+"/"+text+'"')
     if (text == ""):
         text = "*"
-    search_text = '{"text":"'+text+'"}'
-    json_data = requests.get('http://127.0.0.2:8000/api/get',data=search_text.encode('utf-8'),headers={"Content-Type":"application/json"})
+    json_data = requests.get(f'https://localhost:7080/search/{location}?query={text}',headers={"Content-Type":"application/json"}, verify=False)
     data = json.loads(json_data.content)
-    for i in data["hits"]["hits"]:
-        i['source'] = i.pop('_source')
-        i['id'] = i.pop('_id')
+    for i in data:
+        if ("fireDate" in i and i["fireDate"] != None):
+            i["fireDate"] = parse_datetime(i['fireDate'])    
+            print(i["fireDate"])
+    renderurl = ""
+    rendername = ""
+    if (location == "profile"):
+        renderurl = 'profileslist/index.html'
+        rendername = 'profiles_json'
+    elif (location == "computer"):
+        renderurl = 'computer/index.html'
+        rendername = 'computers_json'
+    else:
+        renderurl = 'groups/index.html'
+        rendername = 'groups_json'
     return render(
         request,
-        'profileslist/index.html',
-        {'profiles_json':data["hits"]["hits"]}
+        renderurl,
+        {rendername:data}
     )
 @login_required
 def active_directory(request,domain,id):
     print(id)
+    timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     user_data = requests.get('https://localhost:7095/GetInfo?id='+id+"&domain="+domain,verify=False)
-    domain_data = requests.get(f'http://127.0.0.2:8000/api/GetComputer?domain={domain}')
-    json_domain = json.loads(domain_data.content)
+   
+    clean_domain = domain.rsplit(".", 1)[0] if domain.endswith((".com", ".ru")) else domain
+    groups_req = requests.get(f'https://localhost:7080/search/group?query={clean_domain}',headers={"Content-Type":"application/json"},verify=False)
+    profile_data = requests.get(f'https://localhost:7080/search/oneprofile?query={id}',headers={"Content-Type":"application/json"},verify=False)
+    profile = None
+    if profile_data and profile_data.content:
+        try:
+            profile = json.loads(profile_data.content)
+        except (json.JSONDecodeError, TypeError):
+            profile = None
+    
     data = json.loads(user_data.content)
+    groups = json.loads(groups_req.content)
+
     return render(
         request,
         "active_directory/index.html",
@@ -227,9 +349,35 @@ def active_directory(request,domain,id):
             'id':id,
             'ad_json':data,
             'domain':domain,
+            'groups':groups,
+            'profile': profile
         }
 
     )
+
+
+@login_required
+def create_group(request):
+    #user_data = requests.get('http://127.0.0.2:8000/api/getone',data='{"id":"'+id+'"}')
+    #mail = request.GET.get('mail')
+    if request.method == 'POST':
+        data = {
+            'Name': request.POST.get('Name'),
+            'Description': request.POST.get('Description'),
+            'domain': request.POST.get('Domain'),
+        }
+        print(data)
+        user = json.dumps(data)
+        print(user)
+        result = requests.post(f'https://localhost:7095/CreateGroup',data=user,verify=False,headers={"Content-Type": "application/json"})
+        print(result.text)
+        if result.status_code ==200:
+            return redirect("/settings")
+        else:
+            return JsonResponse({'error': 'grupu not created successfully'}, status=500)
+        
+    else:
+        return JsonResponse({'success': 'Invalid request'}, status=400)
 
 @login_required
 def create_profile(request):
@@ -237,13 +385,13 @@ def create_profile(request):
     #mail = request.GET.get('mail')
     if request.method == 'POST':
         data = {
-            'name': request.POST.get('name'),
-            'surname': request.POST.get('surname'),
-            'patronymic': request.POST.get('patronymic'),
-            'company': request.POST.get('company'),
-            'apply_date': request.POST.get('apply_date'),
-            'appointment': request.POST.get('appointment'),
-            'city': request.POST.get('city'),
+            'Name': request.POST.get('name'),
+            'Surname': request.POST.get('surname'),
+            'Patronymic': request.POST.get('patronymic'),
+            'Company': request.POST.get('company'),
+            'ApplyDate': request.POST.get('apply_date'),
+            'Appointment': request.POST.get('appointment'),
+            'City': request.POST.get('city'),
             'ADreq': False
         }
         print(data)
@@ -259,11 +407,69 @@ def create_profile(request):
     else:
         return JsonResponse({'success': 'Invalid request'}, status=400)
 
-    user = user_data.json()["hits"]["hits"][0]
-    content = JSONRenderer().render(user)
-    result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
-    print(result.status_code)
+    path("showMail",view=showMail,name="showMail"),
+    path("hideMail",view=hideMail,name="hideMail"),
+    path("ban",view=ban,name="ban"),
+    path("unban",view=unban,name="unban"),
+    path("addToGroup",view=addToGroup,name="addToGroup"),
+    path("removeFromGroup",view=removeFromGroup,name="removeFromGroup"),
+    path("ChangePassword",view=ChangePassword,name="ChangePassword"),
+
+@login_required
+def showMail(request,domain,id):
+    result = requests.get(f'https://localhost:7095/ShowMailBox?domain={domain}&id={id}',verify=False)
     if result.status_code ==200:
-        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+        return JsonResponse({'success': 'showMail successfull'}, status=200)
     else:
-        return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
+        return JsonResponse({'error': 'showMail unsuccessfull'}, status=500)
+
+
+@login_required
+def hideMail(request,domain,id):
+    result = requests.get(f'https://localhost:7095/HideMailBox?domain={domain}&id={id}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'hideMail successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'hideMail unsuccessfull'}, status=500)
+
+
+@login_required
+def ban(request,domain,id):
+    result = requests.get(f'https://localhost:7095/BanUser?id={id}&domain={domain}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'ban successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'ban unsuccessfull'}, status=500)
+
+@login_required
+def unban(request,domain,id):
+    print(id)
+    print(domain)
+    result = requests.get(f'https://localhost:7095/UnbanUser?id={id}&domain={domain}',verify=False)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'unban successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'unban unsuccessfull'}, status=500)
+
+@login_required
+def addToGroup(request,domain,id):
+    result = requests.post(f'https://localhost:7095/AddToGroup',data=request.body,verify=False,headers={"Content-Type": "application/json"})
+    if result.status_code ==200:
+        return JsonResponse({'success': 'addToGroup successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'addToGroup unsuccessfull'}, status=500)
+
+@login_required
+def removeFromGroup(request):
+    result = requests.post(f'https://localhost:7095/RemoveFromGroup',data=request.body,verify=False,headers={"Content-Type": "application/json"})
+    print(result.text)
+    if result.status_code ==200:
+        return JsonResponse({'success': 'addToGroup successfull'}, status=200)
+    else:
+        return JsonResponse({'error': 'addToGroup unsuccessfull'}, status=500)
+
+@login_required
+def changePassword(request):
+    return JsonResponse({'error': 'changePassword unsuccessfull'}, status=500)
+
+timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))

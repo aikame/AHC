@@ -52,8 +52,47 @@
         <div class="row">
           {% include "../Base/sidebar.html" %}
           <main height="100%" class="col-md-9 row ml-sm-auto col-lg-10 px-md-4">
-            <button type="button" data-toggle="modal" data-target="#createUserModal" class="btn btn-primary mx-1 my-1 col"> Создать пользователя</button>
-            <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
+            <button type="button" data-toggle="modal" data-target="#createUserModalSettings" class="btn btn-primary mx-1 my-1 col"> Создать пользователя</button>
+            <button type="button" data-toggle="modal" data-target="#createGroupModalSettings" class="btn btn-primary mx-1 my-1 col"> Создать группу</button>
+
+            <div class="modal fade" id="createGroupModalSettings" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="ccreateGroupModalLabel">Создать группу</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <form  method="POST" action="/createGroup" id="groupForm">
+                      {% csrf_token %}
+                      <div class="form-group">
+                        <label for="Name" class="col-form-label">Имя:</label>
+                        <input type="text" class="form-control" id="Name" name="Name"  required>
+            
+                        <label for="Description" class="col-form-label">Описание:</label>
+                        <input type="text" class="form-control" id="Description" name="Description"  required>
+                        <label for="Domain" class="col-form-label">Домен:</label>
+                        <select class="form-select" id="Domain" name="Domain" aria-label="Выберите домен">
+                          {% for domain in domains %}
+                            <option value="{{domain}}"> {{domain}} </option>
+                          {% endfor %}
+                        </select>
+
+                      </div>
+                      <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button id=""type="" class="btn btn-primary">Создать</button>
+                  </div>
+                    </form>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+
+            <div class="modal fade" id="createUserModalSettings" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
@@ -63,7 +102,7 @@
                     </button>
                   </div>
                   <div class="modal-body">
-                    <form  method="POST">
+                    <form  method="POST" action="/createProfile" id="profileForm">
                       {% csrf_token %}
                       <div class="form-group">
                         <label for="name" class="col-form-label">Имя:</label>
@@ -86,7 +125,7 @@
             
                         <label for="city" class="col-form-label">Город:</label>
                         <input type="text" class="form-control" id="city" name="city" required>
-
+          
                       </div>
                       <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>

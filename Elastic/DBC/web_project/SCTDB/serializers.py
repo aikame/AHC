@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from SCTDB.models import Profile,Computer
+from SCTDB.models import Profile,Computer,Group
 from django.utils import timezone
 class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=30)
@@ -34,7 +34,7 @@ class ComputerSerializer(serializers.Serializer):
     WindowsEdition = serializers.CharField(max_length=80)
     IPAddress = serializers.CharField(max_length=20)
     DomainName = serializers.CharField(max_length=30)
-    TotalRAMGB = serializers.IntegerField()
+    TotalRAMGB = serializers.FloatField()
     DiskSpace = serializers.JSONField()
     CPUName = serializers.JSONField()
     CPUCores = serializers.JSONField()
@@ -61,6 +61,39 @@ class ComputerSerializer(serializers.Serializer):
         instance.updated = validated_data.get('updated', timezone.now())
         instance.save()
         return instance    
+
+
+class GroupSerializer(serializers.Serializer):
+    PSComputerName = serializers.CharField(max_length=100)
+    RunspaceId = serializers.CharField(max_length=100)
+    Description = serializers.CharField(max_length=200)
+    DistinguishedName = serializers.CharField(max_length=100)
+    GroupCategory = serializers.CharField(max_length=20)
+    GroupScope = serializers.CharField(max_length=20)
+    Name = serializers.CharField(max_length=100)
+    ObjectClass = serializers.CharField(max_length=20)
+    ObjectGUID = serializers.CharField(max_length=100)
+    SamAccountName = serializers.CharField(max_length=100)
+    SID = serializers.CharField(max_length=100)
+    def create(self, validated_data):
+        if 'updated' not in validated_data:
+            validated_data['updated'] = timezone.now()
+        return Group.objects.create(**validated_data)
     
+    def update(self, instance, validated_data):
+        instance.PSComputerName = validated_data.get('PSComputerName',instance.PSComputerName)
+        instance.RunspaceId = validated_data.get('RunspaceId',instance.RunspaceId)
+        instance.DistinguishedName = validated_data.get('DistinguishedName',instance.DistinguishedName)
+        instance.GroupCategory = validated_data.get('GroupCategory',instance.GroupCategory)
+        instance.GroupScope = validated_data.get('GroupScope',instance.GroupScope)
+        instance.Name = validated_data.get('Name',instance.Name)
+        instance.ObjectClass = validated_data.get('CPObjectClassUCores',instance.ObjectClass)
+        instance.ObjectGUID = validated_data.get('ObjectGUID',instance.ObjectGUID)
+        instance.SamAccountName = validated_data.get('SamAccountName',instance.SamAccountName)
+        instance.SID = validated_data.get('SID',instance.SID)
+        instance.updated = validated_data.get('updated', timezone.now())
+        instance.save()
+        return instance    
+
 class IdSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=30)
