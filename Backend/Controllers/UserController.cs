@@ -499,82 +499,79 @@ namespace Backend.Controllers
         {
             Console.WriteLine(user);
 
+            var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+            if (!responseSearchComputer.IsSuccessStatusCode)
+                return BadRequest("Не удалось найти контроллер домена.");
 
-                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
-                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                JObject computer = JObject.Parse(searchComputer);
-                Console.WriteLine($"CreateUser: {user}");
-                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(System.Text.Json.JsonSerializer.Serialize(user),
-                                  Encoding.UTF8, "application/json"));
+            var searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+            var computer = JObject.Parse(searchComputer);
 
-                string responseADContent = await result.Content.ReadAsStringAsync();
-                Console.WriteLine($"{responseADContent}");
-                if (result.IsSuccessStatusCode)
+            var adResponse = await _client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/UserCreation",
+                new StringContent(System.Text.Json.JsonSerializer.Serialize(user), Encoding.UTF8, "application/json"));
+
+            var adContent = await adResponse.Content.ReadAsStringAsync();
+            Console.WriteLine(adContent);
+
+            if (!adResponse.IsSuccessStatusCode)
+                return BadRequest("Ошибка при создании AD пользователя.");
+
+            _ = Task.Run(async () =>
+            {
+                try
                 {
-                    JObject jsonADData = JObject.Parse(responseADContent);
+                    var jsonADData = JObject.Parse(adContent);
                     JObject jsonMail = new JObject();
+
                     if (mail)
                     {
+                        var mailProfile = new JObject
+                        {
+                            ["name"] = jsonADData["SamAccountName"]
+                        };
 
-                        JObject mailProfile = new JObject();
-                        mailProfile["name"] = jsonADData["SamAccountName"];
-                        var resultEmail = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
-                            Encoding.UTF8, "application/json"));
+                        var resultEmail = await _client.PostAsync(
+                            $"https://{computer["ipAddress"]}:{_connectorPort}/CreateMailBox",
+                            new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json")
+                        );
+
                         if (resultEmail.IsSuccessStatusCode)
                         {
-                            string responseMail = await resultEmail.Content.ReadAsStringAsync();
+                            var responseMail = await resultEmail.Content.ReadAsStringAsync();
                             Console.WriteLine(responseMail);
                             jsonMail = JObject.Parse(responseMail);
                         }
                     }
 
+                    var responseSearchUser = await _client.GetAsync($"https://localhost:7080/search/oneprofile?query={user.GetProperty("id")}");
+                    if (!responseSearchUser.IsSuccessStatusCode) return;
 
+                    var searchUserJson = JObject.Parse(await responseSearchUser.Content.ReadAsStringAsync());
 
-                    string distinguishedName = jsonADData["DistinguishedName"].ToString();
-                    string[] parts = distinguishedName.Split(',');
+                    jsonADData["Domain"] = new JObject { ["Forest"] = domain };
+                    jsonADData["ProfileModelId"] = searchUserJson["id"];
 
-                    var responseSearchUser = await _client.GetAsync($"https://localhost:7080/search/oneprofile?query={user.GetProperty("id").ToString()}");
-                    string SearchUser = await responseSearchUser.Content.ReadAsStringAsync();
-                    JObject SearchUserJson = JObject.Parse(SearchUser);
-                    jsonADData["Domain"] = new JObject
-                    {
-                        ["Forest"] = domain
-                    };
-                    jsonADData["ProfileModelId"] = SearchUserJson["id"];
-                    var resultaddad = await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
+                    await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
 
-                   
-
                     if (mail)
-                    {
-                        SearchUserJson["email"] = jsonMail["Address"];
-                    }
-                    else if (SearchUserJson["Email"] == null)
-                    {
-                        SearchUserJson["email"] = "";
-                    }
+                        searchUserJson["email"] = jsonMail["Address"];
+                    else if (searchUserJson["Email"] == null)
+                        searchUserJson["email"] = "";
 
-                    Console.WriteLine($"profile update: {SearchUserJson}");
-                    var resultupdd = await _client.PostAsync("https://localhost:7080/profile/update",
-                        new StringContent(JsonConvert.SerializeObject(SearchUserJson), Encoding.UTF8, "application/json"));
+                    Console.WriteLine($"profile update: {searchUserJson}");
 
-          
-                    if (resultupdd.IsSuccessStatusCode)
-                    {
-                        return Content(responseADContent);
-                    }
-                    else
-                    {
-                        return BadRequest(resultupdd);
-                    }
+                    await _client.PostAsync("https://localhost:7080/profile/update",
+                        new StringContent(JsonConvert.SerializeObject(searchUserJson), Encoding.UTF8, "application/json"));
                 }
-                else
+                catch (Exception ex)
                 {
-                    return BadRequest();
+                    _logger.LogError($"[UserCreation background] {ex.Message}");
                 }
-            
+            });
+
+            return Content(adContent);
         }
+
 
         [HttpPost("FireUser")]
         public async Task<IActionResult> FireUser([FromBody] JsonElement data)
