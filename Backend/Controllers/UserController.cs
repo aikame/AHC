@@ -18,6 +18,7 @@ using System.Net.NetworkInformation;
 using Backend.Services;
 using Microsoft.Extensions.Logging;
 using System.DirectoryServices.ActiveDirectory;
+using System.Net.Http;
 
 namespace Backend.Controllers
 {
@@ -27,9 +28,11 @@ namespace Backend.Controllers
     public class UserController : ControllerBase
     {
         private readonly string _connectorPort;
+        private readonly HttpClient _client;
         private readonly ILogger<ComputerStateService> _logger;
-        public UserController(ILogger<ComputerStateService> logger, IConfiguration configuration)
+        public UserController(ILogger<ComputerStateService> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
+            _client = httpClientFactory.CreateClient("сlient");
             _logger = logger;
             _connectorPort = configuration["connectorPort"];
         }
@@ -65,75 +68,62 @@ namespace Backend.Controllers
         {
             Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
+            var profileResponse = await _client.PostAsync("https://localhost:7080/profile/add",
+                new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
+
+            if (!profileResponse.IsSuccessStatusCode)
             {
-                var profileTask = client.PostAsync("https://localhost:7080/profile/add",
-                    new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
-
-                // ищем DC
-                Task<HttpResponseMessage>? searchComputerTask = null;
-                if (user.ADreq)
-                {
-                    searchComputerTask = client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
-                }
-
-                var profileResponse = await profileTask;
-
-                if (!profileResponse.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Error: " + profileResponse);
-                    return BadRequest("Ошибка при создании профиля.");
-                }
-                string responseContent = await profileResponse.Content.ReadAsStringAsync();
-                var jsonProfile = JObject.Parse(responseContent);// JsonConvert.DeserializeObject<JObject>(JsonConvert.DeserializeObject<string>(responseContent));
-                Console.WriteLine($"Parsed JSON Response: {jsonProfile}");
-
-                // Если AD не нужен, сразу возвращаем ID
-                if (!user.ADreq)
-                {
-                    return Content(jsonProfile["id"].ToString());
-                }
-
-                if (searchComputerTask == null) return BadRequest("Ошибка при поиске компьютера.");
-                var searchComputerResponse = await searchComputerTask;
-                if (!searchComputerResponse.IsSuccessStatusCode) return BadRequest("Ошибка при получении компьютера.");
-
-                JObject computer = JObject.Parse(await searchComputerResponse.Content.ReadAsStringAsync());
-
-                // создание AD-учетки
-                var adTask = client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/UserCreation",
-                    new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
-
-                var adResponse = await adTask;
-                if (!adResponse.IsSuccessStatusCode) return BadRequest("Ошибка при создании AD профиля.");
-
-                JObject jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
-                jsonADData["ProfileModelId"] = jsonProfile["id"];
-                //создание почтового ящика
-                var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
-                var emailTask = client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/CreateMailBox",
-                    new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json"));
-
-
-                var emailResponse = await emailTask;
-                if (emailResponse.IsSuccessStatusCode)
-                {
-                    JObject jsonMail = JObject.Parse(await emailResponse.Content.ReadAsStringAsync());
-                    jsonProfile["email"] = jsonMail["Address"];
-                }
-                // обновляем профиль
-
-                jsonADData["Domain"] = new JObject {
-                    ["Forest"] = domain
-                };
-                jsonADData["ProfileModelId"] = jsonProfile["id"];
-                var resultaddad = await client.PostAsync("https://localhost:7080/profile/add-adaccount",
-                    new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
-                var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update",
-                    new StringContent(JsonConvert.SerializeObject(jsonProfile), Encoding.UTF8, "application/json"));
-
-                return resultUpdProfile.IsSuccessStatusCode ? Content(jsonProfile["id"].ToString()) : BadRequest("Ошибка обновления профиля.");
+                _logger.LogError("Error: " + profileResponse);
+                return BadRequest("Ошибка при создании профиля.");
             }
+
+            string responseContent = await profileResponse.Content.ReadAsStringAsync();
+            var jsonProfile = JObject.Parse(responseContent);
+
+            if (!user.ADreq)
+                return Content(jsonProfile["id"]?.ToString());
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var searchComputerResponse = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+                    if (!searchComputerResponse.IsSuccessStatusCode) return;
+
+                    var computer = JObject.Parse(await searchComputerResponse.Content.ReadAsStringAsync());
+
+                    var adResponse = await _client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/UserCreation",
+                        new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"));
+
+                    if (!adResponse.IsSuccessStatusCode) return;
+
+                    var jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
+                    jsonADData["ProfileModelId"] = jsonProfile["id"];
+                    jsonADData["Domain"] = new JObject { ["Forest"] = domain };
+
+                    var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
+                    var emailResponse = await _client.PostAsync($"https://{computer["ipAddress"]}:{_connectorPort}/CreateMailBox",
+                        new StringContent(JsonConvert.SerializeObject(mailProfile), Encoding.UTF8, "application/json"));
+
+                    if (emailResponse.IsSuccessStatusCode)
+                    {
+                        var jsonMail = JObject.Parse(await emailResponse.Content.ReadAsStringAsync());
+                        jsonProfile["email"] = jsonMail["Address"];
+                    }
+
+                    await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
+                        new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
+
+                    await _client.PostAsync("https://localhost:7080/profile/update",
+                        new StringContent(JsonConvert.SerializeObject(jsonProfile), Encoding.UTF8, "application/json"));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("[CreateProfile async part]: " + ex.Message);
+                }
+            });
+
+            return Content(jsonProfile["id"]?.ToString());
         }
         [HttpGet("GetInfo")]
         public async Task<IActionResult> GetInfo([FromQuery] string id, [FromQuery] string domain)
@@ -144,13 +134,11 @@ namespace Backend.Controllers
             sdata["login"] = id;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["login"].ToString());
-            using (HttpClient client = new HttpClient())
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 if (result.IsSuccessStatusCode)
@@ -160,14 +148,14 @@ namespace Backend.Controllers
                     {
                         ["Forest"] = domain
                     };
-                    var responseUpdateAd = client.PostAsync($"https://localhost:7080/profile/update-adaccount", new StringContent(jsonADData.ToString(), Encoding.UTF8, "application/json"));
+                    var responseUpdateAd = _client.PostAsync($"https://localhost:7080/profile/update-adaccount", new StringContent(jsonADData.ToString(), Encoding.UTF8, "application/json"));
                     return Content(responseContent);
                 }
                 else
                 {
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-            }
+            
         }
         [HttpGet("BanUser")]
         public async Task<IActionResult> BanUser([FromQuery] string id, [FromQuery] string domain)
@@ -178,13 +166,12 @@ namespace Backend.Controllers
             sdata["name"] = decodedId;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -194,7 +181,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest(result);
                 }
-            }
+            
         }
         [HttpGet("UnbanUser")]
         public async Task<IActionResult> UnbanUser([FromQuery] string id, [FromQuery] string domain)
@@ -205,13 +192,12 @@ namespace Backend.Controllers
             sdata["name"] = decodedId;
             Console.WriteLine($"UnbanUser: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UnbanUser", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UnbanUser", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -221,7 +207,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest(result);
                 }
-            }
+            
         }
         [HttpPost("AddToGroup")]
         public async Task<IActionResult> AddToGroup([FromBody] JsonElement data)
@@ -230,13 +216,11 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/AddToGroup", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/AddToGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -246,7 +230,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
 
         [HttpPost("CollectComputerInfo")]
@@ -256,13 +240,12 @@ namespace Backend.Controllers
             var domainName = data.GetProperty("DomainName");
             Console.WriteLine(domainName);
             ComputerModel computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(data.ToString());
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var result = await client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
+
+                var result = await _client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(data),
                                  Encoding.UTF8, "application/json"));
 
                 var jsonContent = new StringContent(data.ToString(), Encoding.UTF8, "application/json");
-                //var result = await client.PostAsync("https://" + _connectorAddress + "/AddToGroup", jsonContent);
+                //var result = await _client.PostAsync("https://" + _connectorAddress + "/AddToGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -272,20 +255,19 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
         [HttpGet("CheckComputer")]
         public async Task<IActionResult> CheckComputer([FromQuery] string _id)
         {
             // https://localhost:7080/api/GetComputer?ComputerName=DC-1
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
 
-                var result = await client.GetAsync($"https://localhost:7080/search/computer?query={_id}");
+
+                var result = await _client.GetAsync($"https://localhost:7080/search/computer?query={_id}");
                 string responseContent = await result.Content.ReadAsStringAsync();
                 ComputerModel computer = System.Text.Json.JsonSerializer.Deserialize<ComputerModel>(responseContent);
                 computer.Status = CheckPing(computer.IPAddress);
-                var updResult = await client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
+                var updResult = await _client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
                         Encoding.UTF8, "application/json"));
                 if (result.IsSuccessStatusCode)
                 {
@@ -297,7 +279,7 @@ namespace Backend.Controllers
                     _logger.LogError($"Error changing state {computer.ComputerName} ({computer.IPAddress}) to: {computer.Status}");
                     return BadRequest();
                 }
-            }
+            
         }
 
         [HttpPost("ChangePassword")]
@@ -307,13 +289,12 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ChangePassword", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ChangePassword", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -323,7 +304,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
         [HttpGet("CreateMailBox")]
         public async Task<IActionResult> CreateMailBox([FromQuery] string id, [FromQuery] string domain)
@@ -334,13 +315,12 @@ namespace Backend.Controllers
             jsonData["name"] = decodedId;
             Console.WriteLine($"Prepared: {jsonData}");
             Console.WriteLine(jsonData["name"].ToString());
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", jsonContent);
 
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
@@ -351,7 +331,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-            }
+            
         }
         [HttpGet("HideMailBox")]
         public async Task<IActionResult> HideMailBox([FromQuery] string id, [FromQuery] string domain)
@@ -366,13 +346,12 @@ namespace Backend.Controllers
             /*JObject jsonData = JObject.Parse(id);
             UserModel user = jsonData["user"].ToObject<UserModel>();
             Console.WriteLine(user.Name);*/
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/HideMailBox", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/HideMailBox", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -382,7 +361,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-            }
+            
         }
 
         [HttpGet("GetAppInfo")]
@@ -390,13 +369,12 @@ namespace Backend.Controllers
         {
             Console.WriteLine(computer + " get apps");
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/onecomputer?query={computer}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/onecomputer?query={computer}");
         
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computerObj = JObject.Parse(searchComputer);
-                var result = await client.GetAsync("https://" + computerObj["ipAddress"].ToString() + ":" + _connectorPort + "/GetAppInfo");
+                var result = await _client.GetAsync("https://" + computerObj["ipAddress"].ToString() + ":" + _connectorPort + "/GetAppInfo");
                 Console.WriteLine(result.ToString());
                 string responseContent = await result.Content.ReadAsStringAsync();
                 if (result.IsSuccessStatusCode)
@@ -407,7 +385,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-            }
+            
         }
         [HttpPost("CreateGroup")]
         public async Task<IActionResult> CreateGroup([FromBody] JsonElement data)
@@ -416,13 +394,12 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateGroup", jsonContent);
 
                 string responseContent = await result.Content.ReadAsStringAsync();
                 var groupAD = JObject.Parse(responseContent);
@@ -430,7 +407,7 @@ namespace Backend.Controllers
                 {
                     ["Forest"] = jsonData["domain"]
                 };
-                var databaseReq = await client.PostAsync("https://localhost:7080/group/add",
+                var databaseReq = await _client.PostAsync("https://localhost:7080/group/add",
                     new StringContent(groupAD.ToString(), Encoding.UTF8, "application/json"));
                 Console.WriteLine(result.ToString());
                 Console.WriteLine(databaseReq.ToString());
@@ -442,18 +419,17 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
 
         [HttpGet("GetGroupMembers")]
         public async Task<IActionResult> GetGroupMembers([FromQuery] string group, [FromQuery] string domain)
         {
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
-                var result = await client.GetAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group=" + group);
+                var result = await _client.GetAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetGroupMembers?group=" + group);
                 string responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);
                 Console.WriteLine(result);
@@ -465,7 +441,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-            }
+            
         }
         [HttpPost("RemoveFromGroup")]
         public async Task<IActionResult> RemoveFromGroup([FromBody] JsonElement data)
@@ -474,13 +450,12 @@ namespace Backend.Controllers
             Console.WriteLine(temp);
             JObject jsonData = JObject.Parse(temp);
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/RemoveFromGroup", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/RemoveFromGroup", jsonContent);
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
                 {
@@ -490,7 +465,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
         [HttpGet("ShowMailBox")]
         public async Task<IActionResult> ShowMailBox([FromQuery] string id, [FromQuery] string domain)
@@ -501,13 +476,12 @@ namespace Backend.Controllers
             jsonData["name"] = decodedId;
             Console.WriteLine($"Prepared: {jsonData}");
             Console.WriteLine(jsonData["name"].ToString());
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ShowMailBox", jsonContent);
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ShowMailBox", jsonContent);
 
                 Console.WriteLine(result.ToString());
                 if (result.IsSuccessStatusCode)
@@ -518,20 +492,19 @@ namespace Backend.Controllers
                 {
                     return BadRequest("Произошла ошибка при выполнении запроса.");
                 }
-            }
+            
         }
         [HttpPost("CreateUser")]
         public async Task<IActionResult> UserCreation([FromBody] JsonElement user, [FromQuery] string domain, [FromQuery] bool mail)
         {
             Console.WriteLine(user);
 
-            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(5.0) })
-            {
-                var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                 string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                 JObject computer = JObject.Parse(searchComputer);
                 Console.WriteLine($"CreateUser: {user}");
-                var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(System.Text.Json.JsonSerializer.Serialize(user),
+                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/UserCreation", new StringContent(System.Text.Json.JsonSerializer.Serialize(user),
                                   Encoding.UTF8, "application/json"));
 
                 string responseADContent = await result.Content.ReadAsStringAsync();
@@ -545,7 +518,7 @@ namespace Backend.Controllers
 
                         JObject mailProfile = new JObject();
                         mailProfile["name"] = jsonADData["SamAccountName"];
-                        var resultEmail = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
+                        var resultEmail = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/CreateMailBox", new StringContent(JsonConvert.SerializeObject(mailProfile),
                             Encoding.UTF8, "application/json"));
                         if (resultEmail.IsSuccessStatusCode)
                         {
@@ -560,7 +533,7 @@ namespace Backend.Controllers
                     string distinguishedName = jsonADData["DistinguishedName"].ToString();
                     string[] parts = distinguishedName.Split(',');
 
-                    var responseSearchUser = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={user.GetProperty("id").ToString()}");
+                    var responseSearchUser = await _client.GetAsync($"https://localhost:7080/search/oneprofile?query={user.GetProperty("id").ToString()}");
                     string SearchUser = await responseSearchUser.Content.ReadAsStringAsync();
                     JObject SearchUserJson = JObject.Parse(SearchUser);
                     jsonADData["Domain"] = new JObject
@@ -568,7 +541,7 @@ namespace Backend.Controllers
                         ["Forest"] = domain
                     };
                     jsonADData["ProfileModelId"] = SearchUserJson["id"];
-                    var resultaddad = await client.PostAsync("https://localhost:7080/profile/add-adaccount",
+                    var resultaddad = await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
 
                    
@@ -583,7 +556,7 @@ namespace Backend.Controllers
                     }
 
                     Console.WriteLine($"profile update: {SearchUserJson}");
-                    var resultupdd = await client.PostAsync("https://localhost:7080/profile/update",
+                    var resultupdd = await _client.PostAsync("https://localhost:7080/profile/update",
                         new StringContent(JsonConvert.SerializeObject(SearchUserJson), Encoding.UTF8, "application/json"));
 
           
@@ -600,7 +573,7 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
 
         [HttpPost("FireUser")]
@@ -614,11 +587,10 @@ namespace Backend.Controllers
             };
             Console.WriteLine(id.ToJsonString());
             //JsonElement fire_date = data.GetProperty("fire_date");
-            using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
-            {
+
 
                 //var jsonContent = new StringContent(id.ToJsonString(), Encoding.UTF8, "application/json");
-                var result = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={id}");
+                var result = await _client.GetAsync($"https://localhost:7080/search/oneprofile?query={id}");
                 string responseContent = await result.Content.ReadAsStringAsync();
                 JsonDocument document = JsonDocument.Parse(responseContent);
                 JsonElement root = document.RootElement;
@@ -632,7 +604,7 @@ namespace Backend.Controllers
                 {
                     if (profile.TryGetProperty("AD", out JsonElement ad))
                     {
-                        var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={ad.GetProperty("domain")}");
+                        var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={ad.GetProperty("domain")}");
                         string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                         JObject computer = JObject.Parse(searchComputer);
                         string domain = ad.GetProperty("domain").GetString();
@@ -644,14 +616,14 @@ namespace Backend.Controllers
 
 
                         var jsonUserBanContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                        var banResult = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonUserBanContent);
+                        var banResult = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonUserBanContent);
                         Console.WriteLine($"Domain: {domain}, User: {user}");
                     }
                 }
                 
                 var fireDate = DateTime.UtcNow;
                 userJSON["fireDate"] = fireDate;
-                var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
+                var resultUpdProfile = await _client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
                          Encoding.UTF8, "application/json"));
 
                 if (result.IsSuccessStatusCode && resultUpdProfile.IsSuccessStatusCode)
@@ -662,21 +634,20 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
             return Ok();
         }
         [HttpPost("ReturnUser")]
         public async Task<IActionResult> ReturnUser([FromBody] JsonElement data)
         {
             Console.WriteLine(data);
-            using (HttpClient client = new HttpClient(new HttpClientHandler()))
-            {
-                var result = await client.GetAsync($"https://localhost:7080/search/oneprofile?query={data.GetProperty("id")}");
+
+                var result = await _client.GetAsync($"https://localhost:7080/search/oneprofile?query={data.GetProperty("id")}");
                 string responseContent = await result.Content.ReadAsStringAsync();
                 var userJSON = JObject.Parse(responseContent);
                 Console.WriteLine($"ReturnUser date: {userJSON}");
                 userJSON["fireDate"] = null;
-                var resultUpdProfile = await client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
+                var resultUpdProfile = await _client.PostAsync("https://localhost:7080/profile/update", new StringContent(JsonConvert.SerializeObject(userJSON),
                          Encoding.UTF8, "application/json"));
 
                 if (resultUpdProfile.IsSuccessStatusCode)
@@ -687,16 +658,13 @@ namespace Backend.Controllers
                 {
                     return BadRequest();
                 }
-            }
+            
         }
 
         [HttpGet("domainList")]
         public async Task<IActionResult> GetDomainList([FromQuery] string? data)
         {
-
-            using (HttpClient client = new HttpClient())
-            {
-                var responseComputers = await client.GetAsync($"https://localhost:7080/search/domain");
+                var responseComputers = await _client.GetAsync($"https://localhost:7080/search/domain");
                 string domainsRes = await responseComputers.Content.ReadAsStringAsync();
                 List<JObject> JSONdomains = Newtonsoft.Json.JsonConvert.DeserializeObject<List<JObject>>(domainsRes);
                 List<string> domains = new List<string>();
@@ -717,7 +685,6 @@ namespace Backend.Controllers
                     Console.Write("No domains");
                     return BadRequest();
                 }
-            }
         }
 
         [HttpPost("Authentication")]
@@ -742,13 +709,12 @@ namespace Backend.Controllers
                     ["user"] = username,
                     ["password"] = password
                 };
-                using (HttpClient client = new HttpClient(new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(10.0) })
-                {
-                    var responseSearchComputer = await client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+
+                    var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
                     string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
                     JObject computer = JObject.Parse(searchComputer);
                     var jsonContent = new StringContent(newJson.ToString(), Encoding.UTF8, "application/json");
-                    var result = await client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/Authentication", jsonContent);
+                    var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/Authentication", jsonContent);
                     Console.WriteLine(result.ToString());
                     if (result.IsSuccessStatusCode)
                     {
@@ -758,7 +724,7 @@ namespace Backend.Controllers
                     {
                         return BadRequest(result);
                     }
-                }
+                
 
             }
             catch (Exception ex)
