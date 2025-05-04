@@ -4,11 +4,12 @@ using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Threading;
+using ADDC.Interfaces;
 using Microsoft.Extensions.Logging; 
 
 namespace ADDC.Services 
 {
-    public class ExchangePowershellSessionPoolService : IDisposable
+    public class ExchangePowershellSessionPoolService : IExchangePowershellSessionPoolService, IDisposable
     {
         private readonly int _maxSessions;
         private readonly ConcurrentBag<PowerShell> _availableSessions = new();
@@ -17,7 +18,7 @@ namespace ADDC.Services
         private readonly Timer _cleanupTimer;
         private readonly object _lock = new();
         private readonly string _exchangeScriptPath; 
-        private readonly string _exchangeSnapIn = "Microsoft.Exchange.Management.PowerShell.SnapIn"; // Или имя модуля, если нужно
+        private readonly string _exchangeSnapIn = "Microsoft.Exchange.Management.PowerShell.SnapIn"; 
 
 
         private readonly ConcurrentBag<Runspace> _allRunspaces = new();

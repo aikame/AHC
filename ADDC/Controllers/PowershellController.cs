@@ -21,6 +21,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using ADDC.Services;
 using System.Text;
+using ADDC.Interfaces;
 
 namespace ADDC.Controllers
 {
@@ -29,11 +30,11 @@ namespace ADDC.Controllers
     [Route("/")]
     public class PowershellController : Controller
     {
-        private readonly PowershellSessionPoolService _sessionPool;
-        private readonly ExchangePowershellSessionPoolService _exchangeSessionPool;
+        private readonly IPowershellSessionPoolService _sessionPool;
+        private readonly IExchangePowershellSessionPoolService _exchangeSessionPool;
         private readonly ILogger<PowershellController> _logger;
 
-        public PowershellController(PowershellSessionPoolService sessionPool, ExchangePowershellSessionPoolService exchangeSessionPool, ILogger<PowershellController> logger)
+        public PowershellController(IPowershellSessionPoolService sessionPool, IExchangePowershellSessionPoolService exchangeSessionPool, ILogger<PowershellController> logger)
         {
             _exchangeSessionPool = exchangeSessionPool;
             _sessionPool = sessionPool;

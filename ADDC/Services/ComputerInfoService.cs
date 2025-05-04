@@ -5,21 +5,22 @@ using System.Management.Automation.Runspaces;
 using System.Management.Automation;
 using System.Net;
 using System.Text;
+using System.Drawing;
+using ADDC.Interfaces;
 
 namespace ADDC.Services
 {
-    public class ComputerInfoService : IHostedService, IDisposable
+    public class ComputerInfoService : IComputerInfoService, IHostedService, IDisposable
     {
         private readonly ILogger<ComputerInfoService> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly PowershellSessionPoolService _sessionPool;
+        private readonly HttpClient _client;
+        private readonly IPowershellSessionPoolService _sessionPool;
         private Timer _timer;
         string _coreAddress;
-        //InitialSessionState iss;
-        public ComputerInfoService(PowershellSessionPoolService sessionPool, ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
+        public ComputerInfoService(IPowershellSessionPoolService sessionPool, ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
-            _httpClientFactory = httpClientFactory;
+            _client = httpClientFactory.CreateClient("computerinfoservice");
             _sessionPool = sessionPool;
             string jsonText = System.IO.File.ReadAllText("config.txt");
 
@@ -40,38 +41,34 @@ namespace ADDC.Services
 
         private void DoWork(object state)
         {
-            var res = SendPostRequest();
+            var res = CollectAndSendInfo();
         }
-
-        private async Task<bool> SendPostRequest()
+        public async Task<JObject> CollectInfo()
         {
-
-            var func = _sessionPool.ExecuteFunction("CollectInfo");
-            string final = func.Result;
-
-            Console.WriteLine($"GetComputerinfo: {final}");
-            JObject jsonData = JObject.Parse(final);
-
+            var final = await _sessionPool.ExecuteFunction("CollectInfo");
+            return JObject.Parse(final);
+        }
+        public async Task<bool> CollectAndSendInfo()
+        {
+            JObject jsonData = CollectInfo().Result;
+            Console.WriteLine($"GetComputerinfo: {jsonData.ToString()}");
 
             var serData = JsonConvert.SerializeObject(jsonData);
 
-            using (HttpClient nclient = new HttpClient(new HttpClientHandler()))
+            var jsonContent = new StringContent(serData, Encoding.UTF8, "application/json");
+            var result =  await _client.PostAsync("https://" + _coreAddress + "/CollectComputerInfo", jsonContent);
+            Console.WriteLine(result);
+            if (result.IsSuccessStatusCode)
             {
-                var jsonContent = new StringContent(serData, Encoding.UTF8, "application/json");
-                var result =  await nclient.PostAsync("https://" + _coreAddress + "/CollectComputerInfo", jsonContent);
+                Console.WriteLine($"Data transferred successfully to {_coreAddress}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Failed to transfer data to {_coreAddress}");
                 Console.WriteLine(result);
-                if (result.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"Data transferred successfully to {_coreAddress}");
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to transfer data to {_coreAddress}");
-                    Console.WriteLine(result);
-                    return false;
-                }
-             }
+                return false;
+            }
             
         }
 

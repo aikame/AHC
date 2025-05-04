@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ADDC.Services;
+using ADDC.Interfaces;
 namespace ADDC
 {
     public class Startup
@@ -15,8 +16,9 @@ namespace ADDC
             services.AddControllers();
             services.AddHttpClient();
             services.AddHostedService<ComputerInfoService>();
-            services.AddSingleton<PowershellSessionPoolService>();
-            services.AddSingleton<ExchangePowershellSessionPoolService>();
+            services.AddSingleton<IComputerInfoService, ComputerInfoService>();
+            services.AddSingleton<IPowershellSessionPoolService,PowershellSessionPoolService> ();
+            services.AddSingleton<IExchangePowershellSessionPoolService, ExchangePowershellSessionPoolService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

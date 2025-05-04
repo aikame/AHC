@@ -12,7 +12,7 @@ namespace DBC.Models.PostgreSQL
         public Guid DomainId { get; set; }
         public DomainModel Domain { get; set; }
 
-        public Guid ProfileModelId { get; set; }
+        public Guid ProfileId { get; set; }
         public ProfileModel? Profile { get; set; }
 
         public bool? Enabled { get; set; }

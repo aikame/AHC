@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ADDC.Interfaces;
+using System;
 using System.Collections.Concurrent;
 using System.DirectoryServices.ActiveDirectory;
 using System.Management.Automation;
@@ -6,7 +7,7 @@ using System.Management.Automation.Runspaces;
 using System.Threading;
 namespace ADDC.Services
 {
-    public class PowershellSessionPoolService
+    public class PowershellSessionPoolService : IPowershellSessionPoolService
     {
         private readonly int _maxSessions;
         private readonly ConcurrentBag<PowerShell> _availableSessions = new();

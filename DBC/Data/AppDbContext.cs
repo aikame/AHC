@@ -18,7 +18,7 @@ namespace DBC.Data
             modelBuilder.Entity<ADAccountModel>()
                 .HasOne(a => a.Profile)
                 .WithMany(p => p.ADAccounts)
-                .HasForeignKey(a => a.ProfileModelId)
+                .HasForeignKey(a => a.ProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ADAccountModel>()
