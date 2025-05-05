@@ -134,27 +134,27 @@ namespace Backend.Controllers
             sdata["login"] = id;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["login"].ToString());
-                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
-                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                JObject computer = JObject.Parse(searchComputer);
-                var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
-                var responseContent = await result.Content.ReadAsStringAsync();
-                Console.WriteLine(responseContent);
-                if (result.IsSuccessStatusCode)
+            var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={domain}");
+            string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+            JObject computer = JObject.Parse(searchComputer);
+            var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+            var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
+            var responseContent = await result.Content.ReadAsStringAsync();
+            Console.WriteLine(responseContent);
+            if (result.IsSuccessStatusCode)
+            {
+                var jsonADData = JObject.Parse(responseContent);
+                jsonADData["Domain"] = new JObject
                 {
-                    var jsonADData = JObject.Parse(responseContent);
-                    jsonADData["Domain"] = new JObject
-                    {
-                        ["Forest"] = domain
-                    };
-                    var responseUpdateAd = _client.PostAsync($"https://localhost:7080/profile/update-adaccount", new StringContent(jsonADData.ToString(), Encoding.UTF8, "application/json"));
-                    return Content(responseContent);
-                }
-                else
-                {
-                    return BadRequest("Произошла ошибка при выполнении запроса.");
-                }
+                    ["Forest"] = domain
+                };
+                var responseUpdateAd = _client.PostAsync($"https://localhost:7080/profile/update-adaccount", new StringContent(jsonADData.ToString(), Encoding.UTF8, "application/json"));
+                return Content(responseContent);
+            }
+            else
+            {
+                return BadRequest("Произошла ошибка при выполнении запроса.");
+            }
             
         }
         [HttpGet("BanUser")]

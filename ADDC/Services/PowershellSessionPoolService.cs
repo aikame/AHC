@@ -17,7 +17,7 @@ namespace ADDC.Services
         private readonly object _lock = new();
         private readonly string _scriptPath = "./PowershellFunctions/Scripts.ps1";
 
-        public PowershellSessionPoolService(ILogger<PowershellSessionPoolService> logger,int maxSessions = 10, int cleanupIntervalMs = 60000) {
+        public PowershellSessionPoolService(ILogger<PowershellSessionPoolService> logger,int maxSessions = 5, int cleanupIntervalMs = 60000) {
             _maxSessions = maxSessions;
             _logger = logger;
             for (int i = 0; i < maxSessions; i++)

@@ -17,15 +17,12 @@ namespace ADDC.Services
         private readonly IPowershellSessionPoolService _sessionPool;
         private Timer _timer;
         string _coreAddress;
-        public ComputerInfoService(IPowershellSessionPoolService sessionPool, ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
+        public ComputerInfoService(IConfiguration configuration,IPowershellSessionPoolService sessionPool, ILogger<ComputerInfoService> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _client = httpClientFactory.CreateClient("computerinfoservice");
             _sessionPool = sessionPool;
-            string jsonText = System.IO.File.ReadAllText("config.txt");
-
-            JObject config = JObject.Parse(jsonText);
-            _coreAddress = config["core"].ToString();
+            _coreAddress = configuration["core"];
             
         }
 

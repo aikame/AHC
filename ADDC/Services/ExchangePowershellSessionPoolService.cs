@@ -26,7 +26,7 @@ namespace ADDC.Services
         public ExchangePowershellSessionPoolService(
             ILogger<ExchangePowershellSessionPoolService> logger,
             string exchangeScriptPath = "./PowershellFunctions/ScriptsPS5.ps1", 
-            int maxSessions = 5, 
+            int maxSessions = 3, 
             int cleanupIntervalMs = 60000)
         {
             _maxSessions = maxSessions;
