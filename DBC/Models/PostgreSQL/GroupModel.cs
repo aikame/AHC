@@ -23,9 +23,7 @@ namespace DBC.Models.PostgreSQL
             return new ElasticGroupModel
             {
                 Id = this.Id,
-                PSComputerName = this.PSComputerName,
                 Description = this.Description,
-                RunspaceId = this.RunspaceId,
                 DistinguishedName = this.DistinguishedName,
                 GroupCategory = this.GroupCategory,
                 GroupScope = this.GroupScope,
