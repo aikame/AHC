@@ -98,7 +98,7 @@ namespace DBC.Controllers
 
             var profile = await _context.Profiles
                 .Include(p => p.ADAccounts)
-                .FirstOrDefaultAsync(p => p.Id == account.ProfileModelId);
+                .FirstOrDefaultAsync(p => p.Id == account.ProfileId);
 
             if (profile == null)
                 return StatusCode(500, "Elastic profile error");
@@ -107,7 +107,7 @@ namespace DBC.Controllers
             _logger.LogInformation("[AddAD] Elastic model: " + JObject.FromObject(elasticProfile));
             var updateResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
                 .Index("profiles")
-                .Id(account.ProfileModelId)
+                .Id(account.ProfileId)
             );
 
             if (!updateResponse.IsValidResponse)
@@ -147,7 +147,7 @@ namespace DBC.Controllers
 
             var profile = await _context.Profiles
                 .Include(p => p.ADAccounts)
-                .FirstOrDefaultAsync(p => p.Id == existingAcc.ProfileModelId);
+                .FirstOrDefaultAsync(p => p.Id == existingAcc.ProfileId);
 
             if (profile == null)
                 return StatusCode(500, "Elastic profile error");
