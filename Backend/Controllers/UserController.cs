@@ -98,7 +98,7 @@ namespace Backend.Controllers
                     if (!adResponse.IsSuccessStatusCode) return;
 
                     var jsonADData = JObject.Parse(await adResponse.Content.ReadAsStringAsync());
-                    jsonADData["ProfileModelId"] = jsonProfile["id"];
+                    jsonADData["ProfileId"] = jsonProfile["id"];
                     jsonADData["Domain"] = new JObject { ["Forest"] = domain };
 
                     var mailProfile = new JObject { ["name"] = jsonADData["SamAccountName"] };
@@ -588,7 +588,7 @@ namespace Backend.Controllers
                     var searchUserJson = JObject.Parse(await responseSearchUser.Content.ReadAsStringAsync());
 
                     jsonADData["Domain"] = new JObject { ["Forest"] = domain };
-                    jsonADData["ProfileModelId"] = searchUserJson["id"];
+                    jsonADData["ProfileId"] = searchUserJson["id"];
 
                     await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
