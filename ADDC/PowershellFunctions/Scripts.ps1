@@ -133,16 +133,13 @@ function ChangePassw {
 }
 # Собрать информацию о ПК
 function CollectInfo {
-    # Ensure the Active Directory module is available
     if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
         Import-Module ActiveDirectory
     }
 
-    # Get Windows Edition
     $os = Get-CimInstance -ClassName Win32_OperatingSystem
-    $windowsEdition = $os.Caption
 
-    # Get IP Address
+    $windowsEdition = $os.Caption
     $ipAddress = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -like 'Ethernet*' -or $_.PrefixOrigin -eq 'Manual' } | Select-Object -ExpandProperty IPAddress -First 1)
 
     if (-not $ipAddress) {
@@ -192,6 +189,7 @@ function CollectInfo {
         CPUCores       = $cpuCores
         ComputerName   = $computerName
         ComputerRole   = $role
+	Domain	       = $domain | select Forest, Name, DomainSID
     }
 
     $jsonInfo = $info | ConvertTo-Json

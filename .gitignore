@@ -402,3 +402,4 @@ Frontend/db.sqlite3
 /Frontend/.venv
 /Elastic/DBC/.venv
 /DBC/Migrations
+ADDC/appsettings.json
