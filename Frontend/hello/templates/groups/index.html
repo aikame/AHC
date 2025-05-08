@@ -73,6 +73,7 @@
           {% include "../Base/sidebar.html" %}
           <main  class=" row ml-sm-auto h-100 col-lg-10 pl-md-4">
             <div id="table_computers">
+              {% if groups_json %}
               <table>
                 <table class="table table-hover table-striped">
                     <thead>
@@ -94,6 +95,9 @@
 
                     </tr>
                     {% endfor %}
+                    {% else %}
+                      <h1 class="align-text-center">There is no data!</h1>
+                    {% endif %}
                 </tbody>
               </table>
             </div>

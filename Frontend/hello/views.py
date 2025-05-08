@@ -217,8 +217,10 @@ def computer(request):
 def groups(request):
     json_data = requests.get('https://localhost:7080/search/group',verify=False)
     timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
-    data = json.loads(json_data.content)
-
+    try:
+        data = json.loads(json_data.content)
+    except:
+        data = 0;
     return render(
         request,
         'groups/index.html',
@@ -271,7 +273,10 @@ def group_detail(request, id):
 def searchall(request):
     timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))
     json_data = requests.get('https://localhost:7080/search/profile',verify=False)
-    data = json.loads(json_data.content)
+    try:
+        data = json.loads(json_data.content)
+    except:
+        data = 0
     for i in data:
         if ("fireDate" in i and i["fireDate"] != None):
             i["fireDate"] = parse_datetime(i['fireDate'])    

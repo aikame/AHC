@@ -59,6 +59,7 @@
         <div class="row">
           {% include "../Base/sidebar.html" %}
           <main  class=" row ml-sm-auto h-100 col-lg-10 pl-md-4">
+            {% if profiles_json %}
             <div id="table_profiles">
                 <table class="table table-hover">
                   <thead>
@@ -86,6 +87,9 @@
                       <td class="fired text-danger">{% if row.fireDate %}{{row.fireDate |date:"d.m.Y H:i:s"}}{% endif %}</td>
                     </tr>
                     {% endfor %}
+                    {% else %}
+                      <h1 class="align-text-center">There is no data!</h1>
+                    {% endif %}
                 </tbody>
               </table>
             </div>
