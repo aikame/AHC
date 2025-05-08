@@ -65,11 +65,13 @@ def login_page(request):
 def auth(request):
     user = request.POST.get('user')
     password = request.POST.get('password')
+    user = user.replace('\\', '\\\\')
     print("Creds: " + user + ' ' + password)
     aBack = AHCAuthBackend()
     user,status = aBack.authenticate(username=user,password=password)
     if (status):
-        login(request, user)    
+        login(request, user)
+        HttpResponseRedirect('home')
         return render(
             request,
             'main_page/index.html'
@@ -79,8 +81,7 @@ def auth(request):
         request,
         'login/index.html',
         {'errortxt':"Неправильное имя пользователя или пароль"}
-    )
-
+        )
 
 @login_required
 def home(request):
