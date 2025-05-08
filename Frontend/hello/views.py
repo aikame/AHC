@@ -71,7 +71,6 @@ def auth(request):
     user,status = aBack.authenticate(username=user,password=password)
     if (status):
         login(request, user)
-        HttpResponseRedirect('home')
         return render(
             request,
             'main_page/index.html'
@@ -297,9 +296,9 @@ def createAD(request,id,domain):
     user = user_data.json()
     content = JSONRenderer().render(user)
     result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
-    print(result.status_code)
+    print(result.json())
     if result.status_code ==200:
-        return JsonResponse({'success': 'Profile updated successfully'}, status=200)
+        return JsonResponse(result.json(), status=200)
     else:
         return JsonResponse({'error': 'Profile not updated successfully'}, status=500)
 

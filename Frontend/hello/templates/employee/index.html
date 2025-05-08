@@ -208,9 +208,30 @@
         </div>
       </div>
   </main>
-
-
-
+  <div id="loadingModal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Ожидание</h5></div>
+          <div class="modal-body">
+            <p id="loadingModalContent">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif">
+            </p>
+        </div>
+        <div class="modal-footer">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="responseModal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Успешно!</h5></div>
+        <div class="modal-body"><p id="responseModalContent"></p></div>
+        <div class="modal-footer">
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 <script>
 
@@ -219,10 +240,15 @@
   async function createAcc(){
     domain = document.getElementById("domainSelect").value;
     mail = document.getElementById("mailCheckbox").checked;
-    console.error(domain)
+    console.error(domain);
+    let modalLoad = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modalLoad.show();
     let result = await fetch(`/createAD/`+domain+`/{{id}}?mail=` + mail);
     if (result.status == 200){
-      window.location.reload();
+      modalLoad.hide();
+      document.getElementById("responseModalContent").innerText = result.;
+      let modalResult = new bootstrap.Modal(document.getElementById('responseModal'));
+      modalResult.show();
     }
   }
 </script>
