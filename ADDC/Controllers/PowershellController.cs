@@ -214,11 +214,11 @@ namespace ADDC.Controllers
             try
             {
                 UserModel user = data["user"].ToObject<UserModel>();
-                string password = data["password"].ToString();
+                string password = GeneratePassword(12);
                 _logger.LogInformation($"[ChangePassword]: \n{user}");
                 var func = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
                 string result = func.Result;
-                return result == "200" ? Ok() : BadRequest(result);
+                return result == "200" ? Ok(password) : BadRequest(result);
             }
             catch (Exception e){
                 _logger.LogError("[ChangePassword] Exception: " + e.Message);

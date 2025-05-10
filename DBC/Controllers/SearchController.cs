@@ -22,7 +22,7 @@ namespace DBC.Controllers
             _elasticsearchClient = elasticsearchClient;
             _logger = logger;
         }
-
+        // вынести в сервис !!!!!!!!!
         private async Task<SearchResponse<T>> SearchAsync<T>(string? index, string sortField, string? query, int? size) where T : class
         {
             if (string.IsNullOrEmpty(sortField))
