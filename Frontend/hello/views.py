@@ -296,8 +296,7 @@ def createAD(request,id,domain):
     user = user_data.json()
     content = JSONRenderer().render(user)
     result = requests.post(f'https://localhost:7095/CreateUser?domain={domain}&mail={mail}',data=content,verify=False,headers={"Content-Type": "application/json"})
-    print(result.json())
-    if result.status_code ==200:
+    if result.status_code == 200:
         return JsonResponse(result.json(), status=200)
     else:
         return JsonResponse({'error': 'Profile not updated successfully'}, status=500)

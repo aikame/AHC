@@ -244,9 +244,12 @@
     let modalLoad = new bootstrap.Modal(document.getElementById('loadingModal'));
     modalLoad.show();
     let result = await fetch(`/createAD/`+domain+`/{{id}}?mail=` + mail);
+    const data = await result.json()
+    console.log(data);
     if (result.status == 200){
       modalLoad.hide();
-      document.getElementById("responseModalContent").innerText = result.;
+      const text = `Логин: ${data.SamAccountName}\nПароль: ${data.password}`
+      document.getElementById("responseModalContent").innerText = text;
       let modalResult = new bootstrap.Modal(document.getElementById('responseModal'));
       modalResult.show();
     }
