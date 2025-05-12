@@ -300,7 +300,8 @@ namespace Backend.Controllers
             {
                 JObject response = new JObject();
                 response["password"] = await result.Content.ReadAsStringAsync();
-                return Ok(response);
+                _logger.LogInformation("AHTUNG!!!: " + response.ToString());
+                return Ok(JsonConvert.SerializeObject(response));
             }
             else
             {
