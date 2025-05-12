@@ -494,7 +494,7 @@ def removeFromGroup(request):
 def changePassword(request):
     result = request.post(f'https://localhost:7095/ChangePassword', data=request.body,verify=False,headers={"Content-Type": "application/json"})
     print(result.json())
-    if result.status = 200:
+    if result.status == 200:
         return JsonResponse(result.json(), status = 200)
     else:
         return JsonResponse({'error': 'Что-то пошло не так'})
