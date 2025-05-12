@@ -492,6 +492,11 @@ def removeFromGroup(request):
 
 @login_required
 def changePassword(request):
-    return JsonResponse({'error': 'changePassword unsuccessfull'}, status=500)
+    result = request.post(f'https://localhost:7095/ChangePassword', data=request.body,verify=False,headers={"Content-Type": "application/json"})
+    print(result.json())
+    if result.status = 200:
+        return JsonResponse(result.json(), status = 200)
+    else:
+        return JsonResponse({'error': 'Что-то пошло не так'})
 
 timezone.activate(pytz.timezone('Asia/Krasnoyarsk'))

@@ -194,28 +194,14 @@
         }
         async function ChangePassword() {
             try {
-                let Passw = document.getElementById("password-field").value;
+                //let Passw = document.getElementById("password-field").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(id + `/changePassword`, {
-                    method: "POST",
-                    headers: new Headers({
-                        'content-Type': 'application/json'
-                    }),
-                    body: JSON.stringify({
-                        "user": {
-                            "name": id
-                        },
-                        "password": Passw,
-                        "domain": domain
-                    })
-                })
-                let body = document.getElementById("changePasswStatus");
+                var result = await fetch(id + `/changePassword`).then(response => response.json())
                 if (result.ok) {
-                    body.innerHTML = '<span id="changePasswStatus" class="text-success">Пароль успешно изменён</span>';
-                    setTimeout(() => window.location.reload(), 1000);
+                    document.getElementById('changePassw-text').innerText = 
                 } else {
-                    body.innerHTML = '<span id="changePasswStatus" class="text-danger">Пароль не удалось изменить</span>';
+
                 }
             } catch {
                 let body = document.getElementById("changePasswStatus");
@@ -372,7 +358,7 @@
                                     <path
                                         d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
                                 </svg> Исключить из группы</button></li>
-                        <li><button type="button" data-toggle="modal" data-target="#changePassw"
+                        <li><button type="button" onclick="ChangePassword()" data-toggle="modal" data-target="#changePassw"
                                 class="dropdown-item"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                     fill="currentColor" class="bi bi-person-fill-lock" viewBox="0 0 16 16">
                                     <path
@@ -567,18 +553,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="group-name" class="col-form-label">Новый пароль:</label>
-                            <input type="password" class="form-control" id="password-field">
-                            <span id="changePasswStatus"></span>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-                    <button type="button" onclick="ChangePassword()" class="btn btn-primary">Изменить</button>
+                <div class="modal-body" id="changePassw-text">
                 </div>
             </div>
         </div>
