@@ -134,7 +134,7 @@ namespace ADDC.Services
             }
         }
 
-        public PowerShell GetSession()
+        private PowerShell GetSession()
         {
             _logger.LogTrace("Attempting to get an Exchange PowerShell session...");
             if (_availableSessions.TryTake(out var session))
@@ -174,7 +174,7 @@ namespace ADDC.Services
             throw new Exception("Нет доступных сессий Exchange PowerShell и нельзя создать новую.");
         }
 
-        public void ReleaseSession(PowerShell session)
+        private void ReleaseSession(PowerShell session)
         {
             _logger.LogTrace("Releasing Exchange PowerShell session...");
             session.Commands.Clear();

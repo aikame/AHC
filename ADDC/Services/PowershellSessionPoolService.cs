@@ -35,7 +35,7 @@ namespace ADDC.Services
             return ps;
         }
 
-        public PowerShell GetSession()
+        private PowerShell GetSession()
         {
             if (_availableSessions.TryTake(out var session))
             {
@@ -55,7 +55,7 @@ namespace ADDC.Services
             throw new Exception("Нет доступных сессий и нельзя создать новую.");
         }
 
-        public void ReleaseSession(PowerShell session)
+        private void ReleaseSession(PowerShell session)
         {
             if (_temporarySessions.Contains(session))
             {

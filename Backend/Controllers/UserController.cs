@@ -290,20 +290,22 @@ namespace Backend.Controllers
             JObject jsonData = JObject.Parse(temp);
 
 
-                var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
-                string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
-                JObject computer = JObject.Parse(searchComputer);
-                var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
-                var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ChangePassword", jsonContent);
-                Console.WriteLine(result.ToString());
-                if (result.IsSuccessStatusCode)
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest();
-                }
+            var responseSearchComputer = await _client.GetAsync($"https://localhost:7080/search/domain-controller?domain={data.GetProperty("domain")}");
+            string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
+            JObject computer = JObject.Parse(searchComputer);
+            var jsonContent = new StringContent(jsonData.ToString(), Encoding.UTF8, "application/json");
+            var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/ChangePassword", jsonContent);
+            Console.WriteLine(result.ToString());
+            if (result.IsSuccessStatusCode)
+            {
+                JObject response = new JObject();
+                response["password"] = await result.Content.ReadAsStringAsync();
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest();
+            }
             
         }
         [HttpGet("CreateMailBox")]
