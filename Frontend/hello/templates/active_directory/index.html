@@ -197,7 +197,19 @@
                 //let Passw = document.getElementById("password-field").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(id + `/changePassword`).then(response => response.json())
+                var result = await fetch(id + `/changePassword`,{
+                    method: "POST",
+                    headers: new Headers({
+                        'content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    }),
+                    body: JSON.stringify({
+                        "user": {
+                            "name": id
+                        },
+                        "domain": domain
+                    })
+                })
                 if (result.ok) {
                     document.getElementById('changePassw-text').innerText = `<p>Новыый пароль: ${result.password} </p>`
                 } else {
