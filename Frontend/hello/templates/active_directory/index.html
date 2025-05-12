@@ -210,8 +210,9 @@
                         "domain": domain
                     })
                 })
+                var data = await result.json();
                 if (result.ok) {
-                    document.getElementById('changePassw-text').innerText = `<p>Новыый пароль: ${result.password} </p>`
+                    document.getElementById('changePassw-text').innerText = `<p>Новыый пароль: ${data.password} </p>`
                 } else {
 
                 }
