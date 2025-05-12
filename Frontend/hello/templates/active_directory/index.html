@@ -199,7 +199,7 @@
                 let domain = encodeURIComponent("{{ domain }}");
                 var result = await fetch(id + `/changePassword`).then(response => response.json())
                 if (result.ok) {
-                    document.getElementById('changePassw-text').innerText = 
+                    document.getElementById('changePassw-text').innerText = `<p>Новыый пароль: ${result.password} </p>`
                 } else {
 
                 }
