@@ -197,7 +197,8 @@
                 //let Passw = document.getElementById("password-field").value;
                 let id = encodeURIComponent("{{ id }}");
                 let domain = encodeURIComponent("{{ domain }}");
-                var result = await fetch(id + `/ChangePassword`,{
+                let csrfToken = document.getElementById("csrf-token").value;
+                var result = await fetch(id + `/changePassword`,{
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json',
