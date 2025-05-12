@@ -495,7 +495,7 @@ def changePassword(request, domain, id):
     print(request.body)
     result = requests.post(f'https://localhost:7095/ChangePassword', data=request.body,verify=False,headers={"Content-Type": "application/json"})
     print(result.json())
-    if result.status == 200:
+    if result.status_code == 200:
         return JsonResponse(result.json(), status = 200)
     else:
         return JsonResponse({'error': 'Что-то пошло не так'})
