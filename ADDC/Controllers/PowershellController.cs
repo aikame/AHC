@@ -213,6 +213,7 @@ namespace ADDC.Controllers
         {
             try
             {
+                _logger.LogInformation(data.ToString());
                 UserModel user = data["user"].ToObject<UserModel>();
                 string password = GeneratePassword(12);
                 _logger.LogInformation($"[ChangePassword]: \n{user}");
