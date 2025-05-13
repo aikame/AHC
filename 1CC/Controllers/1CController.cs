@@ -38,7 +38,7 @@ namespace _1CC.Controllers
             using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {
                 var jsonContent = new StringContent(sdata, Encoding.UTF8, "application/json");
-                var result = await client.PostAsync($"https://{_coreIP}:7095/CreateProfile?domain="+domain, jsonContent);
+                var result = await client.PostAsync($"https://{_coreIP}:7095/CreateProfile?domain="+domain+"&blocked=True", jsonContent);
 
                 var responseContent = await result.Content.ReadAsStringAsync();
                 Console.WriteLine(responseContent);

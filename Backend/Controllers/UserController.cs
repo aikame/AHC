@@ -19,6 +19,7 @@ using Backend.Services;
 using Microsoft.Extensions.Logging;
 using System.DirectoryServices.ActiveDirectory;
 using System.Net.Http;
+using System.Net.Http.Json;
 
 namespace Backend.Controllers
 {
@@ -64,7 +65,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost("CreateProfile")]
-        public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user, [FromQuery] string? domain)
+        public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user, [FromQuery] string? domain, [FromQuery] bool blocked = false)
         {
             Console.WriteLine($"ProfileCreation: {JsonConvert.SerializeObject(user)}");
 
@@ -111,11 +112,19 @@ namespace Backend.Controllers
                         jsonProfile["email"] = jsonMail["Address"];
                     }
 
-                    await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
+                    var temp = await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(jsonADData), Encoding.UTF8, "application/json"));
+                    
+                    _logger.LogInformation(temp.ToString());
 
                     await _client.PostAsync("https://localhost:7080/profile/update",
                         new StringContent(JsonConvert.SerializeObject(jsonProfile), Encoding.UTF8, "application/json"));
+                    if (blocked) {
+                        JObject sdata = new JObject();
+                        sdata["name"] = jsonADData["SamAccountName"].ToString();
+                        var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
+                        await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/BanUser", jsonContent);
+                    }
                 }
                 catch (Exception ex)
                 {
