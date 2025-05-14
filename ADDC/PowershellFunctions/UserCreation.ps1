@@ -41,7 +41,10 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     $extAttr1.Add('Должность',$RUappointment)
 
     $index = 0  
-    $baseUserName = "$firstName.$lastName".Substring(0,18)
+    $baseUserName = "$firstName.$lastName"
+    if ($baseUserName.Length -gt 18) {
+        $baseUserName = $baseUserName.Substring(0,18)
+    }
     while ($true) {    
       $userName = $baseUserName
       if ($index -ne 0) {
