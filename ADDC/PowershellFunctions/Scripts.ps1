@@ -384,23 +384,27 @@ function UserCreation {
         $extAttr1.Add('Должность', $RUappointment)
 
         $index = 0  
-        $baseUserName = "$firstName.$lastName" 
-        while ($index -le 100) {    
-            $userName = $baseUserName     
-            if ($index -ne 0) {         
-                $userName += $index     
-            }     
-            $user = $null
-	    try {
-		$user = Get-ADUser -identity $userName -ErrorAction SilentlyContinue     
-	    } catch {
-		$user = $null
-	    }   
-            if ( $null -eq $user ) {                  
-                break     
-            }     
-            $index++ 
-        }
+    $baseUserName = "$firstName.$lastName"
+    if ($baseUserName.Length -gt 18) {
+        $baseUserName = $baseUserName.Substring(0,18)
+    }
+    while ($index -lt 100) {    
+      $userName = $baseUserName
+      if ($index -ne 0) {
+        $userName = $userName + $index     
+      }
+      $user = $null
+      try {     
+      $user =  Get-ADUser -identity $userName -ErrorAction SilentlyContinue     
+      } catch {
+        $user = $null
+      }
+      if ( $null -eq $user ) {                  
+        break     
+      }     
+      $index++ 
+    }
+
 	if ( $index -ge 99) {
 	    return "500"
 	}
