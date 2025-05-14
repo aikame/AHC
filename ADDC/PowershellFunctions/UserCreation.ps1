@@ -41,11 +41,12 @@ if (($name -notmatch "[^А-Яа-яеЁ-]+") -and
     $extAttr1.Add('Должность',$RUappointment)
 
     $index = 0  
-    $baseUserName = "$firstName.$lastName" 
+    $baseUserName = "$firstName.$lastName".Substring(0,18)
     while ($true) {    
-      $userName = $baseUserName     
-      if ($index -ne 0) {         
-        $userName += $index     
+      $userName = $baseUserName
+      if ($index -ne 0) {
+               
+        $userName = $userName + $index     
       }     
       $user =  Get-ADUser -identity $userName -ErrorAction SilentlyContinue     
       if ( $null -eq $user ) {                  
