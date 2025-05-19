@@ -24,18 +24,23 @@ namespace ADDC.Services
         private readonly ConcurrentBag<Runspace> _allRunspaces = new();
 
         public ExchangePowershellSessionPoolService(
+            IConfiguration configuration,
             ILogger<ExchangePowershellSessionPoolService> logger,
             string exchangeScriptPath = "./PowershellFunctions/ScriptsPS5.ps1", 
-            int maxSessions = 3, 
             int cleanupIntervalMs = 60000)
         {
-            _maxSessions = maxSessions;
             _logger = logger;
+            if (!int.TryParse(configuration["MaxPowershell51Sessions"], out _maxSessions))
+            {
+                _maxSessions = 5;
+                _logger.LogWarning($"Invalid or missing MaxPowershell51Sessions in configuration. Using default: {_maxSessions}");
+            }
+
             _exchangeScriptPath = exchangeScriptPath;
 
-            _logger.LogInformation("Initializing Exchange PowerShell Session Pool with MaxSessions={MaxSessions}", maxSessions);
+            _logger.LogInformation("Initializing Exchange PowerShell Session Pool with MaxSessions={MaxSessions}", _maxSessions);
 
-            for (int i = 0; i < maxSessions; i++)
+            for (int i = 0; i < _maxSessions; i++)
             {
                 try
                 {
@@ -43,18 +48,18 @@ namespace ADDC.Services
                     if (session != null)
                     {
                         _availableSessions.Add(session);
-                        _logger.LogTrace("Successfully created and added initial Exchange PowerShell session {Index}/{Max}", i + 1, maxSessions);
+                        _logger.LogTrace("Successfully created and added initial Exchange PowerShell session {Index}/{Max}", i + 1, _maxSessions);
                     }
                     else
                     {
-                        _logger.LogWarning("Failed to create initial Exchange PowerShell session {Index}/{Max}", i + 1, maxSessions);
+                        _logger.LogWarning("Failed to create initial Exchange PowerShell session {Index}/{Max}", i + 1, _maxSessions);
                         
                     }
 
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to create initial Exchange PowerShell session {Index}/{Max}", i + 1, maxSessions);
+                    _logger.LogError(ex, "Failed to create initial Exchange PowerShell session {Index}/{Max}", i + 1, _maxSessions);
                 }
             }
             _logger.LogInformation("Exchange PowerShell Session Pool Initialization complete. Available sessions: {Count}", _availableSessions.Count);

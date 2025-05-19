@@ -17,10 +17,15 @@ namespace ADDC.Services
         private readonly object _lock = new();
         private readonly string _scriptPath = "./PowershellFunctions/Scripts.ps1";
 
-        public PowershellSessionPoolService(ILogger<PowershellSessionPoolService> logger,int maxSessions = 5, int cleanupIntervalMs = 60000) {
-            _maxSessions = maxSessions;
+        public PowershellSessionPoolService(IConfiguration configuration,ILogger<PowershellSessionPoolService> logger, int cleanupIntervalMs = 60000) {
             _logger = logger;
-            for (int i = 0; i < maxSessions; i++)
+            if (!int.TryParse(configuration["MaxPowershell7Sessions"], out _maxSessions))
+            {
+                _maxSessions = 10;
+                _logger.LogWarning($"Invalid or missing MaxPowershell7Sessions in configuration. Using default: {_maxSessions}");
+            }
+
+            for (int i = 0; i < _maxSessions; i++)
             {
                 _availableSessions.Add(CreateSession());
             }

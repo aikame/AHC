@@ -56,7 +56,7 @@ namespace ADDC.Controllers
                 string StringPasswordLastSet = jsonData["PasswordLastSet"]?.ToString();
                 var PasswordLastSet = StringPasswordLastSet.Length > 1 ? DateTime.Parse(StringPasswordLastSet) : DateTime.MinValue;
 
-                var userModel = new ADUserModel
+                var userModel = new ADAccountModel
                 {
                     DistinguishedName = jsonData["DistinguishedName"].ToString(),
                     SamAccountName = jsonData["SamAccountName"].ToString(),
