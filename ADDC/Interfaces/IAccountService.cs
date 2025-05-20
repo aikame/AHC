@@ -3,16 +3,16 @@ using Newtonsoft.Json.Linq;
 
 namespace ADDC.Interfaces
 {
-    public interface IAccountService
+    public interface IAccountService 
     {
         Task<ADAccountModel?> GetInfo(string SamAccountName);
-        Task<bool> BanUser(UserModel user);
-        Task<bool> UnbanUser(UserModel user);
+        Task<bool> BanUser(ADAccountModel user);
+        Task<bool> UnbanUser(ADAccountModel user);
         Task<bool> Authentication(string user, string password);
-        Task<string?> ChangePassword(UserModel user);
-        Task<JObject?> CreateMailBox(UserModel user);
-        Task<bool> HideMailBox(UserModel user);
-        Task<bool> ShowMailBox(UserModel user);
+        Task<string?> ChangePassword(ADAccountModel user);
+        Task<JObject?> CreateMailBox(ADAccountModel user);
+        Task<bool> HideMailBox(ADAccountModel user);
+        Task<bool> ShowMailBox(ADAccountModel user);
         Task<ADAccountModel?> Create(UserModel user);
     }
 }

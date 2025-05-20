@@ -94,18 +94,34 @@ namespace ADDC.Services
                 return null;
             }
         }
-        public async Task<bool> BanUser(UserModel user)
+        public async Task<bool> BanUser(ADAccountModel user)
         {
-            _logger.LogInformation($"[BanUser]: \n{user.Name}");
-            var result = await _sessionPool.ExecuteFunction("BanUser", ("UserLogin", user.Name));
-            return result == "200" ? true : false;
+            _logger.LogInformation($"[BanUser]: \n{user.SamAccountName}");
+            try
+            {
+                var result = await _sessionPool.ExecuteFunction("BanUser", ("UserLogin", user.SamAccountName));
+                return result == "200" ? true : false;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[BanUser]: {e.Message}");
+                return false;
+            }
+            
         }
 
-        public async Task<bool> UnbanUser(UserModel user)
+        public async Task<bool> UnbanUser(ADAccountModel user)
         {
-            _logger.LogInformation($"[UnbanUser]: \n{user.Name}");
-            var result = await _sessionPool.ExecuteFunction("UnbanUser", ("UserLogin", user.Name));
-            return result == "200" ? true : false;
+            try
+            {
+                var result = await _sessionPool.ExecuteFunction("UnbanUser", ("UserLogin", user.SamAccountName));
+                return result == "200" ? true : false;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[UnbanUser]: {e.Message}");
+                return false;
+            }
         }
 
         public async Task<bool> Authentication(string user, string password)
@@ -128,13 +144,13 @@ namespace ADDC.Services
             }
         }
 
-        public async Task<string?> ChangePassword(UserModel user)
+        public async Task<string?> ChangePassword(ADAccountModel user)
         {
             try
             {
                 string password = GeneratePassword(12);
                 _logger.LogInformation($"[ChangePassword]: \n{user}");
-                var result = await _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
+                var result = await _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.SamAccountName), ("newPasswd", password));
                 return result == "200" ? password : null;
             }
             catch (Exception e)
@@ -144,12 +160,12 @@ namespace ADDC.Services
             }
         }
 
-        public async Task<JObject?>CreateMailBox(UserModel user)
+        public async Task<JObject?>CreateMailBox(ADAccountModel user)
         {
             try
             {
-                _logger.LogInformation("[CreateMailBox] " + user.Name);
-                var result = await _exchangeSessionPool.ExecuteFunction("CreateMailBox", ("userLogin", user.Name));
+                _logger.LogInformation("[CreateMailBox] " + user.SamAccountName);
+                var result = await _exchangeSessionPool.ExecuteFunction("CreateMailBox", ("userLogin", user.SamAccountName));
                 if (result == "404")
                 {
                     _logger.LogError("[CreateMailBox] 404 Error");
@@ -166,17 +182,32 @@ namespace ADDC.Services
 
         }
 
-        public async Task<bool> HideMailBox(UserModel user)
+        public async Task<bool> HideMailBox(ADAccountModel user)
         {
             _logger.LogInformation($"[HideMailBox]: \n{user}");
-            var result = await _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
-            return result == "200" ? true : false;
+            try
+            {
+                var result = await _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.SamAccountName));
+                return result == "200" ? true : false;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[HideMailBox]: {e.Message}");
+                return false;
+            }
         }
-        public async Task<bool> ShowMailBox(UserModel user)
+        public async Task<bool> ShowMailBox(ADAccountModel user)
         {
-            _logger.LogInformation($"[ShowMailBox]: \n{user}");
-            var result = await _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
-            return result == "200" ? true : false;
+            try
+            {
+                var result = await _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.SamAccountName));
+                return result == "200" ? true : false;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[ShowMailBox]: {e.Message}");
+                return false;
+            }
         }
         public async Task<ADAccountModel?> Create(UserModel user)
         {

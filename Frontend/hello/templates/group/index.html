@@ -22,7 +22,7 @@
                 let id = document.getElementById("user-name").value;
                 let domain = encodeURIComponent("{{ domain }}");
                 let csrfToken = document.getElementById("csrf-token").value;
-                var result = await fetch(id+`/addToGroup`, {
+                var result = await fetch(`/AD/`+domain + `/` +id+`/addToGroup`, {
                     method: "POST",
                     headers: new Headers({
                         'content-Type': 'application/json',

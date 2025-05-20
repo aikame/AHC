@@ -35,9 +35,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("BanUser")]
-        public async Task<IActionResult> BanUser([FromBody] UserModel user)
+        public async Task<IActionResult> BanUser([FromBody] ADAccountModel user)
         {
-            _logger.LogInformation($"[BanUser]: \n{user.Name}");
+            _logger.LogInformation($"[BanUser]: \n{user.SamAccountName}");
             try
             {
                 var result = await _accountService.BanUser(user);
@@ -51,9 +51,9 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("UnbanUser")]
-        public async Task<IActionResult> UnbanUser([FromBody] UserModel user)
+        public async Task<IActionResult> UnbanUser([FromBody] ADAccountModel user)
         {
-            _logger.LogInformation($"[UnbanUser]: \n{user.Name}");
+            _logger.LogInformation($"[UnbanUser]: \n{user.SamAccountName}");
             try
             {
                 var result = await _accountService.UnbanUser(user);
@@ -86,7 +86,7 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] UserModel user)
+        public async Task<IActionResult> ChangePassword([FromBody] ADAccountModel user)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("CreateMailBox")]
-        public async Task<IActionResult> CreateMailBox([FromBody] UserModel user)
+        public async Task<IActionResult> CreateMailBox([FromBody] ADAccountModel user)
         {
             try
             {
@@ -118,7 +118,7 @@ namespace ADDC.Controllers
 
         }
         [HttpPost("HideMailBox")]
-        public async Task<IActionResult> HideMailBox([FromBody] UserModel user)
+        public async Task<IActionResult> HideMailBox([FromBody] ADAccountModel user)
         {
             _logger.LogInformation($"[HideMailBox]: \n{user}");
             try
@@ -135,7 +135,7 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("ShowMailBox")]
-        public async Task<IActionResult> ShowMailBox([FromBody] UserModel user)
+        public async Task<IActionResult> ShowMailBox([FromBody] ADAccountModel user)
         {
             _logger.LogInformation($"[ShowMailBox]: \n{user}");
             try

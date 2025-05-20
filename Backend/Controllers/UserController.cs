@@ -147,7 +147,7 @@ namespace Backend.Controllers
             string searchComputer = await responseSearchComputer.Content.ReadAsStringAsync();
             JObject computer = JObject.Parse(searchComputer);
             var jsonContent = new StringContent(sdata.ToString(), Encoding.UTF8, "application/json");
-            var result = await _client.PostAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo", jsonContent);
+            var result = await _client.GetAsync("https://" + computer["ipAddress"].ToString() + ":" + _connectorPort + "/GetInfo?samAccountName=" + id);
             var responseContent = await result.Content.ReadAsStringAsync();
             Console.WriteLine(responseContent);
             if (result.IsSuccessStatusCode)
@@ -172,7 +172,7 @@ namespace Backend.Controllers
             string decodedId = HttpUtility.HtmlDecode(id);
             Console.WriteLine(id + " -> " + decodedId);
             JObject sdata = new JObject();
-            sdata["name"] = decodedId;
+            sdata["SamAccountName"] = decodedId;
             Console.WriteLine($"Prepared: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
 
@@ -198,7 +198,7 @@ namespace Backend.Controllers
             string decodedId = HttpUtility.HtmlDecode(id);
             Console.WriteLine(id + " -> " + decodedId);
             JObject sdata = new JObject();
-            sdata["name"] = decodedId;
+            sdata["SamAccountName"] = decodedId;
             Console.WriteLine($"UnbanUser: {sdata}");
             Console.WriteLine(sdata["name"].ToString());
 
