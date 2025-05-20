@@ -19,6 +19,9 @@ namespace ADDC
             services.AddSingleton<IComputerInfoService, ComputerInfoService>();
             services.AddSingleton<IPowershellSessionPoolService,PowershellSessionPoolService> ();
             services.AddSingleton<IExchangePowershellSessionPoolService, ExchangePowershellSessionPoolService>();
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IComputerService, ComputerService>();
+            services.AddScoped<IGroupService, GroupService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
