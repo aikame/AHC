@@ -27,7 +27,7 @@ namespace ADDC.Controllers
 {
     
     [ApiController]
-    [Route("/")]
+    [Route("/old")]
     public class PowershellController : Controller
     {
         private readonly IPowershellSessionPoolService _sessionPool;

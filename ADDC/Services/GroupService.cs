@@ -50,10 +50,17 @@ namespace ADDC.Services
             }
         }
 
-        public async Task<bool?> AddToGroup(UserModel user, string group)
+        public async Task<bool> AddToGroup(UserModel user, string group)
         {
             _logger.LogInformation($"[AddToGroup]: \n{user.Name}");
             var result = await _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.Name), ("grpID", group));
+            return result == "200" ? true : false;
+        }
+
+        public async Task<bool> RemoveFromGroup(UserModel user, string group)
+        {
+            _logger.LogInformation($"[AddToGroup]: \n{user.Name}");
+            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userID", user.Name), ("grpID", group));
             return result == "200" ? true : false;
         }
     }

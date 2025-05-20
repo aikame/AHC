@@ -7,6 +7,7 @@ namespace ADDC.Interfaces
     {
         Task<JObject?> GetGroupMembers(string group);
         Task<GroupModel?> CreateGroup(GroupModel group);
-        Task<bool?> AddToGroup(UserModel user, string group);
+        Task<bool> AddToGroup(UserModel user, string group);
+        Task<bool> RemoveFromGroup(UserModel user, string group);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace ADDC.Models
+﻿using Newtonsoft.Json.Linq;
+
+namespace ADDC.Models
 {
     public class GroupModel
     {
@@ -11,8 +13,7 @@
         public string? ObjectGUID { get; set; }
         public string? SamAccountName { get; set; }
         public string? SID { get; set; }
-        public Guid DomainId { get; set; }
-        public bool isIndexed { get; set; } = false;
+        public JObject? Domain { get; set; }
 
     }
 }

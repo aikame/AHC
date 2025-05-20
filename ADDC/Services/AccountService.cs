@@ -128,14 +128,14 @@ namespace ADDC.Services
             }
         }
 
-        public async Task<string> ChangePassword(UserModel user)
+        public async Task<string?> ChangePassword(UserModel user)
         {
             try
             {
                 string password = GeneratePassword(12);
                 _logger.LogInformation($"[ChangePassword]: \n{user}");
                 var result = await _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
-                return result == "200" ? password : result;
+                return result == "200" ? password : null;
             }
             catch (Exception e)
             {
@@ -144,7 +144,7 @@ namespace ADDC.Services
             }
         }
 
-        public async Task<JObject>CreateMailBox(UserModel user)
+        public async Task<JObject?>CreateMailBox(UserModel user)
         {
             try
             {
@@ -169,22 +169,20 @@ namespace ADDC.Services
         public async Task<bool> HideMailBox(UserModel user)
         {
             _logger.LogInformation($"[HideMailBox]: \n{user}");
-            var func = _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
-            string result = func.Result;
+            var result = await _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
             return result == "200" ? true : false;
         }
         public async Task<bool> ShowMailBox(UserModel user)
         {
             _logger.LogInformation($"[ShowMailBox]: \n{user}");
-            var func = _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
-            string result = func.Result;
+            var result = await _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
             return result == "200" ? true : false;
         }
         public async Task<ADAccountModel?> Create(UserModel user)
         {
             _logger.LogInformation($"[UserCreation]: \n{user.Name}");
             string password = GeneratePassword(12);
-            var func = _sessionPool.ExecuteFunction("UserCreation",
+            var result = await _sessionPool.ExecuteFunction("UserCreation",
                 ("name", user.Name),
                 ("surname", user.SurName),
                 ("midname", user.Patronymic),
@@ -193,7 +191,6 @@ namespace ADDC.Services
                 ("department", user.Department),
                 ("appointment", user.Appointment),
                 ("password", password));
-            string result = func.Result;
             try
             {
                 
