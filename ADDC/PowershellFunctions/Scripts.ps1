@@ -189,7 +189,7 @@ function CollectInfo {
         CPUCores       = $cpuCores
         ComputerName   = $computerName
         ComputerRole   = $role
-	Domain	       = $domain | select Forest, Name, DomainSID
+	    Domain	       = $domain | select Forest, Name, DomainSID
     }
 
     $jsonInfo = $info | ConvertTo-Json

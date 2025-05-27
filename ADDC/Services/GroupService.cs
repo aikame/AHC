@@ -16,10 +16,10 @@ namespace ADDC.Services
             _sessionPool = sessionPool;
             _logger = logger;
         }
-        public async Task<JObject?> GetGroupMembers(string group)
+        public async Task<JObject?> GetGroupMembers(GroupModel group)
         {
             _logger.LogInformation($"[GetGroupMembers]: {group}");
-            var result = await _sessionPool.ExecuteFunction("GetGroupMembers", ("GroupID", group));
+            var result = await _sessionPool.ExecuteFunction("GetGroupMembers", ("GroupID", group.Name));
             try
             {
                 JObject jsonData = JObject.Parse(result);
@@ -50,17 +50,17 @@ namespace ADDC.Services
             }
         }
 
-        public async Task<bool> AddToGroup(UserModel user, string group)
+        public async Task<bool> AddToGroup(ADAccountModel user, GroupModel group)
         {
-            _logger.LogInformation($"[AddToGroup]: \n{user.Name}");
-            var result = await _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.Name), ("grpID", group));
+            _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName}");
+            var result = await _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.SamAccountName), ("grpID", group.Name));
             return result == "200" ? true : false;
         }
 
-        public async Task<bool> RemoveFromGroup(UserModel user, string group)
+        public async Task<bool> RemoveFromGroup(ADAccountModel user, GroupModel group)
         {
-            _logger.LogInformation($"[AddToGroup]: \n{user.Name}");
-            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userID", user.Name), ("grpID", group));
+            _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName}");
+            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userID", user.SamAccountName), ("grpID", group));
             return result == "200" ? true : false;
         }
     }

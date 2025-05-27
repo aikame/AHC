@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Backend.models;
+using Backend.Models;
 using System.Text;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -25,7 +25,7 @@ namespace Backend.Controllers
 {
 
     [ApiController]
-    [Route("/")]
+    [Route("/old")]
     public class UserController : ControllerBase
     {
         private readonly string _connectorPort;

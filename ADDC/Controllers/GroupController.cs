@@ -23,7 +23,9 @@ namespace ADDC.Controllers
         {
             try
             {
-                var result = await _groupService.GetGroupMembers(group);
+                GroupModel groupModel = new GroupModel();
+                groupModel.Name = group;
+                var result = await _groupService.GetGroupMembers(groupModel);
                 return result is not null ? Content(JsonConvert.SerializeObject(result)) : BadRequest(result);
             }
             catch (Exception e)
@@ -56,8 +58,9 @@ namespace ADDC.Controllers
             _logger.LogInformation($"[AddToGroup]: \n{data.ToString()}");
             try
             {
-                UserModel user = data["user"].ToObject<UserModel>();
-                string group = data["group"].ToString();
+                ADAccountModel user = data["user"].ToObject<ADAccountModel>();
+                GroupModel group = data["group"].ToObject<GroupModel>();
+
                 var result = await _groupService.AddToGroup(user, group);
                 return result ? Ok() : BadRequest();
             }
@@ -75,8 +78,8 @@ namespace ADDC.Controllers
             _logger.LogInformation($"[RemoveFromGroup]: \n{data.ToString()}");
             try
             {
-                UserModel user = data["user"].ToObject<UserModel>();
-                string group = data["group"].ToString();
+                ADAccountModel user = data["user"].ToObject<ADAccountModel>();
+                GroupModel group = data["group"].ToObject<GroupModel>();
                 var result = await _groupService.RemoveFromGroup(user, group);
                 return result ? Ok() : BadRequest();
             }
