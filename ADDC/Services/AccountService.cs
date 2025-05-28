@@ -1,6 +1,6 @@
 ﻿using ADDC.Controllers;
 using ADDC.Interfaces;
-using ADDC.Models;
+using ADDC.Models.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -209,7 +209,7 @@ namespace ADDC.Services
                 return false;
             }
         }
-        public async Task<ADAccountModel?> Create(UserModel user)
+        public async Task<ADAccountModel?> Create(ProfileModel user)
         {
             _logger.LogInformation($"[UserCreation]: \n{user.Name}");
             string password = GeneratePassword(12);

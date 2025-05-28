@@ -1,4 +1,4 @@
-﻿using ADDC.Models;
+﻿using ADDC.Models.Data;
 using Newtonsoft.Json.Linq;
 
 namespace ADDC.Interfaces

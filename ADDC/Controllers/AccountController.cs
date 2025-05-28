@@ -2,7 +2,8 @@
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using ADDC.Interfaces;
-using ADDC.Models;
+using ADDC.Models.Data;
+using Backend.Models.Requests.Account;
 
 namespace ADDC.Controllers
 {
@@ -66,12 +67,12 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("Authentication")]
-        public async Task<IActionResult> Authentication([FromBody] JObject data)
+        public async Task<IActionResult> Authentication([FromBody] AuthenticationRequest data)
         {
             try
             {
-                string user = data["user"].ToString();
-                var password = data["password"].ToString();
+                string user = data.user;
+                var password = data.password;
 
                 _logger.LogInformation($"[Authentication]: \n{user}");
                 var result = await _accountService.Authentication(user, password);
@@ -152,7 +153,7 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("UserCreation")]
-        public async Task<IActionResult> UserCreation([FromBody] UserModel user)
+        public async Task<IActionResult> UserCreation([FromBody] ProfileModel user)
         {
             try
             {

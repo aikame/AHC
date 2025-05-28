@@ -1,4 +1,4 @@
-﻿using ADDC.Models;
+﻿using ADDC.Models.Data;
 using Newtonsoft.Json.Linq;
 
 namespace ADDC.Interfaces
@@ -13,6 +13,6 @@ namespace ADDC.Interfaces
         Task<JObject?> CreateMailBox(ADAccountModel user);
         Task<bool> HideMailBox(ADAccountModel user);
         Task<bool> ShowMailBox(ADAccountModel user);
-        Task<ADAccountModel?> Create(UserModel user);
+        Task<ADAccountModel?> Create(ProfileModel user);
     }
 }

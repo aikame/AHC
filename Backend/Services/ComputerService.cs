@@ -1,5 +1,4 @@
 ﻿using Backend.Interfaces;
-using Backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.DirectoryServices.ActiveDirectory;
@@ -7,6 +6,7 @@ using System.Text.Json;
 using System.Text;
 using Newtonsoft.Json;
 using System.Net.NetworkInformation;
+using Backend.Models.Data;
 
 namespace Backend.Services
 {

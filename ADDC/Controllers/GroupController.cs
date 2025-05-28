@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using ADDC.Models;
 using System.Speech.Synthesis;
+using ADDC.Models.Data;
+using Backend.Models.Requests.Group;
 
 namespace ADDC.Controllers
 {
@@ -53,15 +54,13 @@ namespace ADDC.Controllers
             }
         }
         [HttpPost("AddToGroup")]
-        public async Task<IActionResult> AddToGroup([FromBody] JObject data)
+        public async Task<IActionResult> AddToGroup([FromBody] AddToGroupRequest data)
         {
             _logger.LogInformation($"[AddToGroup]: \n{data.ToString()}");
             try
             {
-                ADAccountModel user = data["user"].ToObject<ADAccountModel>();
-                GroupModel group = data["group"].ToObject<GroupModel>();
 
-                var result = await _groupService.AddToGroup(user, group);
+                var result = await _groupService.AddToGroup(data.user, data.group);
                 return result ? Ok() : BadRequest();
             }
             catch (Exception e)
@@ -73,14 +72,12 @@ namespace ADDC.Controllers
         }
 
         [HttpPost("RemoveFromGroup")]
-        public async Task<IActionResult> RemoveFromGroup([FromBody] JObject data)
+        public async Task<IActionResult> RemoveFromGroup([FromBody] RemoveFromGroupRequest data)
         {
             _logger.LogInformation($"[RemoveFromGroup]: \n{data.ToString()}");
             try
             {
-                ADAccountModel user = data["user"].ToObject<ADAccountModel>();
-                GroupModel group = data["group"].ToObject<GroupModel>();
-                var result = await _groupService.RemoveFromGroup(user, group);
+                var result = await _groupService.RemoveFromGroup(data.user, data.group);
                 return result ? Ok() : BadRequest();
             }
             catch (Exception e)

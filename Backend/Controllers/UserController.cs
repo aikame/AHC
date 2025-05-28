@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Backend.Models;
 using System.Text;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -20,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using System.DirectoryServices.ActiveDirectory;
 using System.Net.Http;
 using System.Net.Http.Json;
+using Backend.Models.Data;
 
 namespace Backend.Controllers
 {

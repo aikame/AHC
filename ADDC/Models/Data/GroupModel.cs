@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace ADDC.Models
+namespace ADDC.Models.Data
 {
     public class GroupModel
     {

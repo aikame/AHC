@@ -8,11 +8,9 @@ using System.Management.Automation;
 using System.DirectoryServices;
 using Microsoft.AspNetCore.Http;
 using System;
-using ADDC.Models;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ADDC.Models;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using System.Diagnostics;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
@@ -22,10 +20,11 @@ using System.Security.Cryptography.X509Certificates;
 using ADDC.Services;
 using System.Text;
 using ADDC.Interfaces;
+using ADDC.Models.Data;
 
 namespace ADDC.Controllers
 {
-    
+
     [ApiController]
     [Route("/old")]
     public class PowershellController : Controller
@@ -138,7 +137,7 @@ namespace ADDC.Controllers
         public ActionResult BanUser([FromBody] JObject data)
         {
             _logger.LogInformation($"[BanUser]: \n{data}");
-            var user = data.ToObject<UserModel>();
+            var user = data.ToObject<ProfileModel>();
             var func = _sessionPool.ExecuteFunction("BanUser",("UserLogin", user.Name));
             string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
@@ -166,7 +165,7 @@ namespace ADDC.Controllers
         public ActionResult UnbanUser([FromBody] JObject data)
         {
             _logger.LogInformation($"[UnbanUser]: \n{data.ToString()}");
-            var user = data.ToObject<UserModel>();
+            var user = data.ToObject<ProfileModel>();
             var func = _sessionPool.ExecuteFunction("UnbanUser", ("UserLogin", user.Name));
             string result = func.Result;
             return result == "200" ? Ok() : BadRequest(result);
@@ -174,7 +173,7 @@ namespace ADDC.Controllers
 
         [HttpPost("AddToGroup")]
         public ActionResult AddToGroup([FromBody] JObject data) {
-            UserModel user = data["user"].ToObject<UserModel>();
+            ProfileModel user = data["user"].ToObject<ProfileModel>();
             string group = data["group"].ToString();
 
             _logger.LogInformation($"[AddToGroup]: \n{data.ToString()}");
@@ -214,7 +213,7 @@ namespace ADDC.Controllers
             try
             {
                 _logger.LogInformation(data.ToString());
-                UserModel user = data["user"].ToObject<UserModel>();
+                ProfileModel user = data["user"].ToObject<ProfileModel>();
                 string password = GeneratePassword(12);
                 _logger.LogInformation($"[ChangePassword]: \n{user}");
                 var func = _sessionPool.ExecuteFunction("ChangePassw", ("userID", user.Name), ("newPasswd", password));
@@ -257,7 +256,7 @@ namespace ADDC.Controllers
         [HttpPost("HideMailBox")]
         public ActionResult HideMailBox([FromBody] JObject data)
         {
-            var user = data.ToObject<UserModel>();
+            var user = data.ToObject<ProfileModel>();
 
             _logger.LogInformation($"[HideMailBox]: \n{user}");
             var func = _sessionPool.ExecuteFunction("HideMailBox", ("userLogin", user.Name));
@@ -268,7 +267,7 @@ namespace ADDC.Controllers
         [HttpPost("ShowMailBox")]
         public ActionResult ShowMailBox([FromBody] JObject data)
         {
-            var user = data.ToObject<UserModel>();
+            var user = data.ToObject<ProfileModel>();
 
             _logger.LogInformation($"[ShowMailBox]: \n{user}");
             var func = _sessionPool.ExecuteFunction("ShowMailBox", ("userLogin", user.Name));
@@ -279,7 +278,7 @@ namespace ADDC.Controllers
         [HttpPost("RemoveFromGroup")]
         public ActionResult RemoveFromGroup([FromBody] JObject data)
         {
-            UserModel user = data["user"].ToObject<UserModel>();
+            ProfileModel user = data["user"].ToObject<ProfileModel>();
             string group = data["group"].ToString();
 
             _logger.LogInformation($"[RemoveFromGroup]: \n{data.ToString()}");
@@ -340,7 +339,7 @@ namespace ADDC.Controllers
         public ActionResult UserCreation([FromBody] JObject data)
         {
             _logger.LogInformation($"[UserCreation]: \n{data}");
-            var user = data.ToObject<UserModel>();
+            var user = data.ToObject<ProfileModel>();
             string password = GeneratePassword(12);
             var func = _sessionPool.ExecuteFunction("UserCreation", 
                 ("name", user.Name), 

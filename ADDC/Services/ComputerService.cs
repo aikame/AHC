@@ -1,8 +1,8 @@
 ﻿using ADDC.Interfaces;
 using Newtonsoft.Json;
-using ADDC.Models;
 using Newtonsoft.Json.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using ADDC.Models.Data;
 
 namespace ADDC.Services
 {

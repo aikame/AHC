@@ -1,5 +1,7 @@
 ﻿using Backend.Interfaces;
 using Backend.Models;
+using Backend.Models.Data;
+using Backend.Models.Requests.Account;
 using Microsoft.AspNetCore.Mvc;
 using Namotion.Reflection;
 using Newtonsoft.Json;
@@ -71,13 +73,10 @@ namespace Backend.Controllers
             }
         }
         [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] JObject data)
+        public async Task<IActionResult> ChangePassword([FromBody] ADAccountModel acc)
         {
             try
             {
-                if (!(data.HasProperty("user") && data.HasProperty("domain") && data["user"].HasProperty("name")))
-                    return BadRequest("Wrong input data");
-                var acc = new ADAccountModel { SamAccountName = data["user"]["name"].ToString(), Domain = new DomainModel { Forest = data["domain"].ToString() } };
                 var result = await _accountService.ChangePassword(acc);
                 JObject response = new JObject();
                 response["password"] = result;
@@ -161,18 +160,16 @@ namespace Backend.Controllers
         }
 
         [HttpPost("Authentication")]
-        public async Task<IActionResult> Authentication([FromBody] JsonElement data)
+        public async Task<IActionResult> Authentication([FromBody] AuthenticationRequest data)
         {
             try
             {
-                string user = data.GetProperty("user").GetString();
-                string password = data.GetProperty("password").GetString();
-                string[] userParts = user.Split('\\');
+                string[] userParts = data.user.Split('\\');
                 string username = userParts.Length > 1 ? userParts[1] : userParts[0];
                 string domain = userParts.Length > 1 ? userParts[0] : "";
 
-                var acc = new ADAccountModel { SamAccountName = user, Domain = new DomainModel { Forest = domain } };
-                var result = await _accountService.Authentication(acc,password);
+                var acc = new ADAccountModel { SamAccountName = data.user, Domain = new DomainModel { Forest = domain } };
+                var result = await _accountService.Authentication(acc,data.password);
 
                 return result ? Ok() : BadRequest(); 
             }

@@ -1,4 +1,4 @@
-﻿using Backend.Models;
+﻿using Backend.Models.Data;
 using Newtonsoft.Json.Linq;
 
 namespace Backend.Interfaces

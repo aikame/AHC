@@ -1,9 +1,9 @@
-﻿using Backend.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Backend.Interfaces;
+using Backend.Models.Data;
 
 namespace Backend.Services
 {

@@ -1,5 +1,6 @@
 ﻿using Backend.Interfaces;
-using Backend.Models;
+using Backend.Models.Data;
+using Backend.Models.Requests.Group;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -23,13 +24,11 @@ namespace Backend.Controllers
             _groupService = groupService;
         }
         [HttpPost("RemoveFromGroup")]
-        public async Task<IActionResult> RemoveFromGroup([FromBody] JObject data)
+        public async Task<IActionResult> RemoveFromGroup([FromBody] RemoveFromGroupRequest data)
         {
             try
             {
-                var acc = new ADAccountModel { SamAccountName = data["user"]["name"].ToString(), Domain = new DomainModel { Forest = data["domain"].ToString() } };
-                var group = new GroupModel { Name = data["group"].ToString() };
-                var result = await _groupService.RemoveFromGroup(acc, group);
+                var result = await _groupService.RemoveFromGroup(data.user, data.group);
                 return result ? Ok() : BadRequest("Error");
             }
             catch (Exception e)
@@ -40,13 +39,11 @@ namespace Backend.Controllers
         }
 
         [HttpPost("AddToGroup")]
-        public async Task<IActionResult> AddToGroup([FromBody] JObject data)
+        public async Task<IActionResult> AddToGroup([FromBody] AddToGroupRequest data)
         {
             try
             {
-                var acc = new ADAccountModel { SamAccountName = data["user"]["name"].ToString(), Domain = new DomainModel { Forest = data["domain"].ToString() } };
-                var group = new GroupModel { Name = data["group"].ToString() };
-                var result = await _groupService.AddToGroup(acc, group);
+                var result = await _groupService.AddToGroup(data.user, data.group);
                 return result ? Ok() : BadRequest("Error");
             }
             catch (Exception e)
@@ -57,13 +54,11 @@ namespace Backend.Controllers
         }
 
         [HttpPost("CreateGroup")]
-        public async Task<IActionResult> CreateGroup([FromBody] JObject data)
+        public async Task<IActionResult> CreateGroup([FromBody] GroupModel group)
         {
             try
             {
-               
-                var group = data.ToObject<GroupModel>();
-                group.Domain = new DomainModel { Forest = data["domain"].ToString() };
+
                 var result = await _groupService.CreateGroup(group);
 
                 return result is not null ? Ok() : BadRequest("Error");

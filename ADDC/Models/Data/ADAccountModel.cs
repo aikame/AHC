@@ -1,4 +1,4 @@
-﻿namespace Backend.Models
+﻿namespace ADDC.Models.Data
 {
     public class ADAccountModel
     {
@@ -9,6 +9,5 @@
         public bool PasswordExpired { get; set; }
         public DateTime PasswordLastSet { get; set; }
         public List<string>? MemberOf { get; set; }
-        public DomainModel? Domain { get; set; }
     }
 }

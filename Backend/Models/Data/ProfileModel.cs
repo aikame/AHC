@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Backend.Models
+namespace Backend.Models.Data
 {
     public class ProfileModel
     {

@@ -1,8 +1,8 @@
-﻿namespace Backend.Models
+﻿namespace Backend.Models.Data
 {
     public class GroupModel
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public string? Description { get; set; }
         public string? DistinguishedName { get; set; }
         public string? GroupCategory { get; set; }

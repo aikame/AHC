@@ -1,5 +1,5 @@
 ﻿using Backend.Interfaces;
-using Backend.Models;
+using Backend.Models.Data;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

@@ -1,5 +1,5 @@
 ﻿using Backend.Interfaces;
-using Backend.Models;
+using Backend.Models.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.DirectoryServices.ActiveDirectory;

@@ -1,5 +1,5 @@
 ﻿using Backend.Interfaces;
-using Backend.Models;
+using Backend.Models.Data;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.DirectoryServices.ActiveDirectory;
