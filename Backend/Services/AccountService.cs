@@ -76,15 +76,10 @@ namespace Backend.Services
 
                 ComputerModel? computer = await _computerService.FindDCinDomain(account.Domain);
                 if (computer is null) { return false; }
-
-                _logger.LogWarning("BAN: " + JsonConvert.SerializeObject(account)+ "\n\n\n\n" + JsonConvert.SerializeObject(account, new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore
-                }));
-                var jsonContent = new StringContent(JsonConvert.SerializeObject(account, new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore
-                }), Encoding.UTF8, "application/json");
+                account.Domain = null;
+                _logger.LogWarning("BAN: " + JsonConvert.SerializeObject(account)+ "\n\n\n\n" + JsonConvert.SerializeObject(JObject.FromObject(account)));
+                
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(JObject.FromObject(account)), Encoding.UTF8, "application/json");
                 var result = await _client.PostAsync("https://" +computer.IPAddress + ":" + _connectorPort + "/BanUser", jsonContent);
                 
                 return result.IsSuccessStatusCode; 
