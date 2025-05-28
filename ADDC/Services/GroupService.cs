@@ -52,15 +52,17 @@ namespace ADDC.Services
 
         public async Task<bool> AddToGroup(ADAccountModel user, GroupModel group)
         {
-            _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName}");
+            _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName}  \n{group.Name}");
             var result = await _sessionPool.ExecuteFunction("AddToGroup", ("userID", user.SamAccountName), ("grpID", group.Name));
+            _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName} \n{group.Name} \n[{result}]");
             return result == "200" ? true : false;
         }
 
         public async Task<bool> RemoveFromGroup(ADAccountModel user, GroupModel group)
         {
-            _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName}");
-            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userID", user.SamAccountName), ("grpID", group.Name));
+            //_logger.LogInformation($"[RemoveFromGroup]: \n{user.SamAccountName} \n{group.Name}");
+            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userLogin", user.SamAccountName), ("grpLogin", group.Name));
+            _logger.LogInformation($"[RemoveFromGroup]: \n{user.SamAccountName} \n{group.Name} \n[{result}]");
             return result == "200" ? true : false;
         }
     }
