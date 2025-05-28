@@ -11,5 +11,6 @@ namespace ADDC.Models.Data
         public bool? PasswordExpired { get; set; }
         public DateTime? PasswordLastSet { get; set; }
         public List<string>? MemberOf { get; set; }
+        public string? password { get; set; }
     }
 }

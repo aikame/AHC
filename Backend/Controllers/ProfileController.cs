@@ -28,10 +28,10 @@ namespace Backend.Controllers
         public async Task<IActionResult> ProfileCreation([FromBody] ProfileModel user, [FromQuery] string? domain, [FromQuery] bool blocked = false)
         {
             try
-            {
-                user.Id = await _profileService.Create(user);
-                if (user.Id is null) { return BadRequest("Wrong input data"); }
-
+            { 
+                var res= await _profileService.Create(user);
+                if (res is null) { return BadRequest("Wrong input data"); }
+                user.Id = res.Value;
                 if (user.ADreq)
                 {
                     DomainModel domainModel = new DomainModel { Forest = domain};

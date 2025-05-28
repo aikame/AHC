@@ -37,8 +37,17 @@ namespace Backend.Services
 
                 var adResponse = await _client.PostAsync($"https://{computer.IPAddress}:{_connectorPort}/UserCreation",
                     new StringContent(JsonConvert.SerializeObject(profile), Encoding.UTF8, "application/json"));
+                if (!adResponse.IsSuccessStatusCode)
+                    return null;
 
-                return adResponse.IsSuccessStatusCode ? JsonConvert.DeserializeObject<ADAccountModel>(await adResponse.Content.ReadAsStringAsync()) : null;
+                var acc = JsonConvert.DeserializeObject<ADAccountModel>(await adResponse.Content.ReadAsStringAsync());
+                acc.ProfileId = profile.Id.ToString();
+                acc.Domain = domain;
+
+                var updateDB = await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
+                        new StringContent(JsonConvert.SerializeObject(acc), Encoding.UTF8, "application/json"));
+
+                return updateDB.IsSuccessStatusCode ? acc : null;
             }
             catch (Exception e)
             {

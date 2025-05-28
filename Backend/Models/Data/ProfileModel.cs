@@ -4,7 +4,7 @@ namespace Backend.Models.Data
 {
     public class ProfileModel
     {
-        public Guid? Id { get; set; }
+        public Guid Id { get; set; }
         public string? Name { get; set; }
 
         public string? Surname { get; set; }

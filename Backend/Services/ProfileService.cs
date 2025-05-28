@@ -27,6 +27,7 @@ namespace Backend.Services
         {
             try
             {
+                _logger.LogInformation("[CreateProfile]: " + JsonConvert.SerializeObject(profile));
                 var profileResponse = await _client.PostAsync("https://localhost:7080/profile/add",
                     new StringContent(JsonConvert.SerializeObject(profile), Encoding.UTF8, "application/json"));
 
@@ -84,14 +85,14 @@ namespace Backend.Services
                 var _accountService = _provider.GetRequiredService<IAccountService>();
                 foreach (var acc in profile.Profiles)
                 {
-                    if (acc.ContainsKey("AD"))
+                    /*if (acc.ContainsKey("AD"))
                     {
                         ADAccountModel accModel = acc["AD"].ToObject<ADAccountModel>();
                         ComputerModel computer = await _computerService.FindDCinDomain(accModel.Domain);
                         if (computer is null) { continue; }
 
                         var banRes = await _accountService.Ban(accModel);
-                    }
+                    }*/
                 }
                 profile.FireDate = DateTime.UtcNow.ToString();
 

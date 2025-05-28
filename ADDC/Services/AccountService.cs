@@ -228,7 +228,7 @@ namespace ADDC.Services
                 JObject jsonData = JObject.Parse(result);
                 jsonData["password"] = password;
                 ADAccountModel account = jsonData.ToObject< ADAccountModel>();
-                _logger.LogInformation($"[UserCreation] Created: {jsonData}");
+                _logger.LogInformation($"[UserCreation] Created: {jsonData} \\ {account.SamAccountName}");
                 return account;
             }
             catch (Exception e)

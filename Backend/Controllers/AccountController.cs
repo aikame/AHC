@@ -144,7 +144,8 @@ namespace Backend.Controllers
             {
                 var domainModel = new DomainModel { Forest = domain };
                 var acc = await _accountService.Create(user, domainModel);
-                if (acc is null) return BadRequest();
+                _logger.LogInformation($"[CreateUser]: {acc}");
+                if (acc.SamAccountName is null) return BadRequest();
 
                 if (mail)
                 {
