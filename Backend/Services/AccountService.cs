@@ -41,6 +41,7 @@ namespace Backend.Services
                     return null;
 
                 var acc = JsonConvert.DeserializeObject<ADAccountModel>(await adResponse.Content.ReadAsStringAsync());
+                if (acc is null || acc.SamAccountName is null) { return null; }
                 acc.ProfileId = profile.Id.ToString();
                 acc.Domain = domain;
 

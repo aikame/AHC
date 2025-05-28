@@ -159,7 +159,7 @@ namespace ADDC.Controllers
             {
                 var result = await _accountService.Create(user);
 
-                return result is not null ? Content(JsonConvert.SerializeObject(user), "application/json") : BadRequest();
+                return result is not null ? Content(JsonConvert.SerializeObject(result), "application/json") : BadRequest();
 
             }
             catch (Exception e)
