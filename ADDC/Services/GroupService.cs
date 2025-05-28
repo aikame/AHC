@@ -60,7 +60,7 @@ namespace ADDC.Services
         public async Task<bool> RemoveFromGroup(ADAccountModel user, GroupModel group)
         {
             _logger.LogInformation($"[AddToGroup]: \n{user.SamAccountName}");
-            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userID", user.SamAccountName), ("grpID", group));
+            var result = await _sessionPool.ExecuteFunction("RemoveFromGroup", ("userID", user.SamAccountName), ("grpID", group.Name));
             return result == "200" ? true : false;
         }
     }
