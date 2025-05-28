@@ -14,10 +14,5 @@ public class Program
             {
                 webBuilder.UseUrls("https://0.0.0.0:7095/");
                 webBuilder.UseStartup<Backend.Startup>();
-            })
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddHttpClient();
-                services.AddHostedService<ComputerStateService>();
             });
 }

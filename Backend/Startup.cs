@@ -1,4 +1,7 @@
-﻿namespace Backend
+﻿using Backend.Interfaces;
+using Backend.Services;
+
+namespace Backend
 {
     public class Startup
     {
@@ -12,6 +15,12 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddHttpClient();
+            services.AddHostedService<ComputerStateService>();
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IComputerService, ComputerService>();
+            services.AddScoped<IGroupService, GroupService>();
+            services.AddScoped<IProfileService, ProfileService>();
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",

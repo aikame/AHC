@@ -73,8 +73,6 @@ namespace Backend.Services
         {
             try
             {
-                //DomainModel domainModel = new DomainModel();
-                //domainModel.Forest = domain;
 
                 ComputerModel? computer = await _computerService.FindDCinDomain(account.Domain);
                 if (computer is null) { return false; }

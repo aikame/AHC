@@ -13,11 +13,12 @@ namespace Backend.Services
         private readonly HttpClient _client;
         private readonly ILogger<ProfileService> _logger;
         private readonly IComputerService _computerService;
-        private readonly IAccountService _accountService;
-        public ProfileService(ILogger<ProfileService> logger, IHttpClientFactory httpClientFactory, IComputerService computerService, IAccountService accountService, IConfiguration configuration)
+        private readonly IServiceProvider _provider;
+        public ProfileService(ILogger<ProfileService> logger,IServiceProvider provider, IHttpClientFactory httpClientFactory, IComputerService computerService, IConfiguration configuration)
         {
             _client = httpClientFactory.CreateClient("ProfileService");
             _logger = logger;
+            _provider = provider;
             _computerService = computerService;
             _connectorPort = configuration["connectorPort"];
         }
@@ -80,6 +81,7 @@ namespace Backend.Services
         {
             try
             {
+                var _accountService = _provider.GetRequiredService<IAccountService>();
                 foreach (var acc in profile.Profiles)
                 {
                     if (acc.ContainsKey("AD"))

@@ -30,8 +30,8 @@ namespace Backend.Controllers
     {
         private readonly string _connectorPort;
         private readonly HttpClient _client;
-        private readonly ILogger<ComputerStateService> _logger;
-        public UserController(ILogger<ComputerStateService> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        private readonly ILogger<UserController> _logger;
+        public UserController(ILogger<UserController> logger, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _client = httpClientFactory.CreateClient("сlient");
             _logger = logger;
