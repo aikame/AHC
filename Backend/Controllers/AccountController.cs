@@ -168,7 +168,7 @@ namespace Backend.Controllers
                 string username = userParts.Length > 1 ? userParts[1] : userParts[0];
                 string domain = userParts.Length > 1 ? userParts[0] : "";
 
-                var acc = new ADAccountModel { SamAccountName = data.user, Domain = new DomainModel { Forest = domain } };
+                var acc = new ADAccountModel { SamAccountName = username, Domain = new DomainModel { Forest = domain } };
                 var result = await _accountService.Authentication(acc,data.password);
 
                 return result ? Ok() : BadRequest(); 
