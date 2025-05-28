@@ -482,7 +482,7 @@ def addToGroup(request,domain,id):
         return JsonResponse({'error': 'addToGroup unsuccessfull'}, status=500)
 
 @login_required
-def removeFromGroup(request):
+def removeFromGroup(request,domain,id):
     result = requests.post(f'https://localhost:7095/RemoveFromGroup',data=request.body,verify=False,headers={"Content-Type": "application/json"})
     print(result.text)
     if result.status_code ==200:
