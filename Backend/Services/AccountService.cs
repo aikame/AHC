@@ -119,7 +119,7 @@ namespace Backend.Services
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
                 var result = await _client.PostAsync("https://" + computer.IPAddress + ":" + _connectorPort + "/ChangePassword", jsonContent);
 
-                return result is not null ? result.ToString() : null;
+                return result.IsSuccessStatusCode ? await result.Content.ReadAsStringAsync() : null;
             }
             catch (Exception e)
             {

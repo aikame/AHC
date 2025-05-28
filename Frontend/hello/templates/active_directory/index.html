@@ -138,10 +138,12 @@
                     }),
                     body: JSON.stringify({
                         "user": {
-                            "name": id
+                            "SamAccountName": id,
+                            "Domain":{"Forest":domain}
                         },
-                        "group": groupName,
-                        "domain": domain
+                        "group": {
+                            "Name": groupName
+                        }
                     })
                 })
                 let body = document.getElementById("addGroupStatus");
@@ -172,10 +174,12 @@
                     }),
                     body: JSON.stringify({
                         "user": {
-                            "name": id
+                            "SamAccountName": id,
+                            "Domain":{"Forest":domain}
                         },
-                        "group": groupName,
-                        "domain": domain
+                        "group": {
+                            "Name": groupName
+                        }
                     })
                 })
                 let body = document.getElementById("remGroupStatus");
@@ -205,10 +209,8 @@
                         'X-CSRFToken': csrfToken,
                     }),
                     body: JSON.stringify({
-                        "user": {
-                            "name": id
-                        },
-                        "domain": domain
+                        "SamAccountName": id,
+                        "Domain": domain
                     })
                 })
                 var data = await result.json();
