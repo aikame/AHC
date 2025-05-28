@@ -1,4 +1,4 @@
-﻿using Backend.Models.Data;
+﻿using ADDC.Models.Data;
 
 namespace Backend.Models.Requests.Group
 {

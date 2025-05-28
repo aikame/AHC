@@ -1,5 +1,4 @@
-﻿using Backend.Models.Data;
-
+﻿
 namespace Backend.Models.Requests.Account
 {
     public class AuthenticationRequest
