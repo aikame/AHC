@@ -97,7 +97,7 @@ namespace Backend.Services
                 ComputerModel? computer = await _computerService.FindDCinDomain(account.Domain);
                 if (computer is null) { return false; }
 
-                var jsonContent = new StringContent(JObject.FromObject(account).ToString(), Encoding.UTF8, "application/json");
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(account).ToString(), Encoding.UTF8, "application/json");
                 var result = await _client.PostAsync("https://" + computer.IPAddress + ":" + _connectorPort + "/UnbanUser", jsonContent);
 
                 return result.IsSuccessStatusCode;
