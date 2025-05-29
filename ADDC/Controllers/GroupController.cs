@@ -45,7 +45,7 @@ namespace ADDC.Controllers
             {
                 var result = await _groupService.CreateGroup(group);
 
-                return group is not null ? Content(JsonConvert.SerializeObject(group)) : BadRequest();
+                return result is not null ? Content(JsonConvert.SerializeObject(result)) : BadRequest();
             }
             catch (Exception e)
             {

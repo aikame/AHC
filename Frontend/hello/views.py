@@ -380,7 +380,7 @@ def create_group(request):
         data = {
             'Name': request.POST.get('Name'),
             'Description': request.POST.get('Description'),
-            'domain': request.POST.get('Domain'),
+            'domain': {"Forest" : request.POST.get('Domain')},
         }
         print(data)
         user = json.dumps(data)

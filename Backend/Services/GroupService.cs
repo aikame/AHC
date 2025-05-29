@@ -84,6 +84,7 @@ namespace Backend.Services
 
                 createdGroup.Domain = group.Domain;
 
+                _logger.LogInformation($"[Create]: {JsonConvert.SerializeObject(createdGroup)}");
                 var databaseReq = await _client.PostAsync("https://localhost:7080/group/add",
                     new StringContent(JsonConvert.SerializeObject(createdGroup), Encoding.UTF8, "application/json"));
 
