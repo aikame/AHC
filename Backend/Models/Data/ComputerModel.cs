@@ -1,13 +1,14 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Backend.Models.Data
 {
     public class ComputerModel
     {
-        public Guid? Id { get; set; }
+        public Guid Id { get; set; }
         public string WindowsEdition { get; set; }
         public string IPAddress { get; set; }
-        public JsonElement Domain { get; set; }
+        public DomainModel Domain { get; set; }
         public float TotalRAMGB { get; set; }
         public List<JsonElement> DiskSpace { get; set; }
         public List<string> CPUName { get; set; }

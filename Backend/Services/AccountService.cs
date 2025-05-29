@@ -42,9 +42,10 @@ namespace Backend.Services
 
                 var acc = JsonConvert.DeserializeObject<ADAccountModel>(await adResponse.Content.ReadAsStringAsync());
                 if (acc is null || acc.SamAccountName is null) { return null; }
-                acc.ProfileId = profile.Id.ToString();
+                acc.ProfileId = profile.Id;
                 acc.Domain = domain;
 
+                _logger.LogInformation($"[Create]: {JsonConvert.SerializeObject(acc)}");
                 var updateDB = await _client.PostAsync("https://localhost:7080/profile/add-adaccount",
                         new StringContent(JsonConvert.SerializeObject(acc), Encoding.UTF8, "application/json"));
 
@@ -71,6 +72,8 @@ namespace Backend.Services
                 string stringAdaccount = await result.Content.ReadAsStringAsync();
                 ADAccountModel? aDAccount = JsonConvert.DeserializeObject<ADAccountModel>(stringAdaccount);
                 aDAccount.Domain = user.Domain;
+                _logger.LogInformation("[Get]: " + JsonConvert.SerializeObject(aDAccount));
+                var responseUpdateAd = _client.PostAsync($"https://localhost:7080/profile/update-adaccount", new StringContent(JsonConvert.SerializeObject(aDAccount), Encoding.UTF8, "application/json"));
                 return aDAccount;
             }
             catch (Exception e) { 

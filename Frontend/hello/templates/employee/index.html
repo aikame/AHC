@@ -248,7 +248,7 @@
     console.log(data);
     if (result.status == 200){
       modalLoad.hide();
-      const text = `Логин: ${data.SamAccountName}\nПароль: ${data.password}`
+      const text = `Логин: ${data.SamAccountName}\nПароль: ${data.Password}`
       document.getElementById("responseModalContent").innerText = text;
       let modalResult = new bootstrap.Modal(document.getElementById('responseModal'));
       modalResult.show();

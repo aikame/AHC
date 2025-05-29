@@ -58,7 +58,9 @@ namespace _1CC.Controllers
         [HttpPost("fire")]
         public async Task<ActionResult> FireUser([FromBody] JObject data)
         {
+            data["domain"] = new JObject { ["Forest"] = data["domain"] };
             Console.WriteLine($"Fire: {data}");
+            
             var sdata = JsonConvert.SerializeObject(data);
             using (HttpClient client = new HttpClient(new HttpClientHandler()))
             {

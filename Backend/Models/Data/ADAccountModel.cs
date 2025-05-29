@@ -10,7 +10,7 @@
         public DateTime? PasswordLastSet { get; set; } = DateTime.UtcNow;
         public List<string>? MemberOf { get; set; }
         public DomainModel? Domain { get; set; }
-
-        public string? ProfileId { get; set; }
+        public Guid ProfileId { get; set; }
+        public string? Password { get; set; }
     }
 }

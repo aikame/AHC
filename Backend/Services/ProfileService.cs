@@ -67,6 +67,7 @@ namespace Backend.Services
         {
             try
             {
+                _logger.LogInformation($"[Update]: {JsonConvert.SerializeObject(profile)}");
                 var response = await _client.PostAsync("https://localhost:7080/profile/update",
                         new StringContent(JsonConvert.SerializeObject(profile), Encoding.UTF8, "application/json"));
                 return response.IsSuccessStatusCode;
@@ -82,21 +83,25 @@ namespace Backend.Services
         {
             try
             {
+                var dbProfile = await Get(profile.Id.ToString());
+                dbProfile.FireDate = profile.FireDate;
                 var _accountService = _provider.GetRequiredService<IAccountService>();
-                foreach (var acc in profile.Profiles)
+                foreach (var acc in dbProfile.Profiles)
                 {
-                    /*if (acc.ContainsKey("AD"))
+                    if (acc.ContainsKey("AD"))
                     {
-                        ADAccountModel accModel = acc["AD"].ToObject<ADAccountModel>();
-                        ComputerModel computer = await _computerService.FindDCinDomain(accModel.Domain);
+                        var domain = new DomainModel { Forest = acc["AD"]["domain"].ToString() };
+                        ADAccountModel accModel = new ADAccountModel { Domain = domain, SamAccountName = acc["AD"]["samAccountName"].ToString() };
+                        accModel.Domain = domain;
+                        ComputerModel computer = await _computerService.FindDCinDomain(domain);
                         if (computer is null) { continue; }
 
                         var banRes = await _accountService.Ban(accModel);
-                    }*/
+                    }
                 }
-                profile.FireDate = DateTime.UtcNow.ToString();
+                dbProfile.FireDate = DateTime.UtcNow.ToString("o");
 
-                var updateRes = await Update(profile);
+                var updateRes = await Update(dbProfile);
 
                 return updateRes ? true : false;
             }

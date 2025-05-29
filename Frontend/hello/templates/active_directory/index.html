@@ -210,7 +210,7 @@
                     }),
                     body: JSON.stringify({
                         "SamAccountName": id,
-                        "Domain": domain
+                        "Domain":{"Forest":domain}
                     })
                 })
                 var data = await result.json();

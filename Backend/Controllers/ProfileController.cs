@@ -38,7 +38,7 @@ namespace Backend.Controllers
                     var acc = await _accountService.Create(user, domainModel);
                     var mailRes = await _accountService.CreateMailBox(acc);
                     if (blocked) { _accountService.Ban(acc); }
-                    return mailRes ? Ok() : BadRequest("AD creation error");
+                    return Ok(user.Id.ToString());
                 }
                 return Content(user.Id.ToString());
             }
