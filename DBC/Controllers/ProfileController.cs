@@ -1,4 +1,5 @@
 ﻿using DBC.Data;
+using DBC.Interfaces;
 using DBC.Models.Elastic;
 using DBC.Models.PostgreSQL;
 using Elastic.Clients.Elasticsearch;
@@ -13,14 +14,12 @@ namespace DBC.Controllers
     [Route("/profile")]
     public class ProfileController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly ElasticsearchClient _elasticsearchClient;
         private readonly ILogger<ProfileController> _logger;
-        public ProfileController(AppDbContext context, ILogger<ProfileController> logger, ElasticsearchClient elasticsearchClient)
+        private readonly IProfileService _profileService;
+        public ProfileController(ILogger<ProfileController> logger, IProfileService profile)
         {
-            _elasticsearchClient = elasticsearchClient;
-            _context = context;
             _logger = logger;
+            _profileService = profile;
         }
 
         [HttpPost("add")]
@@ -31,238 +30,100 @@ namespace DBC.Controllers
             {
                 return BadRequest();
             }
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                profile.Created = DateTime.UtcNow;
-                profile.ApplyDate = DateTime.SpecifyKind(profile.ApplyDate, DateTimeKind.Utc);
-                profile.FireDate = null;
-                _context.Profiles.Add(profile);
-                var status = await _context.SaveChangesAsync();
-                if (status == 0)
+                var result = await _profileService.AddProfile(profile);
+                if (result is not null)
                 {
-                    throw new Exception("SQL AddProfile Error");
+                    return Ok(result);
                 }
-                await transaction.CommitAsync();
-            } catch (Exception e)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError("[AddProfile]: " + e.ToString());
-                return StatusCode(500);
+                else
+                {
+                    return BadRequest();
+                }
             }
-            
-            
-            var elasticProfile = profile.ToElasticProfileModel();
-
-            var indexResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
-                .Index("profiles")
-                .Id(profile.Id)
-            );
-
-            if (!indexResponse.IsValidResponse)
-                return StatusCode(500, "ElasticSearch error");
-
-            profile.isIndexed = true;
-            _context.Profiles.Update(profile);
-            await _context.SaveChangesAsync();
-            return Ok(profile);
+            catch (Exception e) { 
+                _logger.LogError("[AddProfile]: " + e.Message);
+                return Problem(e.Message);
+            }
         }
 
-        [HttpPost("add-adaccount")]
-        public async Task<IActionResult> AddADAccount([FromBody] ADAccountModel account)
-        {
-            if (account == null)
-                return BadRequest();
-            var existingDomain = await _context.Domains
-            .FirstOrDefaultAsync(d => d.Forest == account.Domain.Forest);
-            if (existingDomain == null)
-                return NotFound("Domain not exists");
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                account.Domain = existingDomain;
-                _context.ADAccounts.Add(account);
-                var status = await _context.SaveChangesAsync();
-                if (status == 0)
-                {
-                    throw new Exception("SQL AddAD Error");
-                }
-                await transaction.CommitAsync();
-            }
-            catch (Exception e)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError("[AddAD]: " + e.ToString());
-                return StatusCode(500);
-            }
-
-            var profile = await _context.Profiles
-                .Include(p => p.ADAccounts)
-                .FirstOrDefaultAsync(p => p.Id == account.ProfileId);
-
-            if (profile == null)
-                return StatusCode(500, "Elastic profile error");
-
-            var elasticProfile = profile.ToElasticProfileModel();
-            _logger.LogInformation("[AddAD] Elastic model: " + JObject.FromObject(elasticProfile));
-            var updateResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
-                .Index("profiles")
-                .Id(account.ProfileId)
-            );
-
-            if (!updateResponse.IsValidResponse)
-                return StatusCode(500, "ElasticSearch not updated");
-
-            return Ok(updateResponse);
-        }
-
-        [HttpPost("update-adaccount")]
-        public async Task<IActionResult> UpdateADAccount([FromBody] ADAccountModel account)
-        {
-            if (account == null)
-                return BadRequest();
-            var existingAcc = await _context.ADAccounts
-            .Include(a => a.Domain)
-            .FirstOrDefaultAsync(a => a.DistinguishedName == account.DistinguishedName);
-            if (existingAcc == null)
-                return NotFound("acc not exists");
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                existingAcc.Enabled = account.Enabled;
-                
-                var status = await _context.SaveChangesAsync();
-                if (status == 0)
-                {
-                    throw new Exception("SQL AddAD Error");
-                }
-                await transaction.CommitAsync();
-            }
-            catch (Exception e)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError("[AddAD]: " + e.ToString());
-                return StatusCode(500);
-            }
-
-            var profile = await _context.Profiles
-                .Include(p => p.ADAccounts)
-                .FirstOrDefaultAsync(p => p.Id == existingAcc.ProfileId);
-
-            if (profile == null)
-                return StatusCode(500, "Elastic profile error");
-
-            var elasticProfile = profile.ToElasticProfileModel();
-            _logger.LogInformation("[AddAD] Elastic model: " + JObject.FromObject(elasticProfile));
-            var updateResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
-                .Index("profiles")
-                .Id(profile.Id)
-            );
-
-            if (!updateResponse.IsValidResponse)
-                return StatusCode(500, "ElasticSearch not updated");
-
-            return Ok(updateResponse);
-        }
 
         [HttpPost("update")]
         public async Task<IActionResult> UpdateProfile([FromBody] ProfileModel profile)
         {
+            _logger.LogInformation("[update]: " + JsonConvert.SerializeObject(profile));
             if (profile == null)
             {
                 return BadRequest();
             }
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                profile.Created = DateTime.UtcNow;
-                profile.ApplyDate = DateTime.SpecifyKind(profile.ApplyDate, DateTimeKind.Utc);
-                if (profile.FireDate != null)
+                var result = await _profileService.UpdateProfile(profile);
+                if (result is not null)
                 {
-                    profile.FireDate = DateTime.SpecifyKind(profile.FireDate.Value, DateTimeKind.Utc);
+                    return Ok(result);
                 }
-                _context.Profiles.Update(profile);
-                var status = await _context.SaveChangesAsync();
-                if (status == 0)
+                else
                 {
-                    throw new Exception("SQL UpdProfile Error");
+                    return BadRequest();
                 }
-                await transaction.CommitAsync();
             }
             catch (Exception e)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError("[UpdProfile]: " + e.ToString());
-                return StatusCode(500);
+                _logger.LogError("[update]: " + e.Message);
+                return Problem(e.Message);
             }
-
-            var profileFromDb = await _context.Profiles
-                .Include(p => p.ADAccounts)
-                .ThenInclude(a => a.Domain)
-                .FirstOrDefaultAsync(p => p.Id == profile.Id);
-                
-            if (profileFromDb == null)
-                return StatusCode(500, "db error");
-
-
-            var elasticProfile = profileFromDb.ToElasticProfileModel();
-
-
-            var indexResponse = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
-                .Index("profiles")
-                .Id(profile.Id)
-            );
-
-            if (!indexResponse.IsValidResponse)
-                return StatusCode(500, "ElasticSearch error");
-
-            profile.isIndexed = true;
-            _context.Profiles.Update(profile);
-            await _context.SaveChangesAsync();
-
-
-            return Ok(indexResponse);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteProfile([FromQuery] string id)
         {
-            if (string.IsNullOrWhiteSpace(id) || !Guid.TryParse(id, out var guid))
-                return BadRequest("Invalid id");
-
-            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == guid);
-            if (profile == null)
-                return NotFound("Profile not found");
-
-            _context.Profiles.Remove(profile);
-            await _context.SaveChangesAsync();
-
-            var response = await _elasticsearchClient.DeleteAsync<ElasticProfileModel>(guid, d => d.Index("profiles"));
-
-            if (!response.IsValidResponse)
-                return StatusCode(500, "Elasticsearch delete failed");
-
-            return Ok("Profile deleted");
+            _logger.LogInformation("[delete]: " + JsonConvert.SerializeObject(id));
+            if (id == null)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var result = await _profileService.DeleteProfile(id);
+                if (result)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[delete]: " + e.Message);
+                return Problem(e.Message);
+            }
         }
 
         [HttpPost("reindexate")]
         public async Task<IActionResult> Reindexate()
         {
-            var profiles = await _context.Profiles.Include(p => p.ADAccounts).ThenInclude(p => p.Domain).ToListAsync();
-            foreach (var profile in profiles)
+            _logger.LogInformation("[reindexate]: ");
+            try
             {
-                var elasticProfile = profile.ToElasticProfileModel();
-                var response = await _elasticsearchClient.IndexAsync(elasticProfile, i => i
-                    .Index("profiles")
-                    .Id(profile.Id));
-
-                if (response.IsValidResponse)
+                var result = await _profileService.Reindexate();
+                if (result)
                 {
-                    profile.isIndexed = true;
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
                 }
             }
-            await _context.SaveChangesAsync();
-            return Ok("Resync complete");
+            catch (Exception e)
+            {
+                _logger.LogError("[reindexate]: " + e.Message);
+                return Problem(e.Message);
+            }
         }
     }
 }

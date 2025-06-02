@@ -1,4 +1,5 @@
 ﻿using DBC.Data;
+using DBC.Interfaces;
 using DBC.Models.PostgreSQL;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +13,12 @@ namespace DBC.Controllers
     [Route("/group")]
     public class GroupController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly ElasticsearchClient _elasticsearchClient;
         private readonly ILogger<GroupController> _logger;
-        public GroupController(AppDbContext context, ILogger<GroupController> logger, ElasticsearchClient elasticsearchClient)
+        private readonly IGroupService _groupService;
+        public GroupController(ILogger<GroupController> logger,IGroupService groupService)
         {
-            _elasticsearchClient = elasticsearchClient;
-            _context = context;
             _logger = logger;
+            _groupService = groupService;
         }
         [HttpPost("add")]
         public async Task<IActionResult> AddGroup([FromBody] GroupModel group)
@@ -29,126 +28,101 @@ namespace DBC.Controllers
             {
                 return BadRequest();
             }
-            var existingDomain = await _context.Domains
-            .FirstOrDefaultAsync(d => d.Forest == group.Domain.Forest);
-            if (existingDomain == null)
-                return NotFound("Domain not exists");
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                group.Domain = existingDomain;
-                _context.Groups.Add(group);
-                var status = await _context.SaveChangesAsync();
-                if (status == 0)
+                var result = await _groupService.AddGroup(group);
+                if (result is not null)
                 {
-                    throw new Exception("SQL AddGroup Error");
+                    return Ok(result);
                 }
-                await transaction.CommitAsync();
+                else
+                {
+                    return BadRequest();
+                }
             }
             catch (Exception e)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError("[AddGroup]: " + e.ToString());
-                return StatusCode(500);
+                _logger.LogError("[AddGroup]: " + e.Message);
+                return Problem(e.Message);
             }
-
-
-            var indexResponse = await _elasticsearchClient.IndexAsync(group.ToElastic(), i => i
-                .Index("groups")
-                .Id(group.Id)
-            );
-
-            if (!indexResponse.IsValidResponse)
-                return StatusCode(500, "ElasticSearch error");
-
-            group.isIndexed = true;
-            _context.Groups.Update(group);
-            await _context.SaveChangesAsync();
-
-            return Ok(indexResponse);
         }
 
 
         [HttpPost("update")]
         public async Task<IActionResult> UpdateGroup([FromBody] GroupModel group)
         {
+            _logger.LogInformation("[UpdateGroup]: " + JsonConvert.SerializeObject(group));
             if (group == null)
             {
                 return BadRequest();
             }
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                _context.Groups.Update(group);
-                var status = await _context.SaveChangesAsync();
-                if (status == 0)
+                var result = await _groupService.UpdateGroup(group);
+                if (result is not null)
                 {
-                    throw new Exception("SQL UpdateGroup Error");
+                    return Ok(result);
                 }
-                await transaction.CommitAsync();
+                else
+                {
+                    return BadRequest();
+                }
             }
             catch (Exception e)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError("[UpdateGroup]: " + e.ToString());
-                return StatusCode(500);
+                _logger.LogError("[UpdateGroup]: " + e.Message);
+                return Problem(e.Message);
             }
-
-
-            var indexResponse = await _elasticsearchClient.IndexAsync(group.ToElastic(), i => i
-                .Index("groups")
-                .Id(group.Id)
-            );
-
-            if (!indexResponse.IsValidResponse)
-                return StatusCode(500, "ElasticSearch error");
-
-            group.isIndexed = true;
-            _context.Groups.Update(group);
-            await _context.SaveChangesAsync();
-
-
-            return Ok(indexResponse);
         }
 
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteGroups([FromQuery] string id)
         {
-            if (string.IsNullOrWhiteSpace(id) || !Guid.TryParse(id, out var guid))
-                return BadRequest("Invalid id");
-
-            var group = await _context.Groups.FirstOrDefaultAsync(g => g.Id == guid);
-            if (group == null)
-                return NotFound("group not found");
-
-            _context.Groups.Remove(group);
-            await _context.SaveChangesAsync();
-
-            var response = await _elasticsearchClient.DeleteAsync<GroupModel>(guid, d => d.Index("groups"));
-
-            if (!response.IsValidResponse)
-                return StatusCode(500, "Elasticsearch delete failed");
-
-            return Ok("group deleted");
+            _logger.LogInformation("[DeleteGroups]: " + JsonConvert.SerializeObject(id));
+            if (id == null)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var result = await _groupService.DeleteGroups(id);
+                if (result)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("[DeleteGroups]: " + e.Message);
+                return Problem(e.Message);
+            }
         }
 
         [HttpPost("reindexate")]
         public async Task<IActionResult> Reindexate()
         {
-            var groups = await _context.Groups.Include(g => g.Domain).ToListAsync();
-            foreach (var group in groups)
+            _logger.LogInformation("[reindexate]: ");
+            try
             {
-                var response = await _elasticsearchClient.IndexAsync(group, i => i
-                    .Index("groups")
-                    .Id(group.Id));
-
-                if (response.IsValidResponse)
+                var result = await _groupService.Reindexate();
+                if (result)
                 {
-                    group.isIndexed = true;
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
                 }
             }
-            await _context.SaveChangesAsync();
-            return Ok("Resync complete");
+            catch (Exception e)
+            {
+                _logger.LogError("[reindexate]: " + e.Message);
+                return Problem(e.Message);
+            }
         }
     }
 }
