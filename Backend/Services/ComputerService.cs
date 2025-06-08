@@ -72,7 +72,7 @@ namespace Backend.Services
         {
             try
             {
-                var result = await _client.PostAsync("https://localhost:7080/computer/add", new StringContent(JsonConvert.SerializeObject(computer),
+                var result = await _client.PostAsync("https://localhost:7080/computer/add", new StringContent(System.Text.Json.JsonSerializer.Serialize(computer),
                  Encoding.UTF8, "application/json"));
 
                 return result.IsSuccessStatusCode;

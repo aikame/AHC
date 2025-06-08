@@ -24,10 +24,11 @@ namespace Backend.Controllers
         }
 
         [HttpPost("CollectComputerInfo")]
-        public async Task<IActionResult> AddToGroup([FromBody] ComputerModel computer)
+        public async Task<IActionResult> CollectComputerInfo([FromBody] ComputerModel computer)
         {
             try
             {
+                _logger.LogInformation("[CollectComputerInfo]: " + System.Text.Json.JsonSerializer.Serialize(computer));
                 var result = await _computerService.CollectComputerInfo(computer);
                 return result ? Ok() : BadRequest("Error");
             }
